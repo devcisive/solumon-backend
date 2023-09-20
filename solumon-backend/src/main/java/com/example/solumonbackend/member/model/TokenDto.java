@@ -2,11 +2,12 @@ package com.example.solumonbackend.member.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class TokenDto {
 
-  @Data
+  @Getter
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Request {
@@ -15,7 +16,7 @@ public class TokenDto {
     private String refreshToken;
   }
 
-  @Data
+  @Getter
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Response {

@@ -1,10 +1,8 @@
 package com.example.solumonbackend.member.service;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.INVALID_REFRESH_TOKEN;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
 
-import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
@@ -13,7 +11,6 @@ import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
-import com.example.solumonbackend.member.model.TokenDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +30,13 @@ public class MemberService {
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
-    log.info("[MemberService : signUp] 이메일 중복 확인");
-    validateDuplicated(request.getEmail());
-    log.info("[MemberService : signUp] 이메일 중복 확인 통과");
+    log.info("[signUp] 이메일 중복 확인. email : {}", request.getEmail());
+    validateDuplicatedEmail(request.getEmail());
+    log.info("[signUp] 이메일 중복 확인 통과");
+    log.info("[signUp] 닉네임 중복 확인. nickname : {}", request.getNickname());
+    validateDuplicatedNickName(request.getNickname());
+    log.info("[signUp] 닉네임 중복 확인 통과");
+
     return Response.memberToResponse(
         memberRepository.save(Member.builder()
             .email(request.getEmail())
@@ -48,14 +49,15 @@ public class MemberService {
     );
   }
 
-  /**
-   * email 중복 확인
-   *
-   * @param email
-   */
-  public void validateDuplicated(String email) {
+  public void validateDuplicatedEmail(String email) {
     log.info("[MemberService : validateDuplicated]");
     if (memberRepository.findByEmail(email).isPresent()) {
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_EMAIL);
+    }
+  }
+
+  public void validateDuplicatedNickName(String nickName) {
+    if (memberRepository.findByNickname(nickName).isPresent()) {
       throw new MemberException(ErrorCode.ALREADY_REGISTERED_EMAIL);
     }
   }

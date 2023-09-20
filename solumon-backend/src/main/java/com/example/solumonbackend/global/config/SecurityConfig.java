@@ -3,48 +3,51 @@ package com.example.solumonbackend.global.config;
 import com.example.solumonbackend.global.security.CustomAccessDeniedHandler;
 import com.example.solumonbackend.global.security.CustomAuthenticationEntryPoint;
 import com.example.solumonbackend.global.security.JwtAuthenticationFilter;
-import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-  private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper;
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
+  @Bean
+  protected SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
-    http.httpBasic().disable()
-        .csrf().disable()
-        .sessionManagement()
-        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+    httpSecurity.
+        httpBasic().disable() // REST API 는 UI를 사용하지 않으므로 기본설정을 비활성화
+        .csrf().disable()  // REST API 는 csrf 보안이 필요 없으므로 비활성화
 
-        .and()
+        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        .and() // JWT Token 인증방식으로 세션은 필요 없으므로 비활성화
+
+        // 회원가입, 로그인은 모두에게 허용
         .authorizeRequests()
-        // 권한설정은 나중에 다시 설정
-        .antMatchers("/", "user/sign-up/general", "user/sign-in/**", "exception").permitAll()
-//        .antMatchers("/").hasRole("ROLE_GENERAL")
-//        .antMatchers("/").hasRole("ROLE_BANNED")
-//        .antMatchers("/").hasRole("ROLE_PERMANENT_BAN")
-        .anyRequest().permitAll()
+        .antMatchers("/", "/user/sign-up/general", "/user/sign-in/**", "/exception")
+        .permitAll()
 
-        .and()
-        .exceptionHandling()
-        .accessDeniedHandler(new CustomAccessDeniedHandler())
+        .antMatchers().authenticated() // 인증받은 사람이면 모두 가능
+        .anyRequest().authenticated(); // 그 외의 요청들은 인증받은 사람이면 모두 가능
+
+    // exception Handler
+    httpSecurity.exceptionHandling()
         .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper))
+        .accessDeniedHandler(new CustomAccessDeniedHandler());
 
-        .and()
-        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-            UsernamePasswordAuthenticationFilter.class);
+    // jwt filter
+    httpSecurity.addFilterBefore(jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class);
+
+    return httpSecurity.build();
   }
 }

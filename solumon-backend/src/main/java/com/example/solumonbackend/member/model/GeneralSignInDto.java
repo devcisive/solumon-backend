@@ -4,26 +4,30 @@ import com.example.solumonbackend.member.type.MemberRole;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 public class GeneralSignInDto {
 
-  @Data
+  @Getter
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
   public static class Request {
 
-    @NotNull
+    @NotBlank
+    @Email
     private String email;
-    @NotNull
+
+    @NotBlank
     private String password;
   }
 
+  @Getter
   @Builder
   public static class Response {
 
@@ -38,7 +42,7 @@ public class GeneralSignInDto {
 
   }
 
-  @Data
+  @Getter
   public static class CreateTokenDto {
 
     private Long memberId;
