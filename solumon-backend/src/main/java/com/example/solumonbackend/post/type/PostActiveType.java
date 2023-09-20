@@ -1,8 +1,5 @@
 package com.example.solumonbackend.post.type;
 
-public enum PostState {
-
-  ONGOING,
-  COMPLETED
-
+public enum PostActiveType {
+  WRITE,VOTE,CHAT
 }
