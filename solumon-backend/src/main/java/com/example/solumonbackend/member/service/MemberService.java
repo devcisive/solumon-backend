@@ -6,15 +6,18 @@ import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_ME
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
+import com.example.solumonbackend.member.entity.Ban;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
+import com.example.solumonbackend.member.repository.BanRepository;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +33,7 @@ public class MemberService {
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+  private final BanRepository banRepository;
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
@@ -92,6 +96,48 @@ public class MemberService {
         .refreshToken(
             refreshToken)
         .build();
+  }
+
+  /**
+   * (#7) 유저 신고 (5회 이상시 자동 밴)
+   *
+   * @param member
+   * @param memberId
+   */
+  public void reportMember(Member member, Long memberId) {
+
+    // 피신고자가 존재하는 유저인지 확인
+    Member reportedMember = memberRepository.findByMemberId(memberId)
+        .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
+
+    // 이미 신고당한 상태면 중복신고불가
+    if (banRepository.existsByMember(reportedMember)) {
+      throw new MemberException(ErrorCode.ALREADY_REPORT_MEMBER);
+    }
+
+    // 신고횟수 + 1
+    reportedMember.setReportCount(member.getReportCount() + 1);
+
+    // 신고횟수가 5의 배수일때마다 밴
+    if (reportedMember.getBanCount() % 5 == 0) {
+      reportedMember.setBanCount(member.getBanCount() + 1);
+      reportedMember.setRole(MemberRole.BANNED);
+    }
+
+    // 밴이 3회 이상일 경우 영구정지
+    if (reportedMember.getBanCount() >= 3) {
+      reportedMember.setRole(MemberRole.PERMANENT_BAN);
+    }
+
+    memberRepository.save(reportedMember);
+
+    banRepository.save(
+        Ban.builder()
+            .member(reportedMember)
+            .bannedBy(member.getMemberId())
+            .bannedAt(LocalDateTime.now())
+            .build());
+
   }
 
 }

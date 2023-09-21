@@ -16,7 +16,8 @@ public enum ErrorCode {
   ALREADY_EXIST_USERNAME("닉네임이 중복됩니다. 다른 닉네임으로 설정해주세요"),
 
   INVALID_REFRESH_TOKEN("refresh token이 유효하지 않습니다."),
-  NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다."),;
+  NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다."),
+  ALREADY_REPORT_MEMBER("이미 신고상태인 사용자입니다.");
 
   private final String description;
 
