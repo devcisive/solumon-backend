@@ -14,6 +14,7 @@ import com.example.solumonbackend.post.type.PostState;
 import java.util.List;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,13 +26,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
-@RequestMapping("/users")
 @RequiredArgsConstructor
+@RequestMapping("/user")
 public class MemberController {
 
   private final MemberService memberService;
 
+  @PostMapping("/sign-up/general")
+  public ResponseEntity<GeneralSignUpDto.Response> signUp(
+      @Valid @RequestBody GeneralSignUpDto.Request request) {
+    log.info("[sign-up/general] 회원가입 진행. userEmail : {} ", request.getEmail());
+    return ResponseEntity.ok(memberService.signUp(request));
+  }
+
+  @PostMapping("/sign-in/general")
+  public ResponseEntity<GeneralSignInDto.Response> signIn(
+      @Valid @RequestBody GeneralSignInDto.Request request) {
+    return ResponseEntity.ok(memberService.signIn(request));
+  }
+
+  @GetMapping("/exception")
+  public void exception() throws RuntimeException {
+    throw new RuntimeException("접근이 금지되었습니다.");
+  }
+
+  @GetMapping("/test")
+  public void test(@AuthenticationPrincipal MemberDetail memberDetail) {
+    System.out.println(memberDetail.getMember().getEmail());
+  }
 
   /**
    * (#6) 내 정보 조회(프로필)
@@ -57,14 +81,12 @@ public class MemberController {
    * @return
    */
   @GetMapping("/users/mylog")
-  public ResponseEntity<?> getMyActivePosts(
-      @AuthenticationPrincipal Member member,
-      @RequestParam PostActiveType postActiveType,
-      @RequestParam PostState postState,
+  public ResponseEntity<?> getMyActivePosts(@AuthenticationPrincipal Member member,
+      @RequestParam PostActiveType postActiveType, @RequestParam PostState postState,
       @RequestParam PostOrder postOrder) {
 
-    List<MyActivePostDto> myActivePosts
-        = memberService.getMyActivePosts(member, postState, postActiveType, postOrder);
+    List<MyActivePostDto> myActivePosts = memberService.getMyActivePosts(member, postState,
+        postActiveType, postOrder);
 
     return ResponseEntity.ok().body(myActivePosts);
   }
@@ -76,8 +98,7 @@ public class MemberController {
    * @return
    */
   @PutMapping
-  public ResponseEntity<?> updateMyInfo(
-      @AuthenticationPrincipal Member member,
+  public ResponseEntity<?> updateMyInfo(@AuthenticationPrincipal Member member,
       @RequestBody @Valid MemberUpdateDto.Request update) {
 
     MemberUpdateDto.Response response = memberService.updateMyInfo(member, update);
@@ -93,8 +114,7 @@ public class MemberController {
    * @return
    */
   @DeleteMapping("/withdraw")
-  public ResponseEntity<?> withdrawMember(
-      @AuthenticationPrincipal Member member,
+  public ResponseEntity<?> withdrawMember(@AuthenticationPrincipal Member member,
       @RequestBody WithdrawDto.Request request) {
 
     Response response = memberService.withdrawMember(member, request);
@@ -110,14 +130,11 @@ public class MemberController {
    * @return
    */
   @PostMapping("/interests")
-  public ResponseEntity<?> registerInterest(
-      @AuthenticationPrincipal Member member,
-      @Valid @RequestBody MemberInterestDto.Request request
-  ) {
+  public ResponseEntity<?> registerInterest(@AuthenticationPrincipal Member member,
+      @Valid @RequestBody MemberInterestDto.Request request) {
 
     MemberInterestDto.Response response = memberService.registerInterest(member, request);
     return ResponseEntity.ok().body(response);
 
   }
-
 }

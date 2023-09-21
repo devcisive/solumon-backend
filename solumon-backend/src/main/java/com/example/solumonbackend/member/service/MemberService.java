@@ -1,44 +1,81 @@
 package com.example.solumonbackend.member.service;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
-
-import com.example.solumonbackend.global.exception.MemberException;
+import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.repository.BanRepository;
 import com.example.solumonbackend.member.repository.MemberRepository;
-import com.example.solumonbackend.member.repository.MemberTagRepository;
+import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyActivePostDto;
-import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostActiveType;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostState;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-@Service
-@RequiredArgsConstructor
 public class MemberService {
 
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
-  private final BanRepository banRepository;
-  private final TagRepository tagRepository;
-  private final MemberTagRepository memberTagRepository;
-  private final PostRepository postRepository;
+  @Transactional
+  public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
+    log.info("[signUp] 이메일 중복 확인. email : {}", request.getEmail());
+    validateDuplicatedEmail(request.getEmail());
+    log.info("[signUp] 이메일 중복 확인 통과");
+    log.info("[signUp] 닉네임 중복 확인. nickname : {}", request.getNickname());
+    validateDuplicatedNickName(request.getNickname());
+    log.info("[signUp] 닉네임 중복 확인 통과");
 
+    return Response.memberToResponse(memberRepository.save(
+        Member.builder().email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword())).nickname(request.getNickname())
+            .role(MemberRole.GENERAL).reportCount(0).banCount(0).build()));
+  }
+
+  public void validateDuplicatedEmail(String email) {
+    log.info("[MemberService : validateDuplicated]");
+    if (memberRepository.findByEmail(email).isPresent()) {
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_EMAIL);
+    }
+  }
+
+  public void validateDuplicatedNickName(String nickName) {
+    if (memberRepository.findByNickname(nickName).isPresent()) {
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
+    }
+  }
+
+  @Transactional
+  public GeneralSignInDto.Response signIn(GeneralSignInDto.Request request) {
+    Member member = memberRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
+    if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
+      throw new MemberException(NOT_CORRECT_PASSWORD);
+    }
+
+    CreateTokenDto createTokenDto = CreateTokenDto.builder().memberId(member.getMemberId())
+        .email(member.getEmail()).role(member.getRole()).build();
+
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(),
+        createTokenDto.getRoles());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(),
+        createTokenDto.getRoles());
+
+    refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
+
+    return GeneralSignInDto.Response.builder().memberId(member.getMemberId())
+        .accessToken(accessToken).refreshToken(refreshToken).build();
+  }
 
   /**
    * (#6) 내 정보 조회
@@ -77,9 +114,7 @@ public class MemberService {
    * @param request
    * @return
    */
-  public MemberUpdateDto.Response updateMyInfo(
-      Member member,
-      MemberUpdateDto.Request request) {
+  public MemberUpdateDto.Response updateMyInfo(Member member, MemberUpdateDto.Request request) {
 
     //기존 비밀번호가 일치해야 정보수정 가능
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
@@ -164,8 +199,4 @@ public class MemberService {
 
     return interests;
   }
-
-
 }
-
-

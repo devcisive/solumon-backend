@@ -19,13 +19,13 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Entity
-@EntityListeners(AuditingEntityListener.class)
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Entity
+@EntityListeners(AuditingEntityListener.class)
 public class Member {
 
   @Id
@@ -38,6 +38,7 @@ public class Member {
   private String email;
 
   private String password;
+
   @Column(unique = true)
   private String nickname;
 
