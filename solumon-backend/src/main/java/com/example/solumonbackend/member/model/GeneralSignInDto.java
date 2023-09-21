@@ -1,9 +1,6 @@
 package com.example.solumonbackend.member.model;
 
-import com.example.solumonbackend.member.type.MemberRole;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.ArrayList;
-import java.util.List;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -37,24 +34,10 @@ public class GeneralSignInDto {
     @JsonProperty("access_token")
     private String accessToken;
 
-//    @JsonProperty("refresh_token")
-//    private String refreshToken;
+    @JsonProperty("refresh_token")
+    private String refreshToken;
 
   }
 
-  @Getter
-  public static class CreateTokenDto {
 
-    private Long memberId;
-    private String email;
-    private List<String> roles;
-
-    @Builder
-    public CreateTokenDto(Long memberId, String email, MemberRole role) {
-      this.memberId = memberId;
-      this.email = email;
-      this.roles = new ArrayList<>();
-      roles.add(role.value());
-    }
-  }
 }
