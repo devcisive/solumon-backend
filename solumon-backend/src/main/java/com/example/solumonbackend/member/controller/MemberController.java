@@ -1,6 +1,9 @@
 package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.model.GeneralSignInDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;

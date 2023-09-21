@@ -1,31 +1,55 @@
 package com.example.solumonbackend.member.service;
 
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
+
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
+import com.example.solumonbackend.member.entity.RefreshToken;
+import com.example.solumonbackend.member.model.CreateTokenDto;
+import com.example.solumonbackend.member.model.GeneralSignInDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
+import com.example.solumonbackend.member.repository.MemberTagRepository;
+import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyActivePostDto;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostActiveType;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostState;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
+@Service
+@RequiredArgsConstructor
 public class MemberService {
 
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+  private final PostRepository postRepository;
+  private final TagRepository tagRepository;
+  private final MemberTagRepository memberTagRepository;
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
