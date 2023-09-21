@@ -27,5 +27,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     response.setContentType("application/json");
     response.setCharacterEncoding("utf-8");
     response.getWriter().write(objectMapper.writeValueAsString("인증이 실패하였습니다."));
+
+
   }
 }

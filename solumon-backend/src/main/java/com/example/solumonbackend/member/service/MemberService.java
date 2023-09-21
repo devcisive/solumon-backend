@@ -7,11 +7,13 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.entity.RefreshToken;
+import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignInDto.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
 import com.example.solumonbackend.member.repository.MemberRepository;
+import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ public class MemberService {
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider jwtTokenProvider;
+  private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
@@ -58,52 +61,37 @@ public class MemberService {
 
   public void validateDuplicatedNickName(String nickName) {
     if (memberRepository.findByNickname(nickName).isPresent()) {
-      throw new MemberException(ErrorCode.ALREADY_REGISTERED_EMAIL);
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
     }
   }
 
+  @Transactional
   public GeneralSignInDto.Response signIn(GeneralSignInDto.Request request) {
     Member member = memberRepository.findByEmail(request.getEmail())
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
+
     CreateTokenDto createTokenDto = CreateTokenDto.builder()
         .memberId(member.getMemberId())
         .email(member.getEmail())
         .role(member.getRole())
         .build();
+
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(),
+        createTokenDto.getRoles());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(),
+        createTokenDto.getRoles());
+
+    refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
+
     return GeneralSignInDto.Response.builder()
         .memberId(member.getMemberId())
-        .accessToken(jwtTokenProvider.createToken(member.getEmail(), createTokenDto.getRoles()))
+        .accessToken(accessToken)
+        .refreshToken(
+            refreshToken)
         .build();
   }
 
-  /**
-   * 수정중
-  @Transactional
-  public TokenDto.Response reIssue(TokenDto.Request request) {
-    if (!jwtTokenProvider.validateTokenExpiration(request.getRefreshToken())) {
-      throw new CustomSecurityException(INVALID_REFRESH_TOKEN);
-    }
-
-    Member member = findMemberByToken(request);
-
-    if (!member.getRefreshToken().equals(request.getRefreshToken())) {
-      throw new InvalidRefreshTokenException();
-    }
-
-    String accessToken = jwtTokenProvider.createToken(member.getEmail());
-    String refreshToken = jwtTokenProvider.createRefreshToken();
-    member.updateRefreshToken(refreshToken);
-    return new TokenResponseDto(accessToken, refreshToken);
-  }
-
-  public Member findMemberByToken(TokenRequestDto requestDto) {
-    Authentication auth = jwtTokenProvider.getAuthentication(requestDto.getAccessToken());
-    UserDetails userDetails = (UserDetails) auth.getPrincipal();
-    String username = userDetails.getUsername();
-    return memberRepository.findByEmail(username).orElseThrow(MemberNotFoundException::new);
-  }
-  **/
 }

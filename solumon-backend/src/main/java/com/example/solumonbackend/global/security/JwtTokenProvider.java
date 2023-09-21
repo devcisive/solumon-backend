@@ -1,5 +1,12 @@
 package com.example.solumonbackend.global.security;
 
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.MemberException;
+import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.entity.RefreshToken;
+import com.example.solumonbackend.member.model.CreateTokenDto;
+import com.example.solumonbackend.member.repository.MemberRepository;
+import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
@@ -25,10 +32,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-  private static final long TOKEN_VALID_TIME = 1000L * 60 * 30; // 30분
-  private static final long REFRESH_TOKEN_VALID_TIME = 1000L * 60 * 60 * 24 * 7; // 7일
+  private static final long ACCESS_TOKEN_VALID_TIME = 1000L * 60 * 30; // 30분 밀리초
+  private static final long REFRESH_TOKEN_VALID_TIME = 1000L * 60 * 24 * 60 * 60; // 2개월 밀리초
 
   private final UserDetailsService memberDetailService;
+  private final MemberRepository memberRepository;
+  private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
   @Value("${spring.jwt.secretKey}")
   private String secretKey;
@@ -38,7 +47,17 @@ public class JwtTokenProvider {
     secretKey = Base64.getEncoder().encodeToString(secretKey.getBytes(StandardCharsets.UTF_8));
   }
 
-  public String createToken(String email, List<String> roles) {
+  public String createAccessToken(String email, List<String> roles) {
+    log.info("[createAccessToken]");
+    return this.createToken(email, roles, ACCESS_TOKEN_VALID_TIME);
+  }
+
+  public String createRefreshToken(String email, List<String> roles) {
+    log.info("[createRefreshToken]");
+    return this.createToken(email, roles, REFRESH_TOKEN_VALID_TIME);
+  }
+
+  private String createToken(String email, List<String> roles, long tokenValidTime) {
     log.info("[createToken]");
     Claims claims = Jwts.claims().setSubject(email);
     claims.put("roles", roles);
@@ -48,18 +67,7 @@ public class JwtTokenProvider {
     return Jwts.builder()
         .setClaims(claims)
         .setIssuedAt(now)
-        .setExpiration(new Date(now.getTime() + TOKEN_VALID_TIME))
-        .signWith(SignatureAlgorithm.HS256, this.secretKey)
-        .compact();
-  }
-
-  public String createRefreshToken(String email, List<String> roles) {
-    log.info("[createRefreshToken]");
-    Date now = new Date();
-
-    return Jwts.builder()
-        .setIssuedAt(now)
-        .setExpiration(new Date(now.getTime() + REFRESH_TOKEN_VALID_TIME))
+        .setExpiration(new Date(System.currentTimeMillis() + tokenValidTime))
         .signWith(SignatureAlgorithm.HS256, this.secretKey)
         .compact();
   }
@@ -92,6 +100,23 @@ public class JwtTokenProvider {
 
   public String resolveToken(HttpServletRequest request) {
     return request.getHeader("X-AUTH-TOKEN");
+  }
+
+  public String reIssue(String refreshToken) {
+    Member byEmail = memberRepository.findByEmail(getMemberEmail(refreshToken))
+        .orElseThrow(() -> new MemberException(
+            ErrorCode.NOT_FOUND_MEMBER));
+
+    CreateTokenDto createTokenDto = CreateTokenDto.builder()
+        .memberId(byEmail.getMemberId())
+        .email(byEmail.getEmail())
+        .role(byEmail.getRole()).build();
+
+    String accessToken = createAccessToken(createTokenDto.getEmail(), createTokenDto.getRoles());
+
+    refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
+
+    return accessToken;
   }
 
 }
