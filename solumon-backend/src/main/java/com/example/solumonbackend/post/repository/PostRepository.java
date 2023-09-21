@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
+  // 이미지 받아오는 방식 정하면 더 진행가능
   @Query(value = "SELECT p.post_id, p.title, p.contents, p.created_at, p.member_member_id, "
       + "(SELECT COUNT(cm.post_post_id) FROM channel_member cm WHERE cm.post_post_id = p.post_id GROUP BY cm.post_post_id) AS channel_members, "
       + "(SELECT COUNT(vote.post_post_id) FROM vote WHERE vote.post_post_id = p.post_id GROUP BY vote.post_post_id) AS vote_members "

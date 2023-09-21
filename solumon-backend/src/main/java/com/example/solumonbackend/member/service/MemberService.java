@@ -159,7 +159,7 @@ public class MemberService {
     List<String> interests = new ArrayList<>();
 
     for (MemberTag memberTag : memberTags) {
-      interests.add(memberTag.getTag().getName());
+      interests.add(String.valueOf(memberTag.getTag()));
     }
 
     return interests;
