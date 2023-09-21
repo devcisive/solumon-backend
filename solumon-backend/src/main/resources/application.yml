@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/solumon?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: create
+  jwt:
+    secretKey: zerobaseTeamProjectSolumonJWTSecretKeyDevcisiver
+  redis:
+    host: localhost
+    port: 6379
+kakao-rest-api-key: "478ce5c02a05e42ebd74f42edf66e003"
+kakao-admin-key: "cf989e1e8281daee26ddf58b3a183d66"

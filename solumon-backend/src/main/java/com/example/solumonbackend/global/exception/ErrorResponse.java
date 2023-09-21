@@ -14,6 +14,6 @@ import lombok.Setter;
 public class ErrorResponse {
 
   private String status;
-  private MemberErrorCode errorCode;
+  private ErrorCode errorCode;
   private String errorMessage;
 }
