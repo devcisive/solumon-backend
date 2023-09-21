@@ -16,9 +16,9 @@ import org.springframework.stereotype.Service;
 public class KakaoService {
   private final MemberRepository memberRepository;
 
-  @Value("${kakao-rest-api-key}")
+//  @Value("${kakao-rest-api-key}")
   private String clientId;
-  private String redirectUri = "http://localhost:8080/users/sign-in/kakao"
+  private String redirectUri = "http://localhost:8080/users/sign-in/kakao";
   public String getKakaoToken(String code) {
     String requestUrl = "https://kauth.kakao.com/oauth/token";
     try {

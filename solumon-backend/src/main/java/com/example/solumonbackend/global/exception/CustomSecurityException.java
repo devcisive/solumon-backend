@@ -11,9 +11,13 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class ErrorResponse {
+public class CustomSecurityException extends RuntimeException{
 
-  private String status;
   private ErrorCode errorCode;
   private String errorMessage;
+
+  public CustomSecurityException(ErrorCode errorCode) {
+    this.errorCode = errorCode;
+    this.errorMessage = errorCode.getDescription();
+  }
 }
