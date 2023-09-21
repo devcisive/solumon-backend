@@ -1,5 +1,8 @@
 package com.example.solumonbackend.global.config;
 
+import com.example.solumonbackend.global.security.CustomAccessDeniedHandler;
+import com.example.solumonbackend.global.security.CustomAuthenticationEntryPoint;
+import com.example.solumonbackend.global.security.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @RequiredArgsConstructor
@@ -15,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
   private final ObjectMapper objectMapper;
+  private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
   @Bean
   protected SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
@@ -28,11 +33,20 @@ public class SecurityConfig {
 
         // 회원가입, 로그인은 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/sign-up/**", "/user/sign-in/**", "/exception")
+        .antMatchers("/", "/user/sign-up/general", "/user/sign-in/**", "/exception")
         .permitAll()
 
         .antMatchers().authenticated() // 인증받은 사람이면 모두 가능
         .anyRequest().authenticated(); // 그 외의 요청들은 인증받은 사람이면 모두 가능
+
+    // exception Handler
+    httpSecurity.exceptionHandling()
+        .authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper))
+        .accessDeniedHandler(new CustomAccessDeniedHandler());
+
+    // jwt filter
+    httpSecurity.addFilterBefore(jwtAuthenticationFilter,
+        UsernamePasswordAuthenticationFilter.class);
 
     return httpSecurity.build();
   }
