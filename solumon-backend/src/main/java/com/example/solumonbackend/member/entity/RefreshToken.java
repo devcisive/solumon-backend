@@ -8,7 +8,6 @@ import org.springframework.data.redis.core.index.Indexed;
 
 @RedisHash(timeToLive = 60 * 60 * 24 * 31 * 2)
 @Getter
-@Builder
 public class RefreshToken {
 
   @Id
@@ -17,6 +16,7 @@ public class RefreshToken {
   private String accessToken;
   private String refreshToken;
 
+  @Builder
   public RefreshToken(String accessToken, String refreshToken) {
     this.accessToken = accessToken;
     this.refreshToken = refreshToken;
