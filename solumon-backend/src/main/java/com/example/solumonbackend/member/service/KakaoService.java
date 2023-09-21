@@ -118,7 +118,7 @@ public class KakaoService {
     refreshTokenRedisRepository.deleteByAccessToken(oldAccessToken);
 
     return KakaoTokenUpdateDto.Response.builder()
-        .memberId(memberDetail.getMemberId())
+        .memberId(memberDetail.getMember().getMemberId())
         .accessToken(newAccessToken)
         .refreshToken(newRefreshToken)
         .build();
@@ -134,7 +134,7 @@ public class KakaoService {
 
       if (connection.getResponseCode() != 200) {
         return KakaoLogOutDto.Response.builder()
-            .memberId(memberDetail.getMemberId())
+            .memberId(memberDetail.getMember().getMemberId())
             .status("로그아웃에 실패했습니다.")
             .build();
       }
@@ -143,7 +143,7 @@ public class KakaoService {
     }
 
     return KakaoLogOutDto.Response.builder()
-        .memberId(memberDetail.getMemberId())
+        .memberId(memberDetail.getMember().getMemberId())
         .status("로그아웃에 성공하였습니다.")
         .build();
   }
