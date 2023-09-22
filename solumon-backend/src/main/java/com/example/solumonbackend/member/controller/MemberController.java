@@ -38,8 +38,8 @@ public class MemberController {
   }
 
   @PostMapping("/sign-in/kakao")
-  public ResponseEntity<?> kakaoLogIn(@RequestParam String code) {
-    return ResponseEntity.ok(kakaoService.kakaoLogIn(code));
+  public ResponseEntity<?> kakaoSignIn(@RequestParam String code) {
+    return ResponseEntity.ok(kakaoService.kakaoSignIn(code));
   }
 
   @PostMapping("/sign-in/general")

@@ -67,7 +67,7 @@ public class KakaoService {
   }
 
   @Transactional
-  public KakaoLogInDto.Response kakaoLogIn(String code) {
+  public KakaoLogInDto.Response kakaoSignIn(String code) {
     JsonElement tokenInfoJson = getKakaoTokenByCode(code, "http://localhost:8080/user/sign-up/kakao");
     String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
