@@ -20,7 +20,8 @@ public enum ErrorCode {
   NOT_CORRECT_PASSWORD("비밀번호가 일치하지 않습니다."),
   ALREADY_REGISTERED_NICKNAME("이미 등록된 닉네임 입니다. 다른 닉네임을 사용해 주세요"),
   INVALID_REFRESH_TOKEN("refresh token이 유효하지 않습니다."),
-  NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다.");
+  NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다."),
+  UNREGISTERED_ACCOUNT("탈퇴한 회원입니다.");
 
   private final String description;
 

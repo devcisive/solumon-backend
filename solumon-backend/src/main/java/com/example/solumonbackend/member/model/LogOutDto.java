@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 @Getter
-public class KakaoLogOutDto {
+public class LogOutDto {
 
   @Builder
   public static class Response {
