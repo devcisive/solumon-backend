@@ -1,6 +1,6 @@
 package com.example.solumonbackend.member.service;
 
-import com.example.solumonbackend.global.exception.MemberErrorCode;
+import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.model.MemberDetail;
@@ -20,13 +20,8 @@ public class MemberDetailService implements UserDetailsService {
   @Override
   public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
     Member member = memberRepository.findByEmail(email).orElseThrow(() -> new MemberException(
-        MemberErrorCode.NOT_FOUND_MEMBER));
+        ErrorCode.NOT_FOUND_MEMBER));
 
-    return MemberDetail.builder()
-        .memberId(member.getMemberId())
-        .email(member.getEmail())
-        .password(member.getPassword())
-        .role(member.getRole())
-        .build();
+    return new MemberDetail(member);
   }
 }

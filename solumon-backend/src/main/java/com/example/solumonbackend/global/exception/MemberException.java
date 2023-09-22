@@ -13,10 +13,10 @@ import lombok.Setter;
 @Builder
 public class MemberException extends RuntimeException {
 
-  private MemberErrorCode errorCode;
+  private ErrorCode errorCode;
   private String errorMessage;
 
-  public MemberException(MemberErrorCode errorCode) {
+  public MemberException(ErrorCode errorCode) {
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }
