@@ -9,7 +9,9 @@ public class KakaoSignUpDto {
   @Builder
   public static class Response {
     private Long memberId;
-    private String accessToken;
-    private String refreshToken;
+    private Long kakaoId;
+    private String email;
+    private String nickname;
+
   }
 }
