@@ -1,6 +1,6 @@
 package com.example.solumonbackend.post.controller;
 
-import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.service.VoteService;
 import lombok.RequiredArgsConstructor;
@@ -16,16 +16,16 @@ public class VoteController {
   private final VoteService voteService;
 
   @PostMapping
-  public ResponseEntity<?> createVote(@AuthenticationPrincipal Member member,
+  public ResponseEntity<?> createVote(@AuthenticationPrincipal MemberDetail memberDetail,
                                       @PathVariable long postId,
                                       @RequestBody VoteAddDto.Request dto) {
-    return ResponseEntity.ok(voteService.createVote(member, postId, dto));
+    return ResponseEntity.ok(voteService.createVote(memberDetail.getMember(), postId, dto));
   }
 
   @DeleteMapping
-  public ResponseEntity<?> deleteVote(@AuthenticationPrincipal Member member,
+  public ResponseEntity<?> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
                                       @PathVariable long postId) {
-    voteService.deleteVote(member, postId);
+    voteService.deleteVote(memberDetail.getMember(), postId);
     return ResponseEntity.ok("게시글이 삭제되었습니다.");
   }
 
