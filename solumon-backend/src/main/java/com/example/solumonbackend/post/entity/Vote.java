@@ -1,12 +1,17 @@
 package com.example.solumonbackend.post.entity;
 
 import com.example.solumonbackend.member.entity.Member;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Vote {
   @Id
@@ -14,9 +19,11 @@ public class Vote {
   private Long voteId;
 
   @ManyToOne
+  @JoinColumn(name = "post_id")
   private Post post;
 
   @ManyToOne
+  @JoinColumn(name = "member_id")
   private Member member;
 
   private int selectedNum;

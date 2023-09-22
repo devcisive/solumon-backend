@@ -12,16 +12,14 @@ import javax.persistence.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class PostTag {
+public class Image {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long postTagId;
+  private Long imageId;
 
   @ManyToOne
   @JoinColumn(name = "post_id")
   private Post post;
 
-  @ManyToOne
-  @JoinColumn(name = "tag_id")
-  private Tag tag;
+  private String imageUrl;
 }
