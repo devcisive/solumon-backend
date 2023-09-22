@@ -8,9 +8,9 @@ spring:
     hibernate:
       ddl-auto: create
   jwt:
-    secretKey: zerobaseTeamProjectSolumonJWTSecretKeyDevcisiver
+    secretKey: 
   redis:
     host: localhost
     port: 6379
-kakao-rest-api-key: "478ce5c02a05e42ebd74f42edf66e003"
-kakao-admin-key: "cf989e1e8281daee26ddf58b3a183d66"
+kakao-rest-api-key: 
+kakao-admin-key: 

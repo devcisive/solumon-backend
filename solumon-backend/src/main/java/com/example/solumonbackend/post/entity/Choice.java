@@ -1,11 +1,16 @@
 package com.example.solumonbackend.post.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+
+@Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Choice {
   @Id
@@ -13,6 +18,7 @@ public class Choice {
   private Long choiceId;
 
   @ManyToOne
+  @JoinColumn(name = "post_id")
   private Post post;
 
   private int choiceNum;
