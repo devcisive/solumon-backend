@@ -47,7 +47,6 @@ public class MemberService {
             .nickname(request.getNickname())
             .role(MemberRole.GENERAL)
             .reportCount(0)
-            .banCount(0)
             .build())
     );
   }
