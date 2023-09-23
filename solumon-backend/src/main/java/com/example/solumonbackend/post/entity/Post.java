@@ -39,6 +39,10 @@ public class Post {
 
   private LocalDateTime endAt;
 
+  private int voteCount;
+
+  private int chatCount;
+
   public void setTitle(String title) {
     this.title = title;
   }
