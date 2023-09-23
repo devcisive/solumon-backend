@@ -6,7 +6,7 @@ import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
-import com.example.solumonbackend.member.model.KakaoLogInDto;
+import com.example.solumonbackend.member.model.KakaoSignInDto;
 import com.example.solumonbackend.member.model.KakaoSignUpDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
@@ -39,14 +39,17 @@ public class KakaoService {
   @Value("${kakao-rest-api-key}")
   private String clientId;
 
+  @Value("${kakao-redirect-url}")
+  private String redirectUrl;
+
   @Transactional
   public KakaoSignUpDto.Response kakaoSignUp(String code, String nickname) {
 
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, "http://localhost:8080/user/sign-up/kakao");
+    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
     unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
+    String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
-    String accessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
-    JsonElement userInfoJson = getUserInfoFromToken(accessToken);
+    JsonElement userInfoJson = getUserInfoFromToken(kakaoAccessToken);
     Long kakaoIdNum = userInfoJson.getAsJsonObject().get("id").getAsLong();
     String email = userInfoJson.getAsJsonObject().get("kakao_account").getAsJsonObject().get("email").getAsString();
 
@@ -55,6 +58,7 @@ public class KakaoService {
         .kakaoId(kakaoIdNum)
         .nickname(nickname)
         .role(MemberRole.GENERAL)
+        .isFirstLogin(true)
         .build();
     memberRepository.save(member);
 
@@ -67,8 +71,10 @@ public class KakaoService {
   }
 
   @Transactional
-  public KakaoLogInDto.Response kakaoSignIn(String code) {
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, "http://localhost:8080/user/sign-up/kakao");
+  public KakaoSignInDto.Response kakaoSignIn(String code) {
+
+    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
+    unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
     String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
     String email = getUserInfoFromToken(kakaoAccessToken)
@@ -91,8 +97,9 @@ public class KakaoService {
 
     refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
 
-    return KakaoLogInDto.Response.builder()
+    return KakaoSignInDto.Response.builder()
         .memberId(member.getMemberId())
+        .isFirstLogin(member.isFirstLogin())
         .accessToken(accessToken)
         .refreshToken(refreshToken)
         .build();

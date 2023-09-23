@@ -9,8 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 public class PasswordUtil {
 
   public static void checkPassword(String password) {
-    if (password.length() < 8) {
-      throw new MemberException(ErrorCode.PASSWORD_MUST_BE_LONGER_THAN_8_CHARACTERS);
+    if (password.length() < 8 || password.length() > 20) {
+      throw new MemberException(ErrorCode.PASSWORD_MUST_BE_BETWEEN_8_TO_20_CHARCTERS);
     }
 
     boolean hasSpecialCharacter = false;

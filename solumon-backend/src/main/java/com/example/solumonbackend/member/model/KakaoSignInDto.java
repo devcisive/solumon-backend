@@ -4,12 +4,13 @@ import lombok.Builder;
 import lombok.Getter;
 
 
-public class KakaoLogInDto {
+public class KakaoSignInDto {
 
   @Getter
   @Builder
   public static class Response {
     private Long memberId;
+    private boolean isFirstLogin;
     private String accessToken;
     private String refreshToken;
   }

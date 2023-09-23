@@ -89,9 +89,7 @@ public class MemberService {
     return GeneralSignInDto.Response.builder()
         .memberId(member.getMemberId())
         .accessToken(accessToken)
-        .refreshToken(
-            refreshToken)
+        .refreshToken(refreshToken)
         .build();
   }
-
 }

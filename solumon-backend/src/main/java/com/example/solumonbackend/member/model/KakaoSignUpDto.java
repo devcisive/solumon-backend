@@ -3,6 +3,7 @@ package com.example.solumonbackend.member.model;
 import lombok.Builder;
 import lombok.Getter;
 
+
 public class KakaoSignUpDto {
 
   @Getter
