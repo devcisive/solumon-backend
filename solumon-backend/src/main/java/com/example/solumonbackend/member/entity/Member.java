@@ -53,7 +53,8 @@ public class Member {
   @LastModifiedDate
   private LocalDateTime modifiedAt;
 
-  private int banCount;
-
   private LocalDateTime unregisteredAt;
+
+  private boolean isFirstLogin;
+
 }
