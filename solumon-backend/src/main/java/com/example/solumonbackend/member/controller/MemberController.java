@@ -8,15 +8,14 @@ import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.service.KakaoService;
 import com.example.solumonbackend.member.service.MemberService;
 import javax.validation.Valid;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,9 +39,9 @@ public class MemberController {
 
   @PostMapping("/sign-up/kakao")
   public ResponseEntity<KakaoSignUpDto.Response> kakaoSignUp(@RequestParam String code,
-                                                              @RequestParam
+                                                              @RequestParam @Valid
                                                               @NotBlank(message = "닉네임은 빈칸일 수 없습니다.")
-                                                              @Max(value = 10, message = "닉네임은 최대 10자입니다.")
+                                                              @Size(max = 10, message = "닉네임은 최대 10자입니다.")
                                                               String nickname) {
     return ResponseEntity.ok(kakaoService.kakaoSignUp(code, nickname));
   }
@@ -53,8 +52,8 @@ public class MemberController {
   }
 
   @PostMapping("/sign-in/kakao")
-  public ResponseEntity<KakaoSignInDto.Response> kakaoSignIn(@ModelAttribute("kAccessToken") String kakaoAccessToken) {
-    return ResponseEntity.ok(kakaoService.kakaoSignIn(kakaoAccessToken));
+  public ResponseEntity<KakaoSignInDto.Response> kakaoSignIn(@RequestParam String code) {
+    return ResponseEntity.ok(kakaoService.kakaoSignIn(code));
   }
 
   @GetMapping("/exception")

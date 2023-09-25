@@ -10,7 +10,7 @@ public class KakaoSignInDto {
   @Builder
   public static class Response {
     private Long memberId;
-    private boolean isFirstLogin;
+    private Boolean isFirstLogIn;
     private String accessToken;
     private String refreshToken;
   }

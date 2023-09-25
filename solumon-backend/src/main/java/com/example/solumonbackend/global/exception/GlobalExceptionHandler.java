@@ -1,5 +1,6 @@
 package com.example.solumonbackend.global.exception;
 
+import javax.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -26,5 +27,11 @@ public class GlobalExceptionHandler {
     log.error("{} is occurred", e.getMessage());
     return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException,
         ErrorCode.MethodArgumentNotValidException.getDescription());
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ErrorResponse handleConstraintViolationException(ConstraintViolationException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.INPUT_INVALID, e.getMessage());
   }
 }

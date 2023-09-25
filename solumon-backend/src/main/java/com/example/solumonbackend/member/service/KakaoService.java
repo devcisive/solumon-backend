@@ -1,5 +1,6 @@
 package com.example.solumonbackend.member.service;
 
+import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
@@ -13,18 +14,19 @@ import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
 @RequiredArgsConstructor
@@ -35,17 +37,21 @@ public class KakaoService {
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
   private final JwtTokenProvider jwtTokenProvider;
+  private final RestTemplate restTemplate;
 
   @Value("${kakao-rest-api-key}")
   private String clientId;
 
-  @Value("${kakao-redirect-url}")
-  private String redirectUrl;
+  @Value("${kakao-signup-redirect-url}")
+  private String signUpRedirectUrl;
+
+  @Value("${kakao-signin-redirect-url}")
+  private String signInRedirectUrl;
 
   @Transactional
   public KakaoSignUpDto.Response kakaoSignUp(String code, String nickname) {
 
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
+    JsonElement tokenInfoJson = getKakaoTokenByCode(code, signUpRedirectUrl);
     unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
     String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
@@ -53,14 +59,16 @@ public class KakaoService {
     Long kakaoIdNum = userInfoJson.getAsJsonObject().get("id").getAsLong();
     String email = userInfoJson.getAsJsonObject().get("kakao_account").getAsJsonObject().get("email").getAsString();
 
+    checkIfNotAlreadyMember(email);
+
     Member member = Member.builder()
         .email(email)
         .kakaoId(kakaoIdNum)
         .nickname(nickname)
         .role(MemberRole.GENERAL)
-        .isFirstLogin(true)
+        .isFirstLogIn(true)
         .build();
-    memberRepository.save(member);
+    member = memberRepository.save(member);
 
     return KakaoSignUpDto.Response.builder()
         .memberId(member.getMemberId())
@@ -73,12 +81,13 @@ public class KakaoService {
   @Transactional
   public KakaoSignInDto.Response kakaoSignIn(String code) {
 
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
+    JsonElement tokenInfoJson = getKakaoTokenByCode(code, signInRedirectUrl);
     unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
-    String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
-    String email = getUserInfoFromToken(kakaoAccessToken)
-        .getAsJsonObject().get("kakao_account")
+    String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
+    JsonElement userInfoJson = getUserInfoFromToken(kakaoAccessToken);
+
+    String email = userInfoJson.getAsJsonObject().get("kakao_account")
         .getAsJsonObject().get("email").getAsString();
 
     Member member = memberRepository.findByEmail(email)
@@ -99,82 +108,103 @@ public class KakaoService {
 
     return KakaoSignInDto.Response.builder()
         .memberId(member.getMemberId())
-        .isFirstLogin(member.isFirstLogin())
+        .isFirstLogIn(member.isFirstLogIn())
         .accessToken(accessToken)
         .refreshToken(refreshToken)
         .build();
   }
 
+  private JsonElement getKakaoTokenByCode(String code, String redirectUri) {
+    // 접속할 uri 생성
+    URI uri = UriComponentsBuilder
+        .fromUriString("https://kauth.kakao.com/oauth/token")
+        .encode()
+        .build()
+        .toUri();
 
-  public JsonElement getKakaoTokenByCode(String code, String redirectUri) {
-    try {
-      HttpURLConnection connection
-          = (HttpURLConnection) new URL("https://kauth.kakao.com/oauth/token").openConnection();
-      connection.setRequestMethod("POST");
-      connection.setDoOutput(true);
-      connection.setRequestProperty("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+    // 파라미터 삽입 (contentType이 application/x-www-form-urlencoded로 지정되어 있는데 자동변환이 multivaluemap으로부터 가능함)
+    MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
+    requestBody.add("grant_type", "authorization_code");
+    requestBody.add("client_id", clientId);
+    requestBody.add("redirect_uri", redirectUri);
+    requestBody.add("code", code);
 
-      try (BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(connection.getOutputStream()))) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("grant_type=authorization_code")
-            .append("&client_id=").append(clientId)
-            .append("&redirect_uri=").append(redirectUri)
-            .append("&code=").append(code);
+    // 헤더 설정 후 POST 요청 보냄
+    RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
+        .post(uri)
+        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+        .body(requestBody);
 
-        bufferedWriter.write(sb.toString());
-        bufferedWriter.flush();
-        return readJson(connection);
-      }
-    } catch (IOException e) {
-      log.error("getKakaoTokenByCode에서 IOException 발생: " + e.getMessage());
+    ResponseEntity<String> responseEntity = restTemplate.exchange(requestEntity, String.class);
+
+    // 한 번 토큰을 발급받은 코드의 재사용 등이 금지되어 있어서 받아온 값이 null 아닌지 확인
+    checkIfKakaoCodeWasValid(responseEntity.getBody());
+
+    // String 형태로 받아온 값을 json으로 파싱
+    return JsonParser.parseString(responseEntity.getBody());
+  }
+
+  // 카카오 관련 오류는 MemberException이 아닌 CustomSecurityException을 던짐
+  private void checkIfKakaoCodeWasValid(String tokenInfoJson) {
+    if (tokenInfoJson ==  null) {
+      throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_CODE);
     }
-    return null;
   }
 
   private void unlinkTokenAndThrowExceptionIfNoEmail(JsonElement tokenInfoJson) {
-
+    // 받아온 token 항목 중에서 제출한 개인정보 범위인 scope(optional field)를 확인. 동의할 수 있는 항목이 email밖에 없기에 null과 비교
     if (tokenInfoJson.getAsJsonObject().get("scope") == null) {
-      try {
-        HttpURLConnection unlinkConnection
-            = (HttpURLConnection) new URL("https://kapi.kakao.com/v1/user/unlink").openConnection();
-        unlinkConnection.setRequestMethod("POST");
-        unlinkConnection.setDoOutput(true);
-        unlinkConnection.setRequestProperty("Authorization",
-            "Bearer " + tokenInfoJson.getAsJsonObject().get("access_token").getAsString());
-        throw new MemberException(ErrorCode.EMAIL_IS_REQUIRED);
-      } catch (IOException e) {
-        log.error("unlinkTokenAndThrowExceptionIfNoEmail에서 IOException 발생: " + e.getMessage());
-      }
+      URI uri = UriComponentsBuilder
+          .fromUriString("https://kapi.kakao.com/v1/user/unlink")
+          .encode()
+          .build()
+          .toUri();
+
+      RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
+          .post(uri)
+          .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+          .header("Authorization",
+              "Bearer " + tokenInfoJson.getAsJsonObject().get("access_token").getAsString())
+          .body(new LinkedMultiValueMap<>());
+
+      restTemplate.exchange(requestEntity, String.class);
+
+      throw new MemberException(ErrorCode.EMAIL_IS_REQUIRED);
     }
   }
 
-  private JsonElement readJson(HttpURLConnection connection) {
-    StringBuilder result = new StringBuilder();
-    try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-      String line = "";
-      while ((line = bufferedReader.readLine()) != null) {
-        result.append(line);
-      }
-    } catch (IOException e) {
-      log.error("readJson에서 IOException 발생: " + e.getMessage());
-    }
-    return JsonParser.parseString(result.toString());
-  }
 
   private JsonElement getUserInfoFromToken(String accessToken) {
-    try {
-      HttpURLConnection connection
-          = (HttpURLConnection) new URL("https://kapi.kakao.com/v2/user/me").openConnection();
-      connection.setRequestMethod("GET");
-      connection.setDoOutput(true);
-      connection.setRequestProperty("Authorization", "Bearer " + accessToken);
-      connection.setRequestProperty("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
 
-      return readJson(connection);
-    } catch (IOException e) {
-      log.error("getUserInfoFromToken에서 IOException 발생: " + e.getMessage());
+    URI uri = UriComponentsBuilder
+        .fromUriString("https://kapi.kakao.com/v2/user/me")
+        .encode()
+        .build()
+        .toUri();
+
+    RequestEntity<Void> requestEntity = RequestEntity
+        .get(uri)
+        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+        .header("Authorization", "Bearer " + accessToken)
+        .build();
+
+    ResponseEntity<String> responseEntity = restTemplate.exchange(requestEntity, String.class);
+
+    checkIfKakaoTokenWasValid(responseEntity.getBody());
+
+    return JsonParser.parseString(responseEntity.getBody());
+  }
+
+  private void checkIfKakaoTokenWasValid(String userInfoJson) {
+    if (userInfoJson == null) {
+      throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_TOKEN);
     }
-    return null;
+  }
+
+  private void checkIfNotAlreadyMember(String email) {
+    if (memberRepository.existsByEmail(email)) {
+      throw new MemberException(ErrorCode.ALREADY_EXIST_MEMBER);
+    }
   }
 
   private void checkIfNotUnregisteredMember(Member member) {
