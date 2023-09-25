@@ -1,15 +1,17 @@
 package com.example.solumonbackend.post.repository;
 
-import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ImageRepository extends JpaRepository<Image, Long> {
+public interface PostTagRepository extends JpaRepository<PostTag, Long> {
 
-  List<Image> findAllByPost(Post post);
+  List<PostTag> findAllByPost(Post post);
+
+  void deleteAllByPost(Post post);
 
 }

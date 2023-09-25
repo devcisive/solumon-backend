@@ -7,6 +7,7 @@ import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
+import com.example.solumonbackend.member.service.KakaoService;
 import com.example.solumonbackend.member.service.MemberService;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
@@ -32,20 +33,29 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
-public class MemberController {
 
+public class MemberController {
+  private final KakaoService kakaoService;
   private final MemberService memberService;
 
   @PostMapping("/sign-up/general")
-  public ResponseEntity<GeneralSignUpDto.Response> signUp(
-      @Valid @RequestBody GeneralSignUpDto.Request request) {
+  public ResponseEntity<GeneralSignUpDto.Response> signUp(@Valid @RequestBody GeneralSignUpDto.Request request) {
     log.info("[sign-up/general] 회원가입 진행. userEmail : {} ", request.getEmail());
     return ResponseEntity.ok(memberService.signUp(request));
   }
 
+  @PostMapping("/sign-up/kakao")
+  public ResponseEntity<?> kakaoSignUp(@RequestParam String code, @RequestParam String nickname) {
+    return ResponseEntity.ok(kakaoService.kakaoSignUp(code, nickname));
+  }
+
+  @PostMapping("/sign-in/kakao")
+  public ResponseEntity<?> kakaoSignIn(@RequestParam String code) {
+    return ResponseEntity.ok(kakaoService.kakaoSignIn(code));
+  }
+
   @PostMapping("/sign-in/general")
-  public ResponseEntity<GeneralSignInDto.Response> signIn(
-      @Valid @RequestBody GeneralSignInDto.Request request) {
+  public ResponseEntity<GeneralSignInDto.Response> signIn(@Valid @RequestBody GeneralSignInDto.Request request) {
     return ResponseEntity.ok(memberService.signIn(request));
   }
 

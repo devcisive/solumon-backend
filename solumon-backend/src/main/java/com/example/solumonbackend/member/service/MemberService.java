@@ -242,8 +242,8 @@ public class MemberService {
         .collect(Collectors.toList());
 
     // 후에  로그인할 때 관심태그 창을 자동으로 띄우지 않게 하기 위함
-    if (member.isFirstLogin()) {
-      member.setFirstLogin(false);
+    if (member.isFirstLogIn()) {
+      member.setFirstLogIn(false);
     }
 
     return MemberInterestDto.Response.memberToResponse(member, resultInterests);

@@ -1,15 +1,13 @@
 package com.example.solumonbackend.post.repository;
 
-import com.example.solumonbackend.post.entity.Image;
+import com.example.solumonbackend.post.entity.Choice;
 import com.example.solumonbackend.post.entity.Post;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-
 @Repository
-public interface ImageRepository extends JpaRepository<Image, Long> {
+public interface ChoiceRepository extends JpaRepository<Choice, Long> {
 
-  List<Image> findAllByPost(Post post);
+  void deleteAllByPost(Post post);
 
 }

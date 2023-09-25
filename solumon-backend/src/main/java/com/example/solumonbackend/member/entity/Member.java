@@ -55,6 +55,5 @@ public class Member {
 
   private LocalDateTime unregisteredAt;
 
-  private boolean isFirstLogin;
-
+  private boolean isFirstLogIn;
 }
