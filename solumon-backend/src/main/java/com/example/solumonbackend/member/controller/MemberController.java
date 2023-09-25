@@ -1,6 +1,5 @@
 package com.example.solumonbackend.member.controller;
 
-import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.MemberDetail;
@@ -8,16 +7,16 @@ import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.model.WithdrawDto.Response;
 import com.example.solumonbackend.member.service.MemberService;
-import com.example.solumonbackend.post.model.MyActivePostDto;
-import com.example.solumonbackend.post.type.PostActiveType;
+import com.example.solumonbackend.post.model.MyParticipatePostDto;
+import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostState;
-import java.util.List;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -63,48 +62,54 @@ public class MemberController {
   /**
    * (#6) 내 정보 조회(프로필)
    *
-   * @param member
+   * @param memberDetail
    * @return
    */
   @GetMapping
-  public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal Member member) {
+  public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
 
-    MemberLogDto.Info response = memberService.getMyInfo(member);
+    MemberLogDto.Info response = memberService.getMyInfo(memberDetail.getMember());
     return ResponseEntity.ok().body(response);
   }
 
 
   /**
    * (#6) 내 활동한 게시글목록 조회 (작성한 글/ 채팅참여한 글/ 투표한 참여글)
-   *
-   * @param member
-   * @param postActiveType
+   * @param memberDetail
+   * @param postParticipateType
    * @param postState
    * @param postOrder
+   * @param pageRequestCustom
    * @return
    */
-  @GetMapping("/users/mylog")
-  public ResponseEntity<?> getMyActivePosts(@AuthenticationPrincipal Member member,
-      @RequestParam PostActiveType postActiveType, @RequestParam PostState postState,
-      @RequestParam PostOrder postOrder) {
+  @GetMapping("/mylog")
+  public ResponseEntity<Page<MyParticipatePostDto>> getMyActivePosts(
+      @AuthenticationPrincipal MemberDetail memberDetail,
+      @RequestParam("postParticipateType") PostParticipateType postParticipateType,
+      @RequestParam("postState") PostState postState,
+      @RequestParam("postOrder") PostOrder postOrder,
+      PageRequestCustom pageRequestCustom) {
 
-    List<MyActivePostDto> myActivePosts = memberService.getMyActivePosts(member, postState,
-        postActiveType, postOrder);
+    Page<MyParticipatePostDto> myParticipatePosts
+        = memberService.getMyParticipatePosts(memberDetail.getMember(),
+                        postState, postParticipateType, postOrder,
+                        pageRequestCustom.of());
 
-    return ResponseEntity.ok().body(myActivePosts);
+    return ResponseEntity.ok().body(myParticipatePosts);
   }
+
 
   /**
    * (#6) 내 정보 수정 (프로필)
    *
-   * @param member
+   * @param memberDetail
    * @return
    */
   @PutMapping
-  public ResponseEntity<?> updateMyInfo(@AuthenticationPrincipal Member member,
+  public ResponseEntity<MemberUpdateDto.Response> updateMyInfo(@AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody @Valid MemberUpdateDto.Request update) {
 
-    MemberUpdateDto.Response response = memberService.updateMyInfo(member, update);
+    MemberUpdateDto.Response response = memberService.updateMyInfo(memberDetail.getMember(), update);
     return ResponseEntity.ok().body(response);
   }
 
@@ -112,15 +117,15 @@ public class MemberController {
   /**
    * (#6) 회원 탈퇴
    *
-   * @param member
+   * @param memberDetail
    * @param request
    * @return
    */
   @DeleteMapping("/withdraw")
-  public ResponseEntity<?> withdrawMember(@AuthenticationPrincipal Member member,
+  public ResponseEntity<WithdrawDto.Response> withdrawMember(@AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody WithdrawDto.Request request) {
 
-    Response response = memberService.withdrawMember(member, request);
+    WithdrawDto.Response response = memberService.withdrawMember(memberDetail.getMember(), request);
     return ResponseEntity.ok().body(response);
   }
 
@@ -128,15 +133,15 @@ public class MemberController {
   /**
    * (#8) 관심주제 선택
    *
-   * @param member
+   * @param memberDetail
    * @param request
    * @return
    */
   @PostMapping("/interests")
-  public ResponseEntity<?> registerInterest(@AuthenticationPrincipal Member member,
+  public ResponseEntity<MemberInterestDto.Response> registerInterest(@AuthenticationPrincipal MemberDetail memberDetail,
       @Valid @RequestBody MemberInterestDto.Request request) {
 
-    MemberInterestDto.Response response = memberService.registerInterest(member, request);
+    MemberInterestDto.Response response = memberService.registerInterest(memberDetail.getMember(), request);
     return ResponseEntity.ok().body(response);
 
   }

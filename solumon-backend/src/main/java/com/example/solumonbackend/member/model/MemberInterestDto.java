@@ -13,7 +13,7 @@ public class MemberInterestDto {
   public static class Request {
 
 
-    private Long member_id;
+    private Long memberId;
     private List<String> interests;
 
 
@@ -24,12 +24,12 @@ public class MemberInterestDto {
   public static class Response {
 
 
-    private Long member_id;
+    private Long memberId;
     private List<String> interests;
 
-    public static Response of(Member member, List<String> interests) {
+    public static Response memberToResponse(Member member, List<String> interests) {
       return Response.builder()
-          .member_id(member.getMemberId())
+          .memberId(member.getMemberId())
           .interests(interests)
           .build();
     }

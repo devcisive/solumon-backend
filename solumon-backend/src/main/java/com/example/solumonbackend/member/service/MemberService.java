@@ -23,17 +23,19 @@ import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Tag;
-import com.example.solumonbackend.post.model.MyActivePostDto;
+import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
-import com.example.solumonbackend.post.type.PostActiveType;
 import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostState;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,10 +62,15 @@ public class MemberService {
     validateDuplicatedNickName(request.getNickname());
     log.info("[signUp] 닉네임 중복 확인 통과");
 
-    return Response.memberToResponse(memberRepository.save(
-        Member.builder().email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword())).nickname(request.getNickname())
-            .role(MemberRole.GENERAL).reportCount(0).banCount(0).build()));
+    return Response.memberToResponse(
+        memberRepository.save(Member.builder()
+            .email(request.getEmail())
+            .password(passwordEncoder.encode(request.getPassword()))
+            .nickname(request.getNickname())
+            .role(MemberRole.GENERAL)
+            .reportCount(0)
+            .build())
+    );
   }
 
   public void validateDuplicatedEmail(String email) {
@@ -87,8 +94,11 @@ public class MemberService {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
 
-    CreateTokenDto createTokenDto = CreateTokenDto.builder().memberId(member.getMemberId())
-        .email(member.getEmail()).role(member.getRole()).build();
+    CreateTokenDto createTokenDto = CreateTokenDto.builder()
+        .memberId(member.getMemberId())
+        .email(member.getEmail())
+        .role(member.getRole())
+        .build();
 
     String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(),
         createTokenDto.getRoles());
@@ -97,8 +107,12 @@ public class MemberService {
 
     refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
 
-    return GeneralSignInDto.Response.builder().memberId(member.getMemberId())
-        .accessToken(accessToken).refreshToken(refreshToken).build();
+    return GeneralSignInDto.Response.builder()
+        .memberId(member.getMemberId())
+        .accessToken(accessToken)
+        .refreshToken(
+            refreshToken)
+        .build();
   }
 
   /**
@@ -109,24 +123,31 @@ public class MemberService {
    */
   public MemberLogDto.Info getMyInfo(Member member) {
 
-    List<MemberTag> memberTags = memberTagRepository.findAllByMember(member);
-    List<String> strMemberTags = this.toStrMemberTags(memberTags);
+    // List<MemberTag>  ->  List<String>
+    List<String> strMemberTags = memberTagRepository.findAllByMember_MemberId(member.getMemberId())
+        .stream().map(memberTag -> memberTag.getTag().getName())
+        .collect(Collectors.toList());
 
-    return MemberLogDto.Info.of(member, strMemberTags);
+    return MemberLogDto.Info.memberToResponse(member, strMemberTags);
   }
 
 
   /**
    * (#6) 내 활동한 게시글목록 조회 (작성한 글/ 채팅참여한 글/ 투표한 참여글)
-   *
    * @param member
+   * @param postState
+   * @param postParticipateType
+   * @param postOrder
+   * @param pageable
    * @return
    */
-  public List<MyActivePostDto> getMyActivePosts(Member member, PostState postState,
-      PostActiveType postActiveType, PostOrder postOrder) {
+  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
+      PostState postState, PostParticipateType postParticipateType, PostOrder postOrder,
+      Pageable pageable) {
 
-    return postRepository.getMyActivePosts(member.getMemberId(), postState, postActiveType,
-        postOrder);
+    // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
+    return postRepository.getMyParticipatePostPages(member.getMemberId(),
+        postParticipateType, postState, postOrder, pageable);
 
   }
 
@@ -138,9 +159,10 @@ public class MemberService {
    * @param request
    * @return
    */
+  @Transactional
   public MemberUpdateDto.Response updateMyInfo(Member member, MemberUpdateDto.Request request) {
 
-    //기존 비밀번호가 일치해야 정보수정 가능
+    // 기존 비밀번호가 일치해야 정보수정 가능
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
@@ -157,10 +179,12 @@ public class MemberService {
     member.setNickname(request.getNickname());
     memberRepository.save(member);
 
-    List<MemberTag> memberTags = memberTagRepository.findAllByMember(member);
-    List<String> strMemberTags = this.toStrMemberTags(memberTags);
+    // List<MemberTag>  ->  List<String>
+    List<String> strMemberTags = memberTagRepository.findAllByMember_MemberId(member.getMemberId())
+        .stream().map(memberTag -> memberTag.getTag().getName())
+        .collect(Collectors.toList());
 
-    return MemberUpdateDto.Response.of(member, strMemberTags);
+    return MemberUpdateDto.Response.memberToResponse(member, strMemberTags);
 
   }
 
@@ -171,6 +195,7 @@ public class MemberService {
    * @param member
    * @param request
    */
+  @Transactional
   public WithdrawDto.Response withdrawMember(Member member, WithdrawDto.Request request) {
 
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
@@ -180,7 +205,7 @@ public class MemberService {
     member.setUnregisteredAt(LocalDateTime.now());
     memberRepository.save(member);
 
-    return WithdrawDto.Response.of(member);
+    return WithdrawDto.Response.memberToResponse(member);
   }
 
 
@@ -191,36 +216,38 @@ public class MemberService {
    * @param request
    * @return
    */
+  @Transactional
   public MemberInterestDto.Response registerInterest(Member member,
       MemberInterestDto.Request request) {
 
-    memberTagRepository.deleteAllByMember(member);
+    // 새로 설정 전 기존의 관심주제(MemberTag) 초기화
+    memberTagRepository.deleteAllByMember_MemberId(member.getMemberId());
 
-    // 컨트롤러에서 String 으로 받아온 태그이름을 통해 tag 엔티티를 꺼내서 MemberTag 로 저장
-    List<Tag> tags = new ArrayList<>();
-    for (String interest : request.getInterests()) {
-      tags.add(tagRepository.findByName(interest)
-          .orElseThrow(() -> new RuntimeException(NOT_FOUND_TAG.getDescription()))); //임시로 해놓은 상태
+    // 컨트롤러에서 String 으로 받아온 관심주제이름을 통해 tag 엔티티를 꺼내서 MemberTag 엔티티로 저장
+    List<Tag> tags = request.getInterests().stream()
+        .map(interest -> tagRepository.findByName(interest)
+            .orElseThrow(() -> new RuntimeException(interest + ": " + NOT_FOUND_TAG.getDescription())))
+        .collect(Collectors.toList());
+
+    memberTagRepository.saveAll(
+        tags.stream()
+            .map(tag -> MemberTag.builder().member(member).tag(tag).build())
+            .collect(Collectors.toList())
+    );
+
+    // MemberTag에 제대로 저장됐는지 확인하기 위해 다시 꺼내서 응답으로 보내기위함
+    List<String> resultInterests = memberTagRepository.findAllByMember_MemberId(
+            member.getMemberId())
+        .stream().map(memberTag -> memberTag.getTag().getName())
+        .collect(Collectors.toList());
+
+    // 후에  로그인할 때 관심태그 창을 자동으로 띄우지 않게 하기 위함
+    if (member.isFirstLogin()) {
+      member.setFirstLogin(false);
     }
 
-    for (Tag tag : tags) {
-      memberTagRepository.save(new MemberTag(member, tag));
-    }
-
-    List<MemberTag> memberTags = memberTagRepository.findAllByMember(member);
-
-    List<String> strMemberTags = this.toStrMemberTags(memberTags);
-    return MemberInterestDto.Response.of(member, strMemberTags);
+    return MemberInterestDto.Response.memberToResponse(member, resultInterests);
   }
 
-  // 태그용 메소드(임시)
-  public List<String> toStrMemberTags(List<MemberTag> memberTags) {
-    List<String> interests = new ArrayList<>();
 
-    for (MemberTag memberTag : memberTags) {
-      interests.add(String.valueOf(memberTag.getTag()));
-    }
-
-    return interests;
-  }
 }

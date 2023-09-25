@@ -18,13 +18,13 @@ public class WithdrawDto {
   @Builder
   public static class Response {
 
-    private Long member_id;
+    private Long memberId;
     private String email;
     private String nickname;
 
-    public static Response of(Member member) {
+    public static Response memberToResponse(Member member) {
       return Response.builder()
-          .member_id(member.getMemberId())
+          .memberId(member.getMemberId())
           .email(member.getEmail())
           .nickname(member.getNickname())
           .build();
