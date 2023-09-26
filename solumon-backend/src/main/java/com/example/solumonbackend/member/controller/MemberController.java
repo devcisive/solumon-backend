@@ -61,7 +61,7 @@ public class MemberController {
     System.out.println(memberDetail.getMember().getEmail());
   }
 
-  @GetMapping(value = "/send-emailAuth", produces = "application/json")
+  @GetMapping(value = "/send-email-auth", produces = "application/json")
   @ResponseBody
   public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email) throws Exception {
     String code = emailAuthService.sendSimpleMessage(email);

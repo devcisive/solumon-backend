@@ -6,7 +6,6 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +23,8 @@ public class EmailAuthService {
 
     try {
       javaMailSender.send(message); // 메일 발송
-    } catch (MailException es) {
-      es.printStackTrace();
-      throw new IllegalArgumentException();
+    } catch (Exception e) {
+      log.error("An error occurred during email sending: {}", e.getMessage(), e);
     }
 
     return code;

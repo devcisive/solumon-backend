@@ -33,11 +33,8 @@ public class MemberService {
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
-    System.out.println("validateDuplicatedEmail");
     validateDuplicatedEmail(request.getEmail());
-    System.out.println("validateDuplicatedNickName");
     validateDuplicatedNickName(request.getNickname());
-    System.out.println("checkPassword");
 
     return GeneralSignUpDto.Response.memberToResponse(memberRepository.save(Member.builder()
         .kakaoId(null)

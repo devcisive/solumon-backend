@@ -21,6 +21,7 @@ import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
@@ -230,37 +231,35 @@ class MemberServiceTest {
   @DisplayName("일반 로그인 실패 - 탈퇴한 유저 로그인 시도")
   @Test
   void signInTest_LoginWithDeletedUse() {
-    // 저장 안되어있는 테스트 유저 정보
-    String email = "test@example.com";
-    String password = "password123!";
-
     GeneralSignInDto.Request request = GeneralSignInDto.Request.builder()
-        .email(email)
-        .password(password)
+        .email("test@example.com")
+        .password("password123!")
         .build();
 
     Member mockMember = Member.builder()
         .memberId(5L)
         .kakaoId(null)
-        .email(email)
-        .password(passwordEncoder.encode("password1456@!#$"))
+        .email("test@example.com")
+        .password(request.getPassword())
         .nickname("testUser")
         .role(MemberRole.GENERAL)
         .reportCount(0)
         .isFirstLogIn(true)
+        .unregisteredAt(LocalDateTime.now())
         .build();
 
-    when(memberRepository.findByEmail(email)).thenReturn(Optional.of(mockMember));
+    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(mockMember));
+    when(passwordEncoder.matches(request.getPassword(), mockMember.getPassword())).thenReturn(true);
 
     // when
     MemberException exception = assertThrows(MemberException.class,
         () -> memberService.signIn(request));
 
     // then
-    verify(memberRepository, times(1)).findByEmail(email);
-    verify(passwordEncoder, times(1)).matches(password, mockMember.getPassword());
+    verify(memberRepository, times(1)).findByEmail(request.getEmail());
+    verify(passwordEncoder, times(1)).matches(request.getPassword(), mockMember.getPassword());
 
-    assertEquals(ErrorCode.NOT_CORRECT_PASSWORD, exception.getErrorCode());
+    assertEquals(ErrorCode.UNREGISTERED_MEMBER, exception.getErrorCode());
   }
 
 }
