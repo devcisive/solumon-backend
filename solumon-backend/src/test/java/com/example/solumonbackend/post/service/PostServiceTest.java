@@ -88,7 +88,7 @@ class PostServiceTest {
     PostAddDto.Response response = postService.createPost(member, request, images);
 
     //then
-    assertThat(response.getPostId()).isEqualTo(1l);
+    assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그1");
     assertThat(response.getWriter()).isEqualTo(member.getNickname());
     assertThat(response.getImages().get(0).getImage()).isEqualTo("path");
@@ -127,7 +127,7 @@ class PostServiceTest {
     PostAddDto.Response response = postService.createPost(member, request, images);
 
     //then
-    assertThat(response.getPostId()).isEqualTo(1l);
+    assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그1");
     assertThat(response.getWriter()).isEqualTo(member.getNickname());
 
