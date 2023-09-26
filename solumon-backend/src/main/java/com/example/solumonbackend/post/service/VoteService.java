@@ -1,5 +1,7 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.Vote;
@@ -9,8 +11,10 @@ import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -20,18 +24,16 @@ public class VoteService {
   private final VoteCustomRepository voteCustomRepository;
   private final PostRepository postRepository;
 
-
-  // TODO : exception 수정
+  @Transactional
   public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
-    Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+    Post post = checkExistPostAndIfClosedPost(postId);
 
-    if (post.getEndAt().isBefore(LocalDateTime.now())) {
-      throw new RuntimeException("게시글이 마감되어 투표가 불가능합니다.");
+    if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
+      throw new PostException(ErrorCode.WRITER_CAN_NOT_VOTE);
     }
 
-    if (voteRepository.existsByPostAndMember(post, member)) {
-      throw new RuntimeException("투표는 한번만 가능합니다.");
+    if (voteRepository.existsByPost_PostIdAndMember_MemberId(postId, member.getMemberId())) {
+      throw new PostException(ErrorCode.VOTE_ONLY_ONCE);
     }
 
     voteRepository.save(Vote.builder()
@@ -41,23 +43,29 @@ public class VoteService {
         .build());
 
     return VoteAddDto.Response.builder()
-        .choices(voteCustomRepository.getChoiceResults(post))
+        .choices(voteCustomRepository.getChoiceResults(postId))
         .build();
   }
 
-  // TODO : exception 수정
+  @Transactional
   public void deleteVote(Member member, long postId) {
+    checkExistPostAndIfClosedPost(postId);
+
+    if (!voteRepository.existsByPost_PostIdAndMember_MemberId(postId, member.getMemberId())) {
+      throw new PostException(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL);
+    }
+
+    voteRepository.deleteByPost_PostIdAndMember_MemberId(postId, member.getMemberId());
+  }
+
+  private Post checkExistPostAndIfClosedPost(long postId) {
     Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
 
     if (post.getEndAt().isBefore(LocalDateTime.now())) {
-      throw new RuntimeException("게시글이 마감되어 투표 취소가 불가능합니다.");
+      throw new PostException(ErrorCode.POST_IS_CLOSED);
     }
 
-    if (!voteRepository.existsByPostAndMember(post, member)) {
-      throw new RuntimeException("투표를 한 사람만 취소 가능합니다.");
-    }
-
-    voteRepository.deleteByPostAndMember(post, member);
+    return post;
   }
 }
