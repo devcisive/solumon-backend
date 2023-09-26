@@ -89,7 +89,7 @@ public class MemberController {
    * @param postParticipateType
    * @param postState
    * @param postOrder
-   * @param pageRequestCustom
+   * @param page
    * @return
    */
   @GetMapping("/mylog")
@@ -98,12 +98,13 @@ public class MemberController {
       @RequestParam("postParticipateType") PostParticipateType postParticipateType,
       @RequestParam("postState") PostState postState,
       @RequestParam("postOrder") PostOrder postOrder,
-      PageRequestCustom pageRequestCustom) {
+      @RequestParam("page") int page
+      ) {
 
     Page<MyParticipatePostDto> myParticipatePosts
         = memberService.getMyParticipatePosts(memberDetail.getMember(),
                         postState, postParticipateType, postOrder,
-                        pageRequestCustom.of());
+                        PageRequestCustom.of(page, postOrder));
 
     return ResponseEntity.ok().body(myParticipatePosts);
   }
@@ -149,7 +150,7 @@ public class MemberController {
    */
   @PostMapping("/interests")
   public ResponseEntity<MemberInterestDto.Response> registerInterest(@AuthenticationPrincipal MemberDetail memberDetail,
-      @Valid @RequestBody MemberInterestDto.Request request) {
+      @RequestBody MemberInterestDto.Request request) {
 
     MemberInterestDto.Response response = memberService.registerInterest(memberDetail.getMember(), request);
     return ResponseEntity.ok().body(response);

@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 
+
 public class WithdrawDto {
 
   @Getter
@@ -16,6 +17,7 @@ public class WithdrawDto {
 
 
   @Builder
+  @Getter
   public static class Response {
 
     private Long memberId;

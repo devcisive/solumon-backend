@@ -3,6 +3,7 @@ package com.example.solumonbackend.member.model;
 import com.example.solumonbackend.member.entity.Member;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,13 +17,15 @@ public class MemberUpdateDto {
   @AllArgsConstructor
   public static class Request {
 
-    @NotBlank(message = "닉네임은 필수항목입니다.")
+    @NotBlank(message = "닉네임은 필수 입력 값입니다.")
+    @Pattern(regexp = "^[ㄱ-ㅎ가-힣a-zA-Z0-9-]{2,10}$", message = "닉네임은 특수문자를 제외한 2~10자리여야 합니다.")
     private String nickname;
 
-    @NotBlank(message = "비밀번호는 필수항목입니다.")
-    @Size(min = 8, max = 20, message = "비밀번호는 8자 ~ 20자 입니다.")
+    @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
+    @Pattern(regexp = "^(?=.[0-9])(?=.[a-zA-Z])(?=.*[@#$%^&+=!]).{8,16}$", message = "비밀번호는 8~16자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
     private String password;
 
+    @Pattern(regexp = "^(?=.[0-9])(?=.[a-zA-Z])(?=.*[@#$%^&+=!]).{8,16}$", message = "비밀번호는 8~16자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
     private String newPassword1;
 
     private String newPassword2;
@@ -31,6 +34,7 @@ public class MemberUpdateDto {
 
 
   @Builder
+  @Getter
   public static class Response {
 
     private Long memberId;

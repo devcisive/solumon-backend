@@ -1,7 +1,5 @@
 package com.example.solumonbackend.post.repository;
 
-import static com.example.solumonbackend.post.type.PostOrder.POST_ORDER;
-
 import com.example.solumonbackend.chat.entity.QChannelMember;
 import com.example.solumonbackend.post.entity.QPost;
 import com.example.solumonbackend.post.entity.QVote;
@@ -52,10 +50,11 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     QPost qpost = QPost.post;
 
-    // 조건 (상태, 참여타입)
+
+    // 조건1 (참여타입)
     BooleanExpression participateTypeCondition
         = createParticipateTypeCondition(memberId, postParticipateType, qpost);
-
+    // 조건2 (상태)
     BooleanExpression stateCondition = createStateCondition(postState, qpost);
 
     // 정렬기준
@@ -157,14 +156,14 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   // Order By 값 구하기
-  private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
+  private OrderSpecifier<?> createOrderSpecifier( PostOrder order, QPost qpost) {
 
     if (qpost == null || order == null) {
       throw new RuntimeException("조건값이 없습니다.");
     }
 
     // 최신순)  post.createdAt.desc()
-    if (order == POST_ORDER) {
+    if (order == PostOrder.POST_ORDER) {
       return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
     }
 

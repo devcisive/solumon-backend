@@ -27,4 +27,10 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException,
         ErrorCode.MethodArgumentNotValidException.getDescription());
   }
+
+  @ExceptionHandler(TagException.class)
+  public ErrorResponse handleTagException(TagException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
 }

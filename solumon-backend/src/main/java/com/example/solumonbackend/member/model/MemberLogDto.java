@@ -22,6 +22,7 @@ public class MemberLogDto {
     public static MemberLogDto.Info memberToResponse(Member member, List<String> interests) {
       return Info.builder()
           .memberId(member.getMemberId())
+          .email(member.getEmail())
           .nickname(member.getNickname())
           .interests(interests)
           .build();

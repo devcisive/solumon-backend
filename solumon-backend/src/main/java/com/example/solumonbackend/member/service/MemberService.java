@@ -6,6 +6,7 @@ import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TA
 
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
+import com.example.solumonbackend.global.exception.TagException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
@@ -68,7 +69,7 @@ public class MemberService {
             .password(passwordEncoder.encode(request.getPassword()))
             .nickname(request.getNickname())
             .role(MemberRole.GENERAL)
-            .reportCount(0)
+            .isFirstLogIn(true)
             .build())
     );
   }
@@ -206,12 +207,13 @@ public class MemberService {
     memberRepository.save(member);
 
     return WithdrawDto.Response.memberToResponse(member);
+
   }
 
 
   /**
    * (#8) 관심주제 설정
-   *
+   * 
    * @param member
    * @param request
    * @return
@@ -220,13 +222,14 @@ public class MemberService {
   public MemberInterestDto.Response registerInterest(Member member,
       MemberInterestDto.Request request) {
 
-    // 새로 설정 전 기존의 관심주제(MemberTag) 초기화
+    // 설정 전 기존의 관심주제(MemberTag) 초기화
     memberTagRepository.deleteAllByMember_MemberId(member.getMemberId());
 
     // 컨트롤러에서 String 으로 받아온 관심주제이름을 통해 tag 엔티티를 꺼내서 MemberTag 엔티티로 저장
     List<Tag> tags = request.getInterests().stream()
+        .distinct()  // 중복된 값이 나올 시 패스
         .map(interest -> tagRepository.findByName(interest)
-            .orElseThrow(() -> new RuntimeException(interest + ": " + NOT_FOUND_TAG.getDescription())))
+            .orElseThrow(() -> new TagException(NOT_FOUND_TAG, interest)))
         .collect(Collectors.toList());
 
     memberTagRepository.saveAll(
@@ -241,7 +244,7 @@ public class MemberService {
         .stream().map(memberTag -> memberTag.getTag().getName())
         .collect(Collectors.toList());
 
-    // 후에  로그인할 때 관심태그 창을 자동으로 띄우지 않게 하기 위함
+    // 후에 로그인할 때 관심태그 창을 자동으로 띄우지 않게 하기 위함
     if (member.isFirstLogIn()) {
       member.setFirstLogIn(false);
     }
