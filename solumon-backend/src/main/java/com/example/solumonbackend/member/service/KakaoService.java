@@ -9,6 +9,7 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.KakaoSignInDto;
 import com.example.solumonbackend.member.model.KakaoSignUpDto;
+import com.example.solumonbackend.member.model.StartWithKakao;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
@@ -39,32 +40,58 @@ public class KakaoService {
   private final JwtTokenProvider jwtTokenProvider;
   private final RestTemplate restTemplate;
 
-  @Value("${kakao-rest-api-key}")
+  @Value("${kakao.rest-api-key}")
   private String clientId;
+  @Value("${kakao.redirect-url}")
+  private String redirectUrl;
+  @Value("${kakao.get-token-url}")
+  private String getTokenUrl;
+  @Value("${kakao.unlink-url}")
+  private String unlinkUrl;
+  @Value("${kakao.get-info-url}")
+  private String getInfoUlr;
 
-  @Value("${kakao-signup-redirect-url}")
-  private String signUpRedirectUrl;
+  @Transactional(readOnly = true)
+  public StartWithKakao.Response startWithKakao(String code) {
 
-  @Value("${kakao-signin-redirect-url}")
-  private String signInRedirectUrl;
-
-  @Transactional
-  public KakaoSignUpDto.Response kakaoSignUp(String code, String nickname) {
-
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, signUpRedirectUrl);
+    // uri로부터 받아온 인가 코드로 json 형태의 토큰 정보 가져옴
+    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
+    // 만일 토큰 정보 중 동의 항목에 이메일이 없으면 토큰 무효화, exception 던짐
     unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
+
+    // 토큰 정보로부터 카카오 access token만 가져옴
     String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
 
+    // access token 안에 담긴 json 형태의 사용자 정보 가져옴
     JsonElement userInfoJson = getUserInfoFromToken(kakaoAccessToken);
-    Long kakaoIdNum = userInfoJson.getAsJsonObject().get("id").getAsLong();
-    String email = userInfoJson.getAsJsonObject().get("kakao_account").getAsJsonObject().get("email").getAsString();
+    // 사용자 정보로부터 이메일 추출
+    String email = userInfoJson.getAsJsonObject().get("kakao_account")
+        .getAsJsonObject().get("email").getAsString();
 
+    return StartWithKakao.Response.builder()
+            .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
+            .kakaoAccessToken(kakaoAccessToken) // 추출한 카카오 access token
+            .build();
+  }
+
+  @Transactional
+  public KakaoSignUpDto.Response kakaoSignUp(KakaoSignUpDto.Request request) {
+
+    // 카카오 access token으로부터 json 형태의 사용자 정보 가져옴
+    JsonElement userInfoJson = getUserInfoFromToken(request.getKakaoAccessToken());
+    // 사용자 정보로부터 카카오ID 추출
+    Long kakaoIdNum = userInfoJson.getAsJsonObject().get("id").getAsLong();
+    // 사용자 정보로부터 이메일 추출
+    String email = userInfoJson.getAsJsonObject().get("kakao_account")
+        .getAsJsonObject().get("email").getAsString();
+
+    // 이미 회원이면 throw exception. 리다이렉션 아닌 주소로 들어올 수도 있어서 추가
     checkIfNotAlreadyMember(email);
 
     Member member = Member.builder()
         .email(email)
         .kakaoId(kakaoIdNum)
-        .nickname(nickname)
+        .nickname(request.getNickname()) // 요청에 보낸 사용자 지정 닉네임
         .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .build();
@@ -79,31 +106,34 @@ public class KakaoService {
   }
 
   @Transactional
-  public KakaoSignInDto.Response kakaoSignIn(String code) {
+  public KakaoSignInDto.Response kakaoSignIn(KakaoSignInDto.Request request) {
 
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, signInRedirectUrl);
-    unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
+    // 카카오 액서스 토큰으로부터 json 형태의 사용자 정보 가져옴
+    JsonElement userInfoJson = getUserInfoFromToken(request.getKakaoAccessToken());
 
-    String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
-    JsonElement userInfoJson = getUserInfoFromToken(kakaoAccessToken);
-
+    // 사용자 정보로부터 이메일 추출
     String email = userInfoJson.getAsJsonObject().get("kakao_account")
         .getAsJsonObject().get("email").getAsString();
 
+    // 이메일을 기준으로 회원 엔티티 가져옴
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
+    // 탈퇴한 회원 아닌지 검증
     checkIfNotUnregisteredMember(member);
 
+    // 사용자 아이디, 이메일, 역할 담은 토큰 생성 dto
     CreateTokenDto createTokenDto = CreateTokenDto.builder()
         .memberId(member.getMemberId())
         .email(member.getEmail())
         .role(member.getRole())
         .build();
 
+    // 액서스 토큰과 리프레시 토큰 생성
     String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), createTokenDto.getRoles());
     String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), createTokenDto.getRoles());
 
+    // 레디스에 액서스 토큰과 리프레시 토큰 저장
     refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
 
     return KakaoSignInDto.Response.builder()
@@ -117,7 +147,7 @@ public class KakaoService {
   private JsonElement getKakaoTokenByCode(String code, String redirectUri) {
     // 접속할 uri 생성
     URI uri = UriComponentsBuilder
-        .fromUriString("https://kauth.kakao.com/oauth/token")
+        .fromUriString(getTokenUrl)
         .encode()
         .build()
         .toUri();
@@ -155,7 +185,7 @@ public class KakaoService {
     // 받아온 token 항목 중에서 제출한 개인정보 범위인 scope(optional field)를 확인. 동의할 수 있는 항목이 email밖에 없기에 null과 비교
     if (tokenInfoJson.getAsJsonObject().get("scope") == null) {
       URI uri = UriComponentsBuilder
-          .fromUriString("https://kapi.kakao.com/v1/user/unlink")
+          .fromUriString(unlinkUrl)
           .encode()
           .build()
           .toUri();
@@ -173,11 +203,10 @@ public class KakaoService {
     }
   }
 
-
   private JsonElement getUserInfoFromToken(String accessToken) {
 
     URI uri = UriComponentsBuilder
-        .fromUriString("https://kapi.kakao.com/v2/user/me")
+        .fromUriString(getInfoUlr)
         .encode()
         .build()
         .toUri();
