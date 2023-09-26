@@ -33,7 +33,7 @@ public class SecurityConfig {
 
         // 회원가입, 로그인은 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/sign-up/general", "/user/sign-in/**", "/exception")
+        .antMatchers("/", "/user/sign-up/**", "/user/sign-in/**", "/exception", "/user/send-emailAuth")
         .permitAll()
 
         .antMatchers().authenticated() // 인증받은 사람이면 모두 가능
