@@ -2,6 +2,7 @@ package com.example.solumonbackend.member.service;
 
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
+import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED_MEMBER;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
@@ -11,7 +12,6 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
@@ -33,32 +33,27 @@ public class MemberService {
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
-    log.info("[signUp] 이메일 중복 확인. email : {}", request.getEmail());
     validateDuplicatedEmail(request.getEmail());
-    log.info("[signUp] 이메일 중복 확인 통과");
-    log.info("[signUp] 닉네임 중복 확인. nickname : {}", request.getNickname());
     validateDuplicatedNickName(request.getNickname());
-    log.info("[signUp] 닉네임 중복 확인 통과");
 
-    return Response.memberToResponse(
-        memberRepository.save(Member.builder()
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .nickname(request.getNickname())
-            .role(MemberRole.GENERAL)
-            .reportCount(0)
-            .build())
-    );
+    return GeneralSignUpDto.Response.memberToResponse(memberRepository.save(Member.builder()
+        .kakaoId(null)
+        .email(request.getEmail())
+        .password(passwordEncoder.encode(request.getPassword()))
+        .nickname(request.getNickname())
+        .role(MemberRole.GENERAL)
+        .reportCount(0)
+        .isFirstLogIn(true)
+        .build()));
   }
 
-  public void validateDuplicatedEmail(String email) {
-    log.info("[MemberService : validateDuplicated]");
+  private void validateDuplicatedEmail(String email) {
     if (memberRepository.findByEmail(email).isPresent()) {
       throw new MemberException(ErrorCode.ALREADY_REGISTERED_EMAIL);
     }
   }
 
-  public void validateDuplicatedNickName(String nickName) {
+  private void validateDuplicatedNickName(String nickName) {
     if (memberRepository.findByNickname(nickName).isPresent()) {
       throw new MemberException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
     }
@@ -70,6 +65,10 @@ public class MemberService {
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
       throw new MemberException(NOT_CORRECT_PASSWORD);
+    }
+    // 탈퇴한 유저 걸러내기
+    if (member.getUnregisteredAt() != null) {
+      throw new MemberException(UNREGISTERED_MEMBER);
     }
 
     CreateTokenDto createTokenDto = CreateTokenDto.builder()
@@ -88,8 +87,8 @@ public class MemberService {
     return GeneralSignInDto.Response.builder()
         .memberId(member.getMemberId())
         .accessToken(accessToken)
-        .refreshToken(
-            refreshToken)
+        .refreshToken(refreshToken)
+        .isFirstLogIn(member.isFirstLogIn())
         .build();
   }
 

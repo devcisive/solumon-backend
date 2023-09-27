@@ -172,7 +172,7 @@ public class KakaoService {
 
   private void checkIfNotUnregisteredMember(Member member) {
     if (member.getUnregisteredAt() != null) {
-      throw new MemberException(ErrorCode.UNREGISTERED_ACCOUNT);
+      throw new MemberException(ErrorCode.UNREGISTERED_MEMBER);
     }
   }
 }
