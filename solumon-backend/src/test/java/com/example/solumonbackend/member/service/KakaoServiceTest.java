@@ -67,11 +67,11 @@ class KakaoServiceTest {
   private final String getUserInfoUrl = "https://kapi.kakao.com/v2/user/me";
 
   // kakao variables
-  private final String kakaoAccessToken = "kakaoAccessToken";
+  private final String kakaoAccessToken = "\"kakaoAccessToken\"";
   private final Long memberId = 1L;
   private final Long kakaoId = 123456789L;
-  private final String email = "sample@sample.com";
-  private final String nickname = "kakao";
+  private final String email = "\"sample@sample.com\"";
+  private final String nickname = "\"kakao\"";
 
   // kakao responses -> 카카오 api 응답 예시에서 가져옴
   private final String tokenResponseWithEmail = "{\"token_type\":\"bearer\","
@@ -81,7 +81,7 @@ class KakaoServiceTest {
       + "\"refresh_token_expires_in\":5184000,"
       + "\"scope\":\"account_email\"}";
 
-  private final String tokenResponseWithOutEmail = "{token_type\":\"bearer\","
+  private final String tokenResponseWithOutEmail = "{\"token_type\":\"bearer\","
       + "\"access_token\":" + kakaoAccessToken + ","
       + "\"expires_in\":43199,"
       + "\"refresh_token\":\"${REFRESH_TOKEN}\","
@@ -119,7 +119,7 @@ class KakaoServiceTest {
     StartWithKakao.Response response = kakaoService.startWithKakao(kakaoCode);
     //then
     Assertions.assertEquals(true, response.getIsMember());
-    Assertions.assertEquals(kakaoAccessToken, response.getKakaoAccessToken());
+    Assertions.assertEquals("kakaoAccessToken", response.getKakaoAccessToken());
     this.mockServer.verify(); // expect된 요청이 실제로 요청되었는지 확인
   }
 
@@ -144,7 +144,7 @@ class KakaoServiceTest {
 
     //then
     Assertions.assertEquals(false, response.getIsMember());
-    Assertions.assertEquals(kakaoAccessToken, response.getKakaoAccessToken());
+    Assertions.assertEquals("kakaoAccessToken", response.getKakaoAccessToken());
     this.mockServer.verify();
   }
 
@@ -240,7 +240,7 @@ class KakaoServiceTest {
     Assertions.assertEquals(nickname, response.getNickname());
 
     this.mockServer.verify();
-    verify(memberRepository, times(1)).existsByEmail(email);
+    verify(memberRepository, times(1)).existsByEmail("sample@sample.com");
     verify(memberRepository, times(1)).save(any(Member.class));
   }
 
@@ -284,7 +284,7 @@ class KakaoServiceTest {
     Assertions.assertEquals(ErrorCode.ALREADY_EXIST_MEMBER, exception.getErrorCode());
 
     this.mockServer.verify();
-    verify(memberRepository, times(1)).existsByEmail(email);
+    verify(memberRepository, times(1)).existsByEmail("sample@sample.com");
   }
 
   @Test
@@ -362,7 +362,7 @@ class KakaoServiceTest {
     Assertions.assertEquals(ErrorCode.NOT_FOUND_MEMBER, exception.getErrorCode());
 
     this.mockServer.verify();
-    verify(memberRepository, times(1)).findByEmail(email);
+    verify(memberRepository, times(1)).findByEmail("sample@sample.com");
   }
 
   @Test
@@ -393,6 +393,6 @@ class KakaoServiceTest {
     Assertions.assertEquals(ErrorCode.UNREGISTERED_ACCOUNT, exception.getErrorCode());
 
     this.mockServer.verify();
-    verify(memberRepository, times(1)).findByEmail(email);
+    verify(memberRepository, times(1)).findByEmail("sample@sample.com");
   }
 }

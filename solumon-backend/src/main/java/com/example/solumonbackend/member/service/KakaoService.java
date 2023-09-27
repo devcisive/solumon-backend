@@ -9,12 +9,12 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.KakaoSignInDto;
 import com.example.solumonbackend.member.model.KakaoSignUpDto;
+import com.example.solumonbackend.member.model.KakaoTokenInfoDto;
+import com.example.solumonbackend.member.model.KakaoUserInfoDto;
 import com.example.solumonbackend.member.model.StartWithKakao;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,18 +55,17 @@ public class KakaoService {
   public StartWithKakao.Response startWithKakao(String code) {
 
     // uri로부터 받아온 인가 코드로 json 형태의 토큰 정보 가져옴
-    JsonElement tokenInfoJson = getKakaoTokenByCode(code, redirectUrl);
+    KakaoTokenInfoDto kakaoTokenInfoDto = getKakaoTokenByCode(code, redirectUrl);
     // 만일 토큰 정보 중 동의 항목에 이메일이 없으면 토큰 무효화, exception 던짐
-    unlinkTokenAndThrowExceptionIfNoEmail(tokenInfoJson);
+    unlinkTokenAndThrowExceptionIfNoEmail(kakaoTokenInfoDto);
 
     // 토큰 정보로부터 카카오 access token만 가져옴
-    String kakaoAccessToken = tokenInfoJson.getAsJsonObject().get("access_token").getAsString();
+    String kakaoAccessToken = kakaoTokenInfoDto.getAccessToken();
 
     // access token 안에 담긴 json 형태의 사용자 정보 가져옴
-    JsonElement userInfoJson = getUserInfoFromToken(kakaoAccessToken);
+    KakaoUserInfoDto kakaoUserInfoDto = getUserInfoFromToken(kakaoAccessToken);
     // 사용자 정보로부터 이메일 추출
-    String email = userInfoJson.getAsJsonObject().get("kakao_account")
-        .getAsJsonObject().get("email").getAsString();
+    String email = kakaoUserInfoDto.getKakaoAccount().getEmail();
 
     return StartWithKakao.Response.builder()
             .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
@@ -78,15 +77,17 @@ public class KakaoService {
   public KakaoSignUpDto.Response kakaoSignUp(KakaoSignUpDto.Request request) {
 
     // 카카오 access token으로부터 json 형태의 사용자 정보 가져옴
-    JsonElement userInfoJson = getUserInfoFromToken(request.getKakaoAccessToken());
+    KakaoUserInfoDto kakaoUserInfoDto = getUserInfoFromToken(request.getKakaoAccessToken());
     // 사용자 정보로부터 카카오ID 추출
-    Long kakaoIdNum = userInfoJson.getAsJsonObject().get("id").getAsLong();
+    Long kakaoIdNum = kakaoUserInfoDto.getKakaoId();
     // 사용자 정보로부터 이메일 추출
-    String email = userInfoJson.getAsJsonObject().get("kakao_account")
-        .getAsJsonObject().get("email").getAsString();
+    String email = kakaoUserInfoDto.getKakaoAccount().getEmail();
 
     // 이미 회원이면 throw exception. 리다이렉션 아닌 주소로 들어올 수도 있어서 추가
     checkIfNotAlreadyMember(email);
+
+    // 닉네임 중복 확인
+    checkIfNotDuplicatedNickname(request.getNickname());
 
     Member member = Member.builder()
         .email(email)
@@ -109,11 +110,10 @@ public class KakaoService {
   public KakaoSignInDto.Response kakaoSignIn(KakaoSignInDto.Request request) {
 
     // 카카오 액서스 토큰으로부터 json 형태의 사용자 정보 가져옴
-    JsonElement userInfoJson = getUserInfoFromToken(request.getKakaoAccessToken());
+    KakaoUserInfoDto kakaoUserInfoDto = getUserInfoFromToken(request.getKakaoAccessToken());
 
     // 사용자 정보로부터 이메일 추출
-    String email = userInfoJson.getAsJsonObject().get("kakao_account")
-        .getAsJsonObject().get("email").getAsString();
+    String email = kakaoUserInfoDto.getKakaoAccount().getEmail();
 
     // 이메일을 기준으로 회원 엔티티 가져옴
     Member member = memberRepository.findByEmail(email)
@@ -144,7 +144,7 @@ public class KakaoService {
         .build();
   }
 
-  private JsonElement getKakaoTokenByCode(String code, String redirectUri) {
+  private KakaoTokenInfoDto getKakaoTokenByCode(String code, String redirectUri) {
     // 접속할 uri 생성
     URI uri = UriComponentsBuilder
         .fromUriString(getTokenUrl)
@@ -162,28 +162,28 @@ public class KakaoService {
     // 헤더 설정 후 POST 요청 보냄
     RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
         .post(uri)
-        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED + ";charset=UTF-8")
         .body(requestBody);
 
-    ResponseEntity<String> responseEntity = restTemplate.exchange(requestEntity, String.class);
+    ResponseEntity<KakaoTokenInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoTokenInfoDto.class);
 
     // 한 번 토큰을 발급받은 코드의 재사용 등이 금지되어 있어서 받아온 값이 null 아닌지 확인
     checkIfKakaoCodeWasValid(responseEntity.getBody());
 
     // String 형태로 받아온 값을 json으로 파싱
-    return JsonParser.parseString(responseEntity.getBody());
+    return responseEntity.getBody();
   }
 
   // 카카오 관련 오류는 MemberException이 아닌 CustomSecurityException을 던짐
-  private void checkIfKakaoCodeWasValid(String tokenInfoJson) {
-    if (tokenInfoJson ==  null) {
+  private void checkIfKakaoCodeWasValid(KakaoTokenInfoDto kakaoTokenInfoDto) {
+    if (kakaoTokenInfoDto ==  null) {
       throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_CODE);
     }
   }
 
-  private void unlinkTokenAndThrowExceptionIfNoEmail(JsonElement tokenInfoJson) {
+  private void unlinkTokenAndThrowExceptionIfNoEmail(KakaoTokenInfoDto kakaoTokenInfoDto) {
     // 받아온 token 항목 중에서 제출한 개인정보 범위인 scope(optional field)를 확인. 동의할 수 있는 항목이 email밖에 없기에 null과 비교
-    if (tokenInfoJson.getAsJsonObject().get("scope") == null) {
+    if (kakaoTokenInfoDto.getScope() == null) {
       URI uri = UriComponentsBuilder
           .fromUriString(unlinkUrl)
           .encode()
@@ -192,9 +192,9 @@ public class KakaoService {
 
       RequestEntity<MultiValueMap<String, String>> requestEntity = RequestEntity
           .post(uri)
-          .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+          .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED + ";charset=UTF-8")
           .header("Authorization",
-              "Bearer " + tokenInfoJson.getAsJsonObject().get("access_token").getAsString())
+              "Bearer " + kakaoTokenInfoDto.getAccessToken())
           .body(new LinkedMultiValueMap<>());
 
       restTemplate.exchange(requestEntity, String.class);
@@ -203,7 +203,7 @@ public class KakaoService {
     }
   }
 
-  private JsonElement getUserInfoFromToken(String accessToken) {
+  private KakaoUserInfoDto getUserInfoFromToken(String accessToken) {
 
     URI uri = UriComponentsBuilder
         .fromUriString(getInfoUlr)
@@ -213,19 +213,19 @@ public class KakaoService {
 
     RequestEntity<Void> requestEntity = RequestEntity
         .get(uri)
-        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED_VALUE + ";charset=UTF-8")
+        .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED + ";charset=UTF-8")
         .header("Authorization", "Bearer " + accessToken)
         .build();
 
-    ResponseEntity<String> responseEntity = restTemplate.exchange(requestEntity, String.class);
+    ResponseEntity<KakaoUserInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoUserInfoDto.class);
 
     checkIfKakaoTokenWasValid(responseEntity.getBody());
 
-    return JsonParser.parseString(responseEntity.getBody());
+    return responseEntity.getBody();
   }
 
-  private void checkIfKakaoTokenWasValid(String userInfoJson) {
-    if (userInfoJson == null) {
+  private void checkIfKakaoTokenWasValid(KakaoUserInfoDto kakaoUserInfoDto) {
+    if (kakaoUserInfoDto == null) {
       throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_TOKEN);
     }
   }
@@ -233,6 +233,12 @@ public class KakaoService {
   private void checkIfNotAlreadyMember(String email) {
     if (memberRepository.existsByEmail(email)) {
       throw new MemberException(ErrorCode.ALREADY_EXIST_MEMBER);
+    }
+  }
+
+  private void checkIfNotDuplicatedNickname(String nickname) {
+    if (memberRepository.existsByNickname(nickname)) {
+      throw new MemberException(ErrorCode.ALREADY_EXIST_USERNAME);
     }
   }
 

@@ -78,11 +78,10 @@ class MemberControllerTest {
   private final String getUserInfoUrl = "https://kapi.kakao.com/v2/user/me";
 
   // kakao variables
-  private final String kakaoAccessToken = "kakaoAccessToken";
-  private final Long memberId = 1L;
+  private final String kakaoAccessToken = "\"kakaoAccessToken\"";
   private final Long kakaoId = 123456789L;
-  private final String email = "sample@sample.com";
-  private final String nickname = "kakao";
+  private final String email = "\"sample@sample.com\"";
+  private final String nickname = "\"kakao\"";
 
   // kakao responses -> 카카오 api 응답 예시에서 가져옴
   private final String tokenResponseWithEmail = "{\"token_type\":\"bearer\","
@@ -92,7 +91,7 @@ class MemberControllerTest {
       + "\"refresh_token_expires_in\":5184000,"
       + "\"scope\":\"account_email\"}";
 
-  private final String tokenResponseWithOutEmail = "{token_type\":\"bearer\","
+  private final String tokenResponseWithOutEmail = "{\"token_type\":\"bearer\","
       + "\"access_token\":" + kakaoAccessToken + ","
       + "\"expires_in\":43199,"
       + "\"refresh_token\":\"${REFRESH_TOKEN}\","
@@ -134,7 +133,7 @@ class MemberControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.isMember").value(true))
-        .andExpect(jsonPath("$.kakaoAccessToken").value(kakaoAccessToken));
+        .andExpect(jsonPath("$.kakaoAccessToken").value("kakaoAccessToken"));
     this.mockServer.verify(); // expect된 요청이 실제로 요청되었는지 확인
   }
 
@@ -156,7 +155,7 @@ class MemberControllerTest {
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.isMember").value(false))
-        .andExpect(jsonPath("$.kakaoAccessToken").value(kakaoAccessToken));
+        .andExpect(jsonPath("$.kakaoAccessToken").value("kakaoAccessToken"));
     this.mockServer.verify();
   }
 
@@ -229,8 +228,8 @@ class MemberControllerTest {
 
     //when
     KakaoSignUpDto.Request request = KakaoSignUpDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build();
     String json = new Gson().toJson(request);
 
@@ -239,9 +238,9 @@ class MemberControllerTest {
         .contentType(MediaType.APPLICATION_JSON)
         .content(json))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.kakaoId").value(kakaoId))
-        .andExpect(jsonPath("$.email").value(email))
-        .andExpect(jsonPath("$.nickname").value(nickname));
+        .andExpect(jsonPath("$.kakaoId").value(123456789L))
+        .andExpect(jsonPath("$.email").value("sample@sample.com"))
+        .andExpect(jsonPath("$.nickname").value("kakao"));
 
     this.mockServer.verify();
   }
@@ -254,8 +253,8 @@ class MemberControllerTest {
         .andRespond(withNoContent());
     //when
     KakaoSignUpDto.Request request = KakaoSignUpDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build();
     String json = new Gson().toJson(request);
 
@@ -272,7 +271,7 @@ class MemberControllerTest {
   void signUpKakao_fail_alreadyMember() throws Exception {
     //given
     memberRepository.save(Member.builder()
-        .email(email)
+        .email("sample@sample.com")
         .build());
 
     this.mockServer.expect(requestTo(new URI(getUserInfoUrl)))
@@ -280,8 +279,8 @@ class MemberControllerTest {
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
     //when
     KakaoSignUpDto.Request request = KakaoSignUpDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build();
     String json = new Gson().toJson(request);
 
@@ -298,9 +297,9 @@ class MemberControllerTest {
   void kakaoSignIn_success() throws Exception {
     //given
     memberRepository.save(Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .nickname(nickname)
+        .kakaoId(123456789L)
+        .email("sample@sample.com")
+        .nickname("kakao")
         .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .build());
@@ -309,14 +308,14 @@ class MemberControllerTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(jwtTokenProvider.createAccessToken(email, List.of("ROLE_GENERAL")))
+    given(jwtTokenProvider.createAccessToken("sample@sample.com", List.of("ROLE_GENERAL")))
         .willReturn("accessToken");
-    given(jwtTokenProvider.createRefreshToken(email, List.of("ROLE_GENERAL")))
+    given(jwtTokenProvider.createRefreshToken("sample@sample.com", List.of("ROLE_GENERAL")))
         .willReturn("refreshToken");
 
     //when
     KakaoSignInDto.Request request = KakaoSignInDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build();
     String json = new Gson().toJson(request);
     //then
@@ -336,9 +335,9 @@ class MemberControllerTest {
   void kakaoSignIn_fail_invalidToken() throws Exception {
     //given
     memberRepository.save(Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .nickname(nickname)
+        .kakaoId(123456789L)
+        .email("sample@sample.com")
+        .nickname("kakao")
         .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .build());
@@ -349,7 +348,7 @@ class MemberControllerTest {
 
     //when
     KakaoSignInDto.Request request = KakaoSignInDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build();
     String json = new Gson().toJson(request);
 
@@ -372,7 +371,7 @@ class MemberControllerTest {
 
     //when
     KakaoSignInDto.Request request = KakaoSignInDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build();
     String json = new Gson().toJson(request);
     //then
@@ -389,9 +388,9 @@ class MemberControllerTest {
   void kakaoSignIn_fail_unregisteredMember() throws Exception {
     //given
     memberRepository.save(Member.builder()
-        .kakaoId(kakaoId)
-        .email(email)
-        .nickname(nickname)
+        .kakaoId(123456789L)
+        .email("sample@sample.com")
+        .nickname("kakao")
         .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .registeredAt(LocalDateTime.now().minusDays(1))
@@ -404,7 +403,7 @@ class MemberControllerTest {
 
     //when
     KakaoSignInDto.Request request = KakaoSignInDto.Request.builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build();
     String json = new Gson().toJson(request);
 
