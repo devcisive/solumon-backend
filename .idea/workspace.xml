@@ -5,29 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a301e6a5-4d79-482c-85b0-01e5b937ada7" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/config/BeanConfig.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/CustomSecurityException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/security/CustomAuthenticationEntryPoint.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/security/JwtAuthenticationFilter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/model/GeneralSignInDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/model/GeneralSignUpDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/solumon-backend/src/main/resources/application.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/solumon-backend.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/solumon-backend.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/SolumonBackendApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/SolumonBackendApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/ErrorResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/ErrorResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/MemberErrorCode.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/ErrorCode.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/MemberException.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/exception/MemberException.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/security/JwtTokenProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/global/security/JwtTokenProvider.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/controller/MemberController.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/controller/MemberController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/entity/Member.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/entity/Member.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/KakaoService.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/KakaoService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/MemberDetailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/MemberDetailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/MemberService.java" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/java/com/example/solumonbackend/member/service/MemberService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/solumon-backend/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/solumon-backend/src/main/resources/application.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +72,7 @@
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.23103449",
     "settings.editor.selected.configurable": "reference.settingsdialog.project.gradle",
-    "spring.configuration.checksum": "c0b91dd04b7cb3c573609ef0765ae82f",
+    "spring.configuration.checksum": "24de02417e353d61136c714dde173a81",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -128,6 +109,7 @@
       <workItem from="1695098842591" duration="383000" />
       <workItem from="1695178665352" duration="181000" />
       <workItem from="1695178859210" duration="696000" />
+      <workItem from="1695441068702" duration="94000" />
     </task>
     <servers />
   </component>

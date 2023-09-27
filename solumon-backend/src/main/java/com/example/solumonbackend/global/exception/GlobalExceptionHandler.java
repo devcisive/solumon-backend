@@ -1,6 +1,8 @@
 package com.example.solumonbackend.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,9 +24,14 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ErrorResponse exception(MethodArgumentNotValidException e) {
-    log.error("{} is occurred", e.getMessage());
-    return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException,
-        ErrorCode.MethodArgumentNotValidException.getDescription());
+  public ErrorResponse MethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    BindingResult bindingResult = e.getBindingResult();
+
+    StringBuilder sb = new StringBuilder();
+    for (FieldError fieldError: bindingResult.getFieldErrors()) {
+      sb.append(fieldError.getDefaultMessage()).append(" ");
+    }
+    // 테스트를 원할하게 하기 위해 바꾼 코드입니다. 나중에 수정 예정
+    return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString());
   }
 }
