@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,7 +30,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
 
@@ -64,25 +65,25 @@ class MemberServiceTest {
         .kakaoId(null)
         .email(request.getEmail())
         .password(passwordEncoder.encode(request.getPassword()))
-        .nickname("testUser")
+        .nickname(request.getNickname())
         .role(MemberRole.GENERAL)
         .reportCount(0)
         .isFirstLogIn(true)
         .build();
 
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-    when(memberRepository.findByNickname(anyString())).thenReturn(Optional.empty());
+    when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+    when(memberRepository.findByNickname("testUser")).thenReturn(Optional.empty());
     when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
 
     // When
     Response response = memberService.signUp(request);
 
     // Then
-    assertThat(response.getEmail()).isEqualTo(request.getEmail());
-    assertThat(response.getNickname()).isEqualTo(request.getNickname());
-
     verify(memberRepository, times(1)).save(any(Member.class));
     verify(passwordEncoder, times(2)).encode(any(String.class));
+
+    assertThat(response.getEmail()).isEqualTo(request.getEmail());
+    assertThat(response.getNickname()).isEqualTo(request.getNickname());
   }
 
   @DisplayName("일반 회원가입 실패 - 중복된 이메일")
@@ -94,7 +95,7 @@ class MemberServiceTest {
         .password("password123!")
         .nickname("testUser").build();
 
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(new Member()));
+    when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(new Member()));
 
     // when
     MemberException exception = assertThrows(MemberException.class,
@@ -114,8 +115,8 @@ class MemberServiceTest {
         .password("password123!")
         .nickname("testUser").build();
 
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-    when(memberRepository.findByNickname(anyString())).thenReturn(Optional.of(new Member()));
+    when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+    when(memberRepository.findByNickname("testUser")).thenReturn(Optional.of(new Member()));
 
     // when
     MemberException exception = assertThrows(MemberException.class,
@@ -248,7 +249,7 @@ class MemberServiceTest {
         .unregisteredAt(LocalDateTime.now())
         .build();
 
-    when(memberRepository.findByEmail(anyString())).thenReturn(Optional.of(mockMember));
+    when(memberRepository.findByEmail("test@example.com")).thenReturn(Optional.of(mockMember));
     when(passwordEncoder.matches(request.getPassword(), mockMember.getPassword())).thenReturn(true);
 
     // when
