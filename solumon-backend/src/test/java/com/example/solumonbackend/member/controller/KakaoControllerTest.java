@@ -44,7 +44,7 @@ import org.springframework.web.client.RestTemplate;
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @Transactional
-class MemberControllerTest {
+class KakaoControllerTest {
   @Autowired
   private MockMvc mockMvc;
   @Autowired
