@@ -1,7 +1,6 @@
 package com.example.solumonbackend.member.service;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -113,7 +112,7 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.existsByEmail(anyString()))
+    given(memberRepository.existsByEmail("sample@sample.com"))
         .willReturn(true);
     //when
     StartWithKakao.Response response = kakaoService.startWithKakao(kakaoCode);
@@ -136,7 +135,7 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.existsByEmail(anyString()))
+    given(memberRepository.existsByEmail("sample@sample.com"))
         .willReturn(false);
 
     //when
@@ -215,14 +214,14 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.existsByEmail(anyString()))
+    given(memberRepository.existsByEmail("sample@sample.com"))
         .willReturn(false);
 
     given(memberRepository.save(any())).willReturn(Member.builder()
         .memberId(memberId)
         .kakaoId(kakaoId)
-        .email(email)
-        .nickname(nickname)
+        .email("sample@sample.com")
+        .nickname("kakao")
         .role(MemberRole.GENERAL)
         .registeredAt(LocalDateTime.now())
         .build());
@@ -230,14 +229,14 @@ class KakaoServiceTest {
     //when
     KakaoSignUpDto.Response response = kakaoService.kakaoSignUp(KakaoSignUpDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build());
     //then
-    Assertions.assertEquals(memberId, response.getMemberId());
-    Assertions.assertEquals(email, response.getEmail());
-    Assertions.assertEquals(kakaoId , response.getKakaoId());
-    Assertions.assertEquals(nickname, response.getNickname());
+    Assertions.assertEquals(1L, response.getMemberId());
+    Assertions.assertEquals("sample@sample.com", response.getEmail());
+    Assertions.assertEquals(123456789L , response.getKakaoId());
+    Assertions.assertEquals("kakao", response.getNickname());
 
     this.mockServer.verify();
     verify(memberRepository, times(1)).existsByEmail("sample@sample.com");
@@ -256,8 +255,8 @@ class KakaoServiceTest {
     CustomSecurityException exception
         = Assertions.assertThrows(CustomSecurityException.class, () -> kakaoService.kakaoSignUp(KakaoSignUpDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build()));
     Assertions.assertEquals(ErrorCode.INVALID_KAKAO_TOKEN, exception.getErrorCode());
 
@@ -271,15 +270,15 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.existsByEmail(anyString()))
+    given(memberRepository.existsByEmail("sample@sample.com"))
         .willReturn(true);
     //when
     //then
     MemberException exception
         = Assertions.assertThrows(MemberException.class, () -> kakaoService.kakaoSignUp(KakaoSignUpDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
-        .nickname(nickname)
+        .kakaoAccessToken("kakaoAccessToken")
+        .nickname("kakao")
         .build()));
     Assertions.assertEquals(ErrorCode.ALREADY_EXIST_MEMBER, exception.getErrorCode());
 
@@ -298,7 +297,7 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.findByEmail(any())).willReturn(Optional.of(Member.builder()
+    given(memberRepository.findByEmail("sample@sample.com")).willReturn(Optional.of(Member.builder()
         .memberId(memberId)
         .kakaoId(kakaoId)
         .email(email)
@@ -314,7 +313,7 @@ class KakaoServiceTest {
     //when
     KakaoSignInDto.Response response = kakaoService.kakaoSignIn(KakaoSignInDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build());
     //then
     Assertions.assertEquals(memberId, response.getMemberId());
@@ -337,7 +336,7 @@ class KakaoServiceTest {
     CustomSecurityException exception
         = Assertions.assertThrows(CustomSecurityException.class, () -> kakaoService.kakaoSignIn(KakaoSignInDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build()));
     Assertions.assertEquals(ErrorCode.INVALID_KAKAO_TOKEN, exception.getErrorCode());
     this.mockServer.verify();
@@ -350,14 +349,14 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.findByEmail(any())).willReturn(Optional.empty());
+    given(memberRepository.findByEmail("sample@sample.com")).willReturn(Optional.empty());
 
     //when
     //then
     MemberException exception
         = Assertions.assertThrows(MemberException.class, () -> kakaoService.kakaoSignIn(KakaoSignInDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build()));
     Assertions.assertEquals(ErrorCode.NOT_FOUND_MEMBER, exception.getErrorCode());
 
@@ -372,11 +371,11 @@ class KakaoServiceTest {
         .andExpect(method(HttpMethod.GET))
         .andRespond(withSuccess(userInfoResponse, MediaType.APPLICATION_JSON));
 
-    given(memberRepository.findByEmail(any())).willReturn(Optional.of(Member.builder()
-        .memberId(memberId)
-        .kakaoId(kakaoId)
-        .email(email)
-        .nickname(nickname)
+    given(memberRepository.findByEmail("sample@sample.com")).willReturn(Optional.of(Member.builder()
+        .memberId(1L)
+        .kakaoId(123456789L)
+        .email("sample@sample.com")
+        .nickname("kakao")
         .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .registeredAt(LocalDateTime.now().minusDays(1))
@@ -388,7 +387,7 @@ class KakaoServiceTest {
     MemberException exception
         = Assertions.assertThrows(MemberException.class, () -> kakaoService.kakaoSignIn(KakaoSignInDto.Request
         .builder()
-        .kakaoAccessToken(kakaoAccessToken)
+        .kakaoAccessToken("kakaoAccessToken")
         .build()));
     Assertions.assertEquals(ErrorCode.UNREGISTERED_ACCOUNT, exception.getErrorCode());
 
