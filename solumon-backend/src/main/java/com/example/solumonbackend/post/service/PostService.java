@@ -44,13 +44,11 @@ public class PostService {
   @Transactional
   public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
                                         List<MultipartFile> images) {
-    // endAt이 null일 경우 7일 후 종료
     Post post = postRepository.save(Post.builder()
         .member(member)
         .title(request.getTitle())
         .contents(request.getContents())
-        .endAt(request.getVote().getEndAt() == null ?
-            LocalDateTime.now().plusDays(7) : request.getVote().getEndAt())
+        .endAt(request.getVote().getEndAt())
         .build());
 
     List<PostTag> savePostTags = savePostTag(request.getTags(), post);
@@ -159,7 +157,7 @@ public class PostService {
     postTagRepository.deleteAllByPost_PostId(postId);
     savePostTag(request.getTags(), post);
 
-    List<Image> imageList = List.of();
+    List<Image> imageList;
     try {
       imageList = updateImages(post, images);
     } catch (IOException e) {
