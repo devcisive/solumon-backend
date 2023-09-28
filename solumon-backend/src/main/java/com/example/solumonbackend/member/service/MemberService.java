@@ -91,5 +91,4 @@ public class MemberService {
         .isFirstLogIn(member.isFirstLogIn())
         .build();
   }
-
 }

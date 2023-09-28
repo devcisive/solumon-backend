@@ -19,7 +19,9 @@ public enum ErrorCode {
   ALREADY_REGISTERED_NICKNAME("이미 등록된 닉네임 입니다. 다른 닉네임을 사용해 주세요"),
   INVALID_REFRESH_TOKEN("refresh token이 유효하지 않습니다."),
   NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다."),
-  UNREGISTERED_MEMBER("탈퇴한 회원입니다.");
+  UNREGISTERED_MEMBER("탈퇴한 회원입니다."),
+  INVALID_KAKAO_CODE("카카오 로그인 결과가 유효하지 않습니다. 재시도 해주세요."),
+  INVALID_KAKAO_TOKEN("카카오에서 잘못된 토큰값을 내려주었습니다. 재시도 해주세요.");
 
   private final String description;
 

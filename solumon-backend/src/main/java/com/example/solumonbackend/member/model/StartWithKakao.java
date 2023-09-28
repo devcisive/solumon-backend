@@ -3,14 +3,12 @@ package com.example.solumonbackend.member.model;
 import lombok.Builder;
 import lombok.Getter;
 
-
-public class KakaoLogInDto {
+public class StartWithKakao {
 
   @Getter
   @Builder
   public static class Response {
-    private Long memberId;
-    private String accessToken;
-    private String refreshToken;
+    private String kakaoAccessToken;
+    private Boolean isMember;
   }
 }
