@@ -11,12 +11,15 @@ import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.*;
 import com.example.solumonbackend.post.repository.*;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
 
@@ -53,51 +57,74 @@ class PostServiceTest {
   @InjectMocks
   private PostService postService;
 
+  @BeforeEach
+  public void setUp() {
+    postMember = Member.builder()
+        .memberId(1L)
+        .email("test@gmail.com")
+        .nickname("별명")
+        .role(MemberRole.GENERAL)
+        .build();
+
+    mockPost = Post.builder()
+        .postId(1L)
+        .title("제목")
+        .contents("내용")
+        .member(postMember)
+        .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
+            .plusDays(2))
+        .build();
+  }
+
+  Member postMember;
+  Post mockPost;
+
   @Test
   @DisplayName("게시글 작성")
   void createPost() throws IOException {
     //given
-    Member member = member();
-    PostAddDto.Request request = postAddRequest();
-    Post post = post(member);
+    PostAddDto.Request request = getAddRequest();
     List<MultipartFile> images = new ArrayList<>();
     images.add(new MockMultipartFile("images", "image1.jpg",
         "image/jpeg", "image data".getBytes()));
 
-    when(postRepository.save(any(Post.class))).thenReturn(post);
-    when(postTagRepository.findAllByPost_PostId(any())).thenReturn(List.of(
-        PostTag.builder()
-            .postTagId(1L)
-            .tag(Tag.builder().tagId(1L).name("태그1").build())
-            .post(post)
-            .build(),
-        PostTag.builder()
-            .postTagId(2L)
-            .tag(Tag.builder().tagId(2L).name("태그2").build())
-            .post(post)
-            .build()));
-    when(awsS3Service.upload(any(MultipartFile.class), anyString()))
+    when(postRepository.save(any(Post.class)))
+        .thenReturn(mockPost);
+    when(postTagRepository.findAllByPost_PostId(mockPost.getPostId()))
+        .thenReturn(List.of(
+            PostTag.builder()
+                .postTagId(1L)
+                .tag(Tag.builder().tagId(1L).name("태그1").build())
+                .post(mockPost)
+                .build(),
+            PostTag.builder()
+                .postTagId(2L)
+                .tag(Tag.builder().tagId(2L).name("태그2").build())
+                .post(mockPost)
+                .build()));
+    when(awsS3Service.upload(images.get(0), "post"))
         .thenReturn(AwsS3.builder()
-            .key("key")
-            .path("path")
+            .key("dirName/image1.jpg")
+            .path("imageUrl")
             .build());
-    when(imageRepository.saveAll(anyList()))
-        .thenReturn(List.of(new Image(1L, post, "key", "path")));
+    when(imageRepository.saveAll(any()))
+        .thenReturn(List.of(new Image(1L, mockPost,
+            "dirName/image1.jpg", "imageUrl")));
 
     //when
-    PostAddDto.Response response = postService.createPost(member, request, images);
+    PostAddDto.Response response = postService.createPost(postMember, request, images);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그1");
-    assertThat(response.getWriter()).isEqualTo(member.getNickname());
-    assertThat(response.getImages().get(0).getImage()).isEqualTo("path");
+    assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
+    assertThat(response.getImages().size()).isEqualTo(1);
 
     verify(postRepository, times(1)).save(any(Post.class));
     verify(postTagRepository, times(2)).save(any(PostTag.class));
     verify(tagRepository, times(2)).save(any(Tag.class));
     verify(choiceRepository, times(1)).saveAll(anyList());
-    verify(awsS3Service, times(1)).upload(any(MultipartFile.class), anyString());
+    verify(awsS3Service, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
   }
 
@@ -105,37 +132,38 @@ class PostServiceTest {
   @DisplayName("게시글 작성 - 이미지 없을 때")
   void createPost_noImages() throws IOException {
     //given
-    Member member = member();
-    PostAddDto.Request request = postAddRequest();
-    Post post = post(member);
+    PostAddDto.Request request = getAddRequest();
+
     List<MultipartFile> images = new ArrayList<>();
 
-    when(postRepository.save(any(Post.class))).thenReturn(post);
-    when(postTagRepository.findAllByPost_PostId(any())).thenReturn(List.of(
-        PostTag.builder()
-            .postTagId(1L)
-            .tag(Tag.builder().tagId(1L).name("태그1").build())
-            .post(post)
-            .build(),
-        PostTag.builder()
-            .postTagId(2L)
-            .tag(Tag.builder().tagId(2L).name("태그2").build())
-            .post(post)
-            .build()));
+    when(postRepository.save(any(Post.class)))
+        .thenReturn(mockPost);
+    when(postTagRepository.findAllByPost_PostId(1L))
+        .thenReturn(List.of(
+            PostTag.builder()
+                .postTagId(1L)
+                .tag(Tag.builder().tagId(1L).name("태그1").build())
+                .post(mockPost)
+                .build(),
+            PostTag.builder()
+                .postTagId(2L)
+                .tag(Tag.builder().tagId(2L).name("태그2").build())
+                .post(mockPost)
+                .build()));
 
     //when
-    PostAddDto.Response response = postService.createPost(member, request, images);
+    PostAddDto.Response response = postService.createPost(postMember, request, images);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그1");
-    assertThat(response.getWriter()).isEqualTo(member.getNickname());
+    assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
 
     verify(postRepository, times(1)).save(any(Post.class));
     verify(postTagRepository, times(2)).save(any(PostTag.class));
     verify(tagRepository, times(2)).save(any(Tag.class));
     verify(choiceRepository, times(1)).saveAll(anyList());
-    verify(awsS3Service, times(0)).upload(any(MultipartFile.class), anyString());
+    verify(awsS3Service, times(0)).upload(any(), eq("post"));
     verify(imageRepository, times(0)).saveAll(anyList());
   }
 
@@ -143,43 +171,74 @@ class PostServiceTest {
   @DisplayName("게시글 상세 조회")
   void getPostDetail() {
     //given
-    Member member = member();
-
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member))); // getPost
-    when(postTagRepository.findAllByPost_PostId(anyLong()))
-        .thenReturn(postTagList(member)); // getPostTagList
-    when(imageRepository.findAllByPost_PostId(anyLong()))
-        .thenReturn(imageList(post(member))); // getImageList
-    when(voteCustomRepository.getChoiceResults(anyLong()))
-        .thenReturn(choiceResultDtoList()); // getChoiceResultDtoList
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
+    when(postTagRepository.findAllByPost_PostId(1L))
+        .thenReturn(List.of(
+            new PostTag(1L, mockPost,
+                Tag.builder()
+                    .tagId(1L)
+                    .name("태그1")
+                    .build()),
+            new PostTag(2L, mockPost,
+                Tag.builder()
+                    .tagId(2L)
+                    .name("태그2")
+                    .build())));
+    when(imageRepository.findAllByPost_PostId(1L))
+        .thenReturn(List.of(
+            Image.builder()
+                .imageId(1L)
+                .post(mockPost)
+                .key("dir/image1.jpg")
+                .imageUrl("imageUrl1")
+                .build(),
+            Image.builder()
+                .imageId(2L)
+                .post(mockPost)
+                .key("dir/image2.jpg")
+                .imageUrl("imageUrl2")
+                .build()));
+    when(voteCustomRepository.getChoiceResults(1L))
+        .thenReturn(List.of(
+            PostDto.ChoiceResultDto.builder()
+                .choiceNum(1)
+                .choiceText("선택1")
+                .choiceCount(5L)
+                .choicePercent(50).build(),
+            PostDto.ChoiceResultDto.builder()
+                .choiceNum(2)
+                .choiceText("선택2")
+                .choiceCount(5L)
+                .choicePercent(50).build()));
 
     //when
-    PostDetailDto.Response response = postService.getPostDetail(member, 1);
+    PostDetailDto.Response response = postService.getPostDetail(postMember, 1);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그1");
-    assertThat(response.getWriter()).isEqualTo(member.getNickname());
-    assertThat(response.getImages().get(1).getImage()).isEqualTo("url2");
+    assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
+    assertThat(response.getImages().get(1).getImage()).isEqualTo("imageUrl2");
     assertThat(response.getVoteCount()).isEqualTo(10);
 
-    verify(postRepository, times(1)).findById(anyLong());
-    verify(postTagRepository, times(1)).findAllByPost_PostId(anyLong());
-    verify(imageRepository, times(1)).findAllByPost_PostId(anyLong());
-    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong());
-    verify(voteCustomRepository, times(1)).getChoiceResults(anyLong());
+    verify(postRepository, times(1)).findById(1L);
+    verify(postTagRepository, times(1)).findAllByPost_PostId(1L);
+    verify(imageRepository, times(1)).findAllByPost_PostId(1L);
+    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 1L);
+    verify(voteCustomRepository, times(1)).getChoiceResults(1L);
   }
 
   @Test
   @DisplayName("게시글 상세 조회 실패 - 존재하지 않는 게시글")
   void getPostDetail_fail_notFoundPost() {
     //given
-    Member member = member();
+    when(postRepository.findById(2L))
+        .thenReturn(Optional.empty());
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.getPostDetail(member, 2));
+        () -> postService.getPostDetail(postMember, 2));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -189,44 +248,53 @@ class PostServiceTest {
   @DisplayName("게시글 수정")
   void updatePost() throws IOException {
     //given
-    Member member = member();
-    PostUpdateDto.Request request = PostUpdateDto.Request.builder()
-        .title("제목2")
-        .contents("내용2")
-        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
-        .build();
+    PostUpdateDto.Request request = getUpdateRequest();
+
     List<MultipartFile> images = new ArrayList<>();
     images.add(new MockMultipartFile("images", "image2.jpg",
         "image2/jpeg", "image data".getBytes()));
-    Post updatePost = post(member);
+
+    Post updatePost = mockPost;
     updatePost.setTitle(request.getTitle());
     updatePost.setContents(request.getContents());
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member)));
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
     when(postRepository.save(any(Post.class)))
-        .thenReturn(updatePost);
+        .thenReturn(Post.builder()
+            .postId(1L)
+            .title("제목2")
+            .contents("내용2")
+            .member(postMember)
+            .endAt(mockPost.getEndAt())
+            .build());
     when(imageRepository.saveAll(anyList()))
-        .thenReturn(List.of(new Image(1L, updatePost, "key2", "url2")));
-    when(voteRepository.countByPost_PostId(anyLong()))
+        .thenReturn(List.of(
+            Image.builder()
+                .imageId(1L)
+                .post(updatePost)
+                .key("dir/image2.jpg")
+                .imageUrl("imageUrl2")
+                .build()));
+    when(voteRepository.countByPost_PostId(1L))
         .thenReturn(10);
 
     //when
-    PostUpdateDto.Response response = postService.updatePost(member, 1, request, images);
+    PostUpdateDto.Response response = postService.updatePost(postMember, 1, request, images);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그2");
-    assertThat(response.getWriter()).isEqualTo(member.getNickname());
-    assertThat(response.getImages().get(0).getImage()).isEqualTo("url2");
+    assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
+    assertThat(response.getImages().get(0).getImage()).isEqualTo("imageUrl2");
     assertThat(response.getVoteCount()).isEqualTo(10);
 
-    verify(postRepository, times(1)).findById(anyLong());
+    verify(postRepository, times(1)).findById(1L);
     verify(postRepository, times(1)).save(any(Post.class));
-    verify(postTagRepository, times(1)).deleteAllByPost_PostId(anyLong());
+    verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
     verify(postTagRepository, times(2)).save(any(PostTag.class));
-    verify(imageRepository, times(1)).findAllByPost_PostId(anyLong());
-    verify(awsS3Service, times(1)).upload(any(MultipartFile.class), anyString());
+    verify(imageRepository, times(1)).findAllByPost_PostId(1L);
+    verify(awsS3Service, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
   }
 
@@ -234,19 +302,15 @@ class PostServiceTest {
   @DisplayName("게시글 수정 실패 - 존재하지 않는 게시글")
   void updatePost_fail_notFoundPost() {
     //given
-    PostUpdateDto.Request request = PostUpdateDto.Request.builder()
-        .title("제목2")
-        .contents("내용2")
-        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
-        .build();
+    PostUpdateDto.Request request = getUpdateRequest();
     List<MultipartFile> images = new ArrayList<>();
 
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(2L))
         .thenReturn(Optional.empty());
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.updatePost(member(), 1, request, images));
+        () -> postService.updatePost(postMember, 2, request, images));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -256,20 +320,16 @@ class PostServiceTest {
   @DisplayName("게시글 수정 실패 - 작성자가 아닌 회원")
   void updatePost_fail_onlyAvailableWriter() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
-    PostUpdateDto.Request request = PostUpdateDto.Request.builder()
-        .title("제목2")
-        .contents("내용2")
-        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
-        .build();
+    Member otherMember = Member.builder().memberId(2L).build();
+    PostUpdateDto.Request request = getUpdateRequest();
     List<MultipartFile> images = new ArrayList<>();
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.updatePost(member2, 1, request, images));
+        () -> postService.updatePost(otherMember, 1, request, images));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
@@ -279,62 +339,59 @@ class PostServiceTest {
   @DisplayName("게시글 삭제")
   void deletePost() {
     //given
-    Member member = member();
-
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member)));
-    when(imageRepository.findAllByPost_PostId(anyLong()))
-        .thenReturn(List.of(new Image(1L, post(member), "key1", "url1")));
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
+    when(imageRepository.findAllByPost_PostId(1L))
+        .thenReturn(List.of(new Image(1L, mockPost,
+            "dir/image1.jpg", "imageUrl")));
 
     //when
-    postService.deletePost(member, 1L);
+    postService.deletePost(postMember, 1L);
 
     //then
-    verify(postRepository, times(1)).findById(anyLong());
-    verify(imageRepository, times(1)).findAllByPost_PostId(anyLong());
+    verify(postRepository, times(1)).findById(1L);
+    verify(imageRepository, times(1)).findAllByPost_PostId(1L);
     verify(awsS3Service, times(1)).removeAll(anyList());
     verify(imageRepository, times(1)).deleteAll(anyList());
-    verify(postTagRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(voteRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(choiceRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(postRepository, times(1)).deleteById(anyLong());
+    verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(voteRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(choiceRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(postRepository, times(1)).deleteById(1L);
   }
 
   @Test
   @DisplayName("게시글 삭제 - 이미지 없는 경우")
   void deletePost_noImages() {
     //given
-    Member member = member();
-
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member)));
-    when(imageRepository.findAllByPost_PostId(anyLong()))
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
+    when(imageRepository.findAllByPost_PostId(1L))
         .thenReturn(List.of());
 
     //when
-    postService.deletePost(member, 1L);
+    postService.deletePost(postMember, 1L);
 
     //then
-    verify(postRepository, times(1)).findById(anyLong());
-    verify(imageRepository, times(1)).findAllByPost_PostId(anyLong());
+    verify(postRepository, times(1)).findById(1L);
+    verify(imageRepository, times(1)).findAllByPost_PostId(1L);
     verify(awsS3Service, times(0)).removeAll(anyList());
     verify(imageRepository, times(0)).deleteAll(anyList());
-    verify(postTagRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(voteRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(choiceRepository, times(1)).deleteAllByPost_PostId(anyLong());
-    verify(postRepository, times(1)).deleteById(anyLong());
+    verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(voteRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(choiceRepository, times(1)).deleteAllByPost_PostId(1L);
+    verify(postRepository, times(1)).deleteById(1L);
   }
 
   @Test
   @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
   void deletePost_fail_notFoundPost() {
     //given
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(2L))
         .thenReturn(Optional.empty());
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.deletePost(member(), 1));
+        () -> postService.deletePost(postMember, 2));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -344,30 +401,20 @@ class PostServiceTest {
   @DisplayName("게시글 삭제 실패 - 작성자가 아닌 회원")
   void deletePost_fail_onlyAvailableWriter() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
+    Member otherMember = Member.builder().memberId(2L).build();
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(mockPost));
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.deletePost(member2, 1));
+        () -> postService.deletePost(otherMember, 1));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
   }
 
-  private Post post(Member member) {
-    return Post.builder()
-        .postId(1L)
-        .title("제목")
-        .contents("내용")
-        .member(member)
-        .endAt(LocalDateTime.now().plusDays(3))
-        .build();
-  }
-
-  private PostAddDto.Request postAddRequest() {
+  private static PostAddDto.Request getAddRequest() {
     return PostAddDto.Request.builder()
         .title("제목")
         .contents("내용")
@@ -375,59 +422,18 @@ class PostServiceTest {
         .vote(PostDto.VoteDto.builder()
             .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
                 , new PostDto.ChoiceDto(2, "선택2")))
-            .endAt(LocalDateTime.now().plusDays(2)).build())
+            .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
+                .plusDays(2))
+            .build())
         .build();
   }
 
-  private Member member() {
-    return Member.builder()
-        .memberId(1L)
-        .email("test@gmail.com")
-        .nickname("별명")
-        .role(MemberRole.GENERAL)
+  private static PostUpdateDto.Request getUpdateRequest() {
+    return PostUpdateDto.Request.builder()
+        .title("제목2")
+        .contents("내용2")
+        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
         .build();
-  }
-
-  private List<PostDto.ChoiceResultDto> choiceResultDtoList() {
-    return List.of(PostDto.ChoiceResultDto.builder()
-            .choiceNum(1)
-            .choiceText("선택1")
-            .choiceCount(5L)
-            .choicePercent(50).build(),
-        PostDto.ChoiceResultDto.builder()
-            .choiceNum(2)
-            .choiceText("선택2")
-            .choiceCount(5L)
-            .choicePercent(50).build());
-  }
-
-  private List<Image> imageList(Post post) {
-    return List.of(Image.builder()
-            .imageId(1L)
-            .post(post)
-            .key("image1")
-            .imageUrl("url1")
-            .build(),
-        Image.builder()
-            .imageId(2L)
-            .post(post)
-            .key("image2")
-            .imageUrl("url2")
-            .build());
-  }
-
-  private List<PostTag> postTagList(Member member) {
-    return List.of(
-        new PostTag(1L, post(member),
-            Tag.builder()
-                .tagId(1L)
-                .name("태그1")
-                .build()),
-        new PostTag(2L, post(member),
-            Tag.builder()
-                .tagId(2L)
-                .name("태그2")
-                .build()));
   }
 
 }

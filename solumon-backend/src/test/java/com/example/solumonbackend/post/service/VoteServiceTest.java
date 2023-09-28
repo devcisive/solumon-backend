@@ -11,6 +11,7 @@ import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,7 +26,6 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -43,26 +43,58 @@ class VoteServiceTest {
   @InjectMocks
   private VoteService voteService;
 
+  @BeforeEach
+  public void setUp() {
+    postMember = Member.builder()
+        .memberId(1L)
+        .email("test@gmail.com")
+        .nickname("별명")
+        .role(MemberRole.GENERAL)
+        .build();
+
+    otherMember = Member.builder()
+        .memberId(2L)
+        .email("test2@gmail.com")
+        .nickname("별명2")
+        .role(MemberRole.GENERAL)
+        .build();
+
+    post = Post.builder()
+        .postId(1L)
+        .title("제목")
+        .contents("내용")
+        .member(postMember)
+        .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
+            .plusDays(2))
+        .build();
+  }
+
+  Member postMember;
+  Member otherMember;
+  Post post;
+
   @Test
   @DisplayName("투표하기")
   void createVote() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
     VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1).build();
+        .selectedNum(1)
+        .build();
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
-    when(voteRepository.existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong()))
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(post));
+    when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
         .thenReturn(false);
     when(voteRepository.save(any(Vote.class)))
         .thenReturn(Vote.builder()
-            .post(post(member()))
-            .member(member2)
+            .voteId(5L)
+            .post(post)
+            .member(otherMember)
             .selectedNum(1)
             .build());
-    when(voteCustomRepository.getChoiceResults(anyLong()))
-        .thenReturn(List.of(PostDto.ChoiceResultDto.builder()
+    when(voteCustomRepository.getChoiceResults(1L))
+        .thenReturn(List.of(
+            PostDto.ChoiceResultDto.builder()
                 .choiceNum(1)
                 .choiceText("선택지1")
                 .choiceCount(5L)
@@ -76,16 +108,16 @@ class VoteServiceTest {
                 .build()));
 
     //when
-    VoteAddDto.Response response = voteService.createVote(member2, 1L, request);
+    VoteAddDto.Response response = voteService.createVote(otherMember, 1L, request);
 
     //then
     assertThat(response.getChoices().get(0).getChoiceCount()).isEqualTo(5L);
     assertThat(response.getChoices().get(1).getChoiceText()).isEqualTo("선택지2");
 
-    verify(postRepository, times(1)).findById(anyLong());
-    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong());
+    verify(postRepository, times(1)).findById(1L);
+    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
     verify(voteRepository, times(1)).save(any(Vote.class));
-    verify(voteCustomRepository, times(1)).getChoiceResults(anyLong());
+    verify(voteCustomRepository, times(1)).getChoiceResults(1L);
   }
 
   @Test
@@ -93,14 +125,15 @@ class VoteServiceTest {
   void createVote_fail_notFoundPost() {
     //given
     VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1).build();
+        .selectedNum(1)
+        .build();
 
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(2L))
         .thenReturn(Optional.empty());
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(member(), 1L, request));
+        () -> voteService.createVote(otherMember, 2L, request));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -110,20 +143,20 @@ class VoteServiceTest {
   @DisplayName("투표하기 실패 - 투표가 마감된 글")
   void createVote_fail_postIsClosed() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
     VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1).build();
+        .selectedNum(1)
+        .build();
 
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(1L))
         .thenReturn(Optional.of(Post.builder()
             .postId(1L)
-            .member(member())
+            .member(postMember)
             .endAt(LocalDateTime.now().minusDays(2))
             .build()));
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(member2, 1L, request));
+        () -> voteService.createVote(otherMember, 1L, request));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.POST_IS_CLOSED);
@@ -134,14 +167,15 @@ class VoteServiceTest {
   void createVote_fail_writerCanNotVote() {
     //given
     VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1).build();
+        .selectedNum(1)
+        .build();
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(post));
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(member(), 1L, request));
+        () -> voteService.createVote(postMember, 1L, request));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.WRITER_CAN_NOT_VOTE);
@@ -151,18 +185,18 @@ class VoteServiceTest {
   @DisplayName("투표하기 실패 - 투표는 한 번만 가능")
   void createVote_fail_voteOnlyOnce() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
     VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1).build();
+        .selectedNum(1)
+        .build();
 
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
-    when(voteRepository.existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong()))
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(post));
+    when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
         .thenReturn(true);
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(member2, 1L, request));
+        () -> voteService.createVote(otherMember, 1L, request));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.VOTE_ONLY_ONCE);
@@ -172,32 +206,30 @@ class VoteServiceTest {
   @DisplayName("투표 취소")
   void deleteVote() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
-
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
-    when(voteRepository.existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong()))
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(post));
+    when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
         .thenReturn(true);
 
     //when
-    voteService.deleteVote(member2, 1L);
+    voteService.deleteVote(otherMember, 1L);
 
     //then
-    verify(postRepository, times(1)).findById(anyLong());
-    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong());
-    verify(voteRepository, times(1)).deleteByPost_PostIdAndMember_MemberId(anyLong(), anyLong());
+    verify(postRepository, times(1)).findById(1L);
+    verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
+    verify(voteRepository, times(1)).deleteByPost_PostIdAndMember_MemberId(1L, 2L);
   }
 
   @Test
   @DisplayName("투표 취소 실패 - 존재하지 않는 게시글")
   void deleteVote_fail_notFoundPost() {
     //given
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(2L))
         .thenReturn(Optional.empty());
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.deleteVote(member(), 1L));
+        () -> voteService.deleteVote(otherMember, 2L));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -207,18 +239,16 @@ class VoteServiceTest {
   @DisplayName("투표 취소 실패 - 투표가 마감된 글")
   void deleteVote_fail_postIsClosed() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
-
-    when(postRepository.findById(anyLong()))
+    when(postRepository.findById(1L))
         .thenReturn(Optional.of(Post.builder()
             .postId(1L)
-            .member(member())
+            .member(postMember)
             .endAt(LocalDateTime.now().minusDays(2))
             .build()));
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.deleteVote(member2, 1L));
+        () -> voteService.deleteVote(otherMember, 1L));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.POST_IS_CLOSED);
@@ -228,37 +258,17 @@ class VoteServiceTest {
   @DisplayName("투표 취소 실패 - 투표하지 않은 사람")
   void deleteVote_fail_onlyPersonWhoVoted() {
     //given
-    Member member2 = Member.builder().memberId(2L).build();
-
-    when(postRepository.findById(anyLong()))
-        .thenReturn(Optional.of(post(member())));
-    when(voteRepository.existsByPost_PostIdAndMember_MemberId(anyLong(), anyLong()))
+    when(postRepository.findById(1L))
+        .thenReturn(Optional.of(post));
+    when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
         .thenReturn(false);
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.deleteVote(member2, 1L));
+        () -> voteService.deleteVote(otherMember, 1L));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL);
   }
 
-  private Member member() {
-    return Member.builder()
-        .memberId(1L)
-        .email("test@gmail.com")
-        .nickname("별명")
-        .role(MemberRole.GENERAL)
-        .build();
-  }
-
-  private Post post(Member member) {
-    return Post.builder()
-        .postId(1L)
-        .title("제목")
-        .contents("내용")
-        .member(member)
-        .endAt(LocalDateTime.now().plusDays(3))
-        .build();
-  }
 }
