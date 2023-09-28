@@ -1,6 +1,7 @@
 package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
+import com.example.solumonbackend.global.mail.EmailAuthService;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.MemberDetail;
@@ -60,6 +61,4 @@ public class MemberController {
   public void test(@AuthenticationPrincipal MemberDetail memberDetail) {
     System.out.println(memberDetail.getMember().getEmail());
   }
-
-
 }
