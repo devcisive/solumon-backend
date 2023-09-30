@@ -1,5 +1,6 @@
 package com.example.solumonbackend.member.service;
 
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_NEW_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
@@ -136,6 +137,7 @@ public class MemberService {
 
   /**
    * (#6) 내 활동한 게시글목록 조회 (작성한 글/ 채팅참여한 글/ 투표한 참여글)
+   *
    * @param member
    * @param postState
    * @param postParticipateType
@@ -164,21 +166,27 @@ public class MemberService {
   @Transactional
   public MemberUpdateDto.Response updateMyInfo(Member member, MemberUpdateDto.Request request) {
 
-    // 기존 비밀번호가 일치해야 정보수정 가능
+    // 기존 비밀번호가 불일치 시 정보수정 자체가 불가능
     if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
 
-    String newPassword1 = request.getNewPassword1();
-    if (newPassword1 != null) {
-      if (!newPassword1.equals(request.getNewPassword2())) {
-        throw new MemberException(NOT_CORRECT_PASSWORD);
+    // 닉네임 수정 시 사용중인 닉네임인지 확인
+    if (!request.getNickname().equals(member.getNickname())) {
+      if (memberRepository.existsByNickname(request.getNickname())) {
+        throw new MemberException((ErrorCode.ALREADY_REGISTERED_NICKNAME));
       }
-      String newEncodingPassword = passwordEncoder.encode(request.getPassword());
-      member.setPassword(newEncodingPassword);
+      member.setNickname(request.getNickname());
     }
 
-    member.setNickname(request.getNickname());
+    // 비밀번호 수정 시 새 비밀번호1 == 새 비밀번호2 인지 확인
+    if (request.getNewPassword1() != null) {
+      if (!request.getNewPassword1().equals(request.getNewPassword2())) {
+        throw new MemberException(NOT_CORRECT_NEW_PASSWORD);
+      }
+      member.setPassword(passwordEncoder.encode(request.getNewPassword1()));
+    }
+
     memberRepository.save(member);
 
     // List<MemberTag>  ->  List<String>
@@ -214,7 +222,7 @@ public class MemberService {
 
   /**
    * (#8) 관심주제 설정
-   * 
+   *
    * @param member
    * @param request
    * @return

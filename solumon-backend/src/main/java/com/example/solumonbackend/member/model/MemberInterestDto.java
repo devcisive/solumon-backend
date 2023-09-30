@@ -2,6 +2,7 @@ package com.example.solumonbackend.member.model;
 
 import com.example.solumonbackend.member.entity.Member;
 import java.util.List;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class MemberInterestDto {
   @AllArgsConstructor
   public static class Request {
 
+    @NotNull
     private List<String> interests;
 
   }

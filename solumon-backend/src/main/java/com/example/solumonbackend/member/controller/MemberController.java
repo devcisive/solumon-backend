@@ -93,12 +93,12 @@ public class MemberController {
    * @return
    */
   @GetMapping("/mylog")
-  public ResponseEntity<Page<MyParticipatePostDto>> getMyActivePosts(
+  public ResponseEntity<Page<MyParticipatePostDto>> getMyParticipatePosts(
       @AuthenticationPrincipal MemberDetail memberDetail,
-      @RequestParam("postParticipateType") PostParticipateType postParticipateType,
-      @RequestParam("postState") PostState postState,
-      @RequestParam("postOrder") PostOrder postOrder,
-      @RequestParam("page") int page
+      @RequestParam(name = "postParticipateType") PostParticipateType postParticipateType,
+      @RequestParam(name = "postState") PostState postState,
+      @RequestParam(name = "postOrder") PostOrder postOrder,
+      @RequestParam(name = "page", defaultValue = "1") int page
       ) {
 
     Page<MyParticipatePostDto> myParticipatePosts

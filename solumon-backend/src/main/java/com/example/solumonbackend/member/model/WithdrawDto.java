@@ -1,6 +1,7 @@
 package com.example.solumonbackend.member.model;
 
 import com.example.solumonbackend.member.entity.Member;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,6 +10,7 @@ import lombok.Getter;
 public class WithdrawDto {
 
   @Getter
+  @AllArgsConstructor
   public static class Request {
 
     private String password;

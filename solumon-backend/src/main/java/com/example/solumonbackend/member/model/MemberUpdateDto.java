@@ -8,10 +8,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 public class MemberUpdateDto {
 
+  @Builder
   @Getter
+  @Setter
   @NoArgsConstructor
   @AllArgsConstructor
   public static class Request {
@@ -21,10 +24,9 @@ public class MemberUpdateDto {
     private String nickname;
 
     @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
-    @Pattern(regexp = "^(?=.[0-9])(?=.[a-zA-Z])(?=.*[@#$%^&+=!]).{8,20}$", message = "비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
     private String password;
 
-    @Pattern(regexp = "^(?=.[0-9])(?=.[a-zA-Z])(?=.*[@#$%^&+=!]).{8,20}$", message = "비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!]).{8,20}$", message = "비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
     private String newPassword1;
 
     private String newPassword2;
@@ -40,10 +42,15 @@ public class MemberUpdateDto {
     private String nickname;
     private List<String> interests;
 
+    private String password;  //테스트에서 null문제때문에 reponse에 임시로 넣어봄
+
     public static Response memberToResponse(Member member, List<String> interests) {
       return Response.builder()
           .memberId(member.getMemberId())
           .nickname(member.getNickname())
+          .interests(interests)
+
+          .password(member.getPassword()) //임시
           .build();
     }
 
