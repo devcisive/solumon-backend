@@ -389,7 +389,7 @@ class KakaoServiceTest {
         .builder()
         .kakaoAccessToken("kakaoAccessToken")
         .build()));
-    Assertions.assertEquals(ErrorCode.UNREGISTERED_ACCOUNT, exception.getErrorCode());
+    Assertions.assertEquals(ErrorCode.UNREGISTERED_MEMBER, exception.getErrorCode());
 
     this.mockServer.verify();
     verify(memberRepository, times(1)).findByEmail("sample@sample.com");

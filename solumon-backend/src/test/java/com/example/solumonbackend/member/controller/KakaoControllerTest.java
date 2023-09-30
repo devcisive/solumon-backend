@@ -413,7 +413,7 @@ class KakaoControllerTest {
             .content(json))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.errorCode").value(ErrorCode.UNREGISTERED_ACCOUNT.toString()));
+        .andExpect(jsonPath("$.errorCode").value(ErrorCode.UNREGISTERED_MEMBER.toString()));
     this.mockServer.verify();
   }
 }
