@@ -2,15 +2,12 @@ package com.example.solumonbackend.post.controller;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.member.entity.Member;
-import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.repository.MemberRepository;
-import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.*;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,8 +40,6 @@ class VoteControllerTest {
   @Autowired
   private MemberRepository memberRepository;
   @Autowired
-  private RefreshTokenRedisRepository refreshTokenRedisRepository;
-  @Autowired
   private VoteRepository voteRepository;
   @Autowired
   private PostRepository postRepository;
@@ -54,6 +49,10 @@ class VoteControllerTest {
   private TagRepository tagRepository;
   @Autowired
   private PostTagRepository postTagRepository;
+
+  Member member;
+  Member postMember;
+  Post savePost;
 
   @BeforeEach
   public void setUp() {
@@ -94,27 +93,11 @@ class VoteControllerTest {
             .build()));
   }
 
-  @AfterEach
-  public void cleanUp() {
-    memberRepository.deleteAll();
-    refreshTokenRedisRepository.deleteAll();
-    postTagRepository.deleteAll();
-    tagRepository.deleteAll();
-    postRepository.deleteAll();
-    choiceRepository.deleteAll();
-  }
-
-  Member member;
-  Member postMember;
-  Post savePost;
-
   @Test
   @WithUserDetails(value = "test@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-  @DisplayName("투표하기")
-  void createVote() throws Exception {
+  @DisplayName("투표하기 성공")
+  void createVote_success() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
-
     VoteAddDto.Request request = VoteAddDto.Request.builder().selectedNum(1).build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -122,13 +105,14 @@ class VoteControllerTest {
     //then
     mockMvc.perform(post("/posts/" + savePost.getPostId() + "/vote")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest)
-            .header("X-AUTH-TOKEN", "accessToken"))
+            .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.choices[0].choice_text").value("선택지1"))
         .andExpect(jsonPath("$.choices[0].choice_count").value(1L))
-        .andExpect(jsonPath("$.choices[0].choice_percent").value(100.0));
+        .andExpect(jsonPath("$.choices[0].choice_percent").value(100.0))
+        .andExpect(jsonPath("$.choices[1].choice_text").value("선택지2"))
+        .andExpect(jsonPath("$.choices[1].choice_percent").value(0.0));
   }
 
   @Test
@@ -136,8 +120,6 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 존재하지 않는 게시글")
   void createVote_fail_notFoundPost() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
-
     VoteAddDto.Request request = VoteAddDto.Request.builder().selectedNum(1).build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -145,8 +127,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(post("/posts/" + (savePost.getPostId() + 1) + "/vote")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest)
-            .header("X-AUTH-TOKEN", "accessToken"))
+            .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
@@ -157,8 +138,6 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 이미 마감된 게시글")
   void createVote_fail_postIsClosed() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
-
     Post closedPost = postRepository.save(Post.builder()
         .member(postMember)
         .endAt(LocalDateTime.now().minusDays(2))
@@ -171,8 +150,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(post("/posts/" + closedPost.getPostId() + "/vote")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest)
-            .header("X-AUTH-TOKEN", "accessToken"))
+            .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.POST_IS_CLOSED.toString()));
@@ -183,8 +161,6 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 작성자가 투표")
   void createVote_fail_writerCanNotVote() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
-
     VoteAddDto.Request request = VoteAddDto.Request.builder().selectedNum(1).build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -192,8 +168,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(post("/posts/" + savePost.getPostId() + "/vote")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest)
-            .header("X-AUTH-TOKEN", "accessToken"))
+            .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.WRITER_CAN_NOT_VOTE.toString()));
@@ -204,7 +179,6 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 이미 투표를 함")
   void createVote_fail_voteOnlyOnce() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
     voteRepository.save(Vote.builder()
         .member(member)
         .post(savePost)
@@ -218,8 +192,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(post("/posts/" + savePost.getPostId() + "/vote")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonRequest)
-            .header("X-AUTH-TOKEN", "accessToken"))
+            .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.VOTE_ONLY_ONCE.toString()));
@@ -227,10 +200,9 @@ class VoteControllerTest {
 
   @Test
   @WithUserDetails(value = "test@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
-  @DisplayName("투표취소")
-  void deleteVote() throws Exception {
+  @DisplayName("투표취소 성공")
+  void deleteVote_success() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
     voteRepository.save(Vote.builder()
         .selectedNum(1)
         .post(savePost)
@@ -239,9 +211,7 @@ class VoteControllerTest {
 
     //when
     //then
-    mockMvc.perform(delete("/posts/" + savePost.getPostId() + "/vote")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("X-AUTH-TOKEN", "accessToken"))
+    mockMvc.perform(delete("/posts/" + savePost.getPostId() + "/vote"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(content().string("투표가 취소되었습니다."));
@@ -252,7 +222,6 @@ class VoteControllerTest {
   @DisplayName("투표취소 실패 - 존재하지 않는 게시글")
   void deleteVote_fail_notFoundPost() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
     voteRepository.save(Vote.builder()
         .selectedNum(1)
         .post(savePost)
@@ -261,9 +230,7 @@ class VoteControllerTest {
 
     //when
     //then
-    mockMvc.perform(delete("/posts/" + (savePost.getPostId() + 1) + "/vote")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("X-AUTH-TOKEN", "accessToken"))
+    mockMvc.perform(delete("/posts/" + (savePost.getPostId() + 1) + "/vote"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
@@ -274,7 +241,6 @@ class VoteControllerTest {
   @DisplayName("투표취소 실패 - 이미 마감된 게시글")
   void deleteVote_fail_postIsClosed() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
     voteRepository.save(Vote.builder()
         .selectedNum(1)
         .post(savePost)
@@ -288,9 +254,7 @@ class VoteControllerTest {
 
     //when
     //then
-    mockMvc.perform(delete("/posts/" + closedPost.getPostId() + "/vote")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("X-AUTH-TOKEN", "accessToken"))
+    mockMvc.perform(delete("/posts/" + closedPost.getPostId() + "/vote"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.POST_IS_CLOSED.toString()));
@@ -301,13 +265,9 @@ class VoteControllerTest {
   @DisplayName("투표취소 실패 - 투표 안함")
   void deleteVote_fail_onlyPersonWhoVoted() throws Exception {
     //given
-    refreshTokenRedisRepository.save(new RefreshToken("accessToken", "refreshToken"));
-
     //when
     //then
-    mockMvc.perform(delete("/posts/" + savePost.getPostId() + "/vote")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header("X-AUTH-TOKEN", "accessToken"))
+    mockMvc.perform(delete("/posts/" + savePost.getPostId() + "/vote"))
         .andDo(print())
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL.toString()));
