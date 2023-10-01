@@ -51,7 +51,7 @@ public class MemberControllerTest2 {
 
   @AfterEach
   public void cleanUp() {
-    memberRepository.deleteAll();
+    //redisRepository는 @transactional 적용을 받지 않아서 내버려둠
     refreshTokenRedisRepository.deleteAll();
   }
 
