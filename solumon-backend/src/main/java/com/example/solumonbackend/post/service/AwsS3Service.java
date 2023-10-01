@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -77,19 +77,9 @@ public class AwsS3Service {
     // 현재 작업 디렉토리와 원래 파일 이름을 결합해 새로운 file 객체 생성
     File file = new File(System.getProperty("user.dir") + "/" + multipartFile.getOriginalFilename());
     log.debug("file 객체 생성");
+    multipartFile.transferTo(file);
 
-    // 실제 파일 생성
-    if (file.createNewFile()) {
-      // 실제 파일을 열고 multipartFile에서 읽어온 바이트 데이터를 해당 파일에 씀 -> 실제 디스크에 저장됨
-      try (FileOutputStream fos = new FileOutputStream(file)) {
-        fos.write(multipartFile.getBytes());
-      }
-      log.debug("file에 바이트 데이터 저장");
-
-      return Optional.of(file);
-    }
-
-    return Optional.empty();
+    return Optional.of(file);
   }
 
   public void remove(AwsS3 awsS3) {
@@ -102,9 +92,9 @@ public class AwsS3Service {
   }
 
   public void removeAll(List<AwsS3> awsS3List) {
-    for (AwsS3 s3: awsS3List) {
-      remove(s3);
-    }
+    awsS3List.stream()
+        .filter(Objects::nonNull)
+        .forEach(this::remove);
   }
 
 }
