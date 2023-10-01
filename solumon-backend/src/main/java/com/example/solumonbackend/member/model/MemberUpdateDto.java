@@ -42,15 +42,12 @@ public class MemberUpdateDto {
     private String nickname;
     private List<String> interests;
 
-    private String password;  //테스트에서 null문제때문에 reponse에 임시로 넣어봄
 
     public static Response memberToResponse(Member member, List<String> interests) {
       return Response.builder()
           .memberId(member.getMemberId())
           .nickname(member.getNickname())
           .interests(interests)
-
-          .password(member.getPassword()) //임시
           .build();
     }
 

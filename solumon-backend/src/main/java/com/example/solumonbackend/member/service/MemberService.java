@@ -1,6 +1,5 @@
 package com.example.solumonbackend.member.service;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_NEW_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
@@ -33,6 +32,7 @@ import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostState;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -171,18 +171,22 @@ public class MemberService {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
 
-    // 닉네임 수정 시 사용중인 닉네임인지 확인
-    if (!request.getNickname().equals(member.getNickname())) {
-      if (memberRepository.existsByNickname(request.getNickname())) {
-        throw new MemberException((ErrorCode.ALREADY_REGISTERED_NICKNAME));
-      }
+
+    if (!request.getNickname().equals(member.getNickname()) &&
+        memberRepository.existsByNickname(request.getNickname()) ){
+
+      throw new MemberException((ErrorCode.ALREADY_REGISTERED_NICKNAME));
+
+    } else {
       member.setNickname(request.getNickname());
     }
+
+  
 
     // 비밀번호 수정 시 새 비밀번호1 == 새 비밀번호2 인지 확인
     if (request.getNewPassword1() != null) {
       if (!request.getNewPassword1().equals(request.getNewPassword2())) {
-        throw new MemberException(NOT_CORRECT_NEW_PASSWORD);
+        throw new MemberException(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH);
       }
       member.setPassword(passwordEncoder.encode(request.getNewPassword1()));
     }

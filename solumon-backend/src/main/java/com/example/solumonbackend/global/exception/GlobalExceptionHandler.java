@@ -33,4 +33,10 @@ public class GlobalExceptionHandler {
     log.error("{} is occurred", e.getErrorCode());
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
+
+  @ExceptionHandler(PostException.class)
+  public ErrorResponse handlePostException(PostException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
 }

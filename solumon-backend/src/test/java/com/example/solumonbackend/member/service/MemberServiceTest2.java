@@ -21,7 +21,6 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto.Info;
-import com.example.solumonbackend.member.model.MemberTestData;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto.Request;
 import com.example.solumonbackend.member.model.MemberUpdateDto.Response;
@@ -29,6 +28,7 @@ import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
+import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
@@ -41,6 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,18 +82,49 @@ class MemberServiceTest2 {
   private MemberService memberService;
 
 
-  @DisplayName("내 정보 조회 성공")
-  @Test
-  public void testGetMyInfo() {
+  private Member fakeMember;
+  private List<MemberTag> fakeMemberTags;
 
-    // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().build();
+  private List<Tag> fakeTags;
 
-    List<Tag> fakeTags = Arrays.asList(
+  @BeforeEach
+  public void dataSetup() {
+
+    fakeMember = Member.builder()
+        .memberId(1L)
+        .kakaoId(1L)
+        .email("example@naver.com")
+        .nickname("nickname")
+        .registeredAt(LocalDateTime.now())
+        .role(MemberRole.GENERAL)
+        .modifiedAt(null)
+        .unregisteredAt(null)
+        .password(passwordEncoder.encode("password"))
+        .isFirstLogIn(true)
+        .build();
+
+
+    fakeTags = Arrays.asList(
         Tag.builder().tagId(1L).name("태그1").build(),
         Tag.builder().tagId(2L).name("태그2").build()
     );
-    List<MemberTag> fakeMemberTags = MemberTestData.createMemberTags(fakeMember, fakeTags);
+
+
+    AtomicLong memberTagIdGenerator = new AtomicLong();
+    fakeMemberTags = fakeTags.stream().map(tag ->
+        MemberTag.builder()
+            .memberTagId(memberTagIdGenerator.incrementAndGet())
+            .member(fakeMember)
+            .tag(tag)
+            .build()).collect(Collectors.toList());
+
+  }
+
+
+  @DisplayName("내 정보 조회 성공")
+  @Test
+  public void testGetMyInfo() {
+    // Given
 
     when(memberTagRepository.findAllByMember_MemberId(fakeMember.getMemberId()))
         .thenReturn(fakeMemberTags);
@@ -109,20 +143,10 @@ class MemberServiceTest2 {
   }
 
 
-
   @DisplayName("내 정보 수정 성공 - 닉네임만 수정")
   @Test
   void updateMyInfoTest_success_nickname() {
     // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().nickname("nickname").password("password")
-        .build();
-
-    List<Tag> fakeTags = Arrays.asList(
-        Tag.builder().tagId(1L).name("태그1").build(),
-        Tag.builder().tagId(2L).name("태그2").build()
-    );
-
-    List<MemberTag> fakeMemberTags = MemberTestData.createMemberTags(fakeMember, fakeTags);
 
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
@@ -156,18 +180,6 @@ class MemberServiceTest2 {
   @Test
   void updateMyInfoTest_success_password() {
     // Given
-
-    Member fakeMember = MemberTestData.fakeMemberBuilder()
-        .nickname("nickname")
-        .password(passwordEncoder.encode("password"))
-        .build();
-
-    List<Tag> fakeTags = Arrays.asList(
-        Tag.builder().tagId(1L).name("태그1").build(),
-        Tag.builder().tagId(2L).name("태그2").build()
-    );
-
-    List<MemberTag> fakeMemberTags = MemberTestData.createMemberTags(fakeMember, fakeTags);
 
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname")
@@ -203,17 +215,6 @@ class MemberServiceTest2 {
   @Test
   void updateMyInfoTest_success_All() {
     // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder()
-        .nickname("nickname")
-        .password(passwordEncoder.encode("password"))
-        .build();
-
-    List<Tag> fakeTags = Arrays.asList(
-        Tag.builder().tagId(1L).name("태그1").build(),
-        Tag.builder().tagId(2L).name("태그2").build()
-    );
-
-    List<MemberTag> fakeMemberTags = MemberTestData.createMemberTags(fakeMember, fakeTags);
 
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
@@ -250,8 +251,6 @@ class MemberServiceTest2 {
   @Test
   void updateMyInfo_fail_AlreadyRegisteredNickname() {
     // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().nickname("nickname").password("password")
-        .build();
 
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
@@ -281,7 +280,6 @@ class MemberServiceTest2 {
   @Test
   void updateMyInfo_fail_PasswordNotMatching() {
     // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().password("password").build();
 
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
@@ -309,8 +307,6 @@ class MemberServiceTest2 {
   void updateMyInfo_fail_PasswordMatching_Password1And2NotMatching() {
     // Given
 
-    Member fakeMember = MemberTestData.fakeMemberBuilder().build();
-
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
         .password("password")
@@ -325,7 +321,7 @@ class MemberServiceTest2 {
         () -> memberService.updateMyInfo(fakeMember, request));
 
     // Then
-    assertEquals(ErrorCode.NOT_CORRECT_NEW_PASSWORD, memberException.getErrorCode());
+    assertEquals(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH, memberException.getErrorCode());
 
   }
 
@@ -336,11 +332,10 @@ class MemberServiceTest2 {
 
     // Given
     WithdrawDto.Request request = new WithdrawDto.Request("password");
-    Member fakeMember = MemberTestData.fakeMemberBuilder().password("password").build();
-    ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
     when(memberRepository.save(fakeMember)).thenReturn(fakeMember);
+    ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
     // When
     WithdrawDto.Response response = memberService.withdrawMember(fakeMember, request);
@@ -365,8 +360,6 @@ class MemberServiceTest2 {
 
     // Given
     WithdrawDto.Request request = new WithdrawDto.Request("incorrect_password");
-    Member fakeMember = MemberTestData.fakeMemberBuilder().password("password").build();
-
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(
         false);
 
@@ -385,18 +378,12 @@ class MemberServiceTest2 {
   @Test
   void registerInterest_success() {
     // Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().isFirstLogIn(true).build();
 
-    MemberInterestDto.Request request = new MemberInterestDto.Request(List.of("관심주제1", "관심주제2"));
+    MemberInterestDto.Request request = new MemberInterestDto.Request(List.of("태그1", "태그2"));
 
-    List<Tag> fakeTags = Arrays.asList(
-        Tag.builder().tagId(1L).name("관심주제1").build(),
-        Tag.builder().tagId(2L).name("관심주제2").build());
 
-    List<MemberTag> fakeMemberTags = MemberTestData.createMemberTags(fakeMember, fakeTags);
-
-    when(tagRepository.findByName("관심주제1")).thenReturn(Optional.of(fakeTags.get(0)));
-    when(tagRepository.findByName("관심주제2")).thenReturn(Optional.of(fakeTags.get(1)));
+    when(tagRepository.findByName("태그1")).thenReturn(Optional.of(fakeTags.get(0)));
+    when(tagRepository.findByName("태그2")).thenReturn(Optional.of(fakeTags.get(1)));
     when(memberTagRepository.saveAll(any())).thenReturn(fakeMemberTags);
     when(memberTagRepository.findAllByMember_MemberId(fakeMember.getMemberId())).thenReturn(
         fakeMemberTags);
@@ -412,7 +399,7 @@ class MemberServiceTest2 {
 
     assertEquals(fakeMember.getMemberId(), response.getMemberId());
     assertFalse(fakeMember.isFirstLogIn());
-    assertIterableEquals(List.of("관심주제1", "관심주제2"), response.getInterests());
+    assertIterableEquals(List.of("태그1", "태그2"), response.getInterests());
 
   }
 
@@ -421,8 +408,6 @@ class MemberServiceTest2 {
   @Test
   void registerInterest_fail() {
     // Given
-    Member member = MemberTestData.fakeMemberBuilder().build();
-
 
     MemberInterestDto.Request request = new MemberInterestDto.Request(List.of("관심주제1", "관심주제2"));
 
@@ -430,12 +415,12 @@ class MemberServiceTest2 {
 
     // When
     TagException tagException = assertThrows(TagException.class,
-        () -> memberService.registerInterest(member, request));
+        () -> memberService.registerInterest(fakeMember, request));
 
     // Then
     assertEquals(NOT_FOUND_TAG, tagException.getErrorCode());
 
-    verify(memberTagRepository, times(1)).deleteAllByMember_MemberId(member.getMemberId());
+    verify(memberTagRepository, times(1)).deleteAllByMember_MemberId(fakeMember.getMemberId());
     verify(memberTagRepository, never()).saveAll(any());
 
   }
@@ -445,7 +430,6 @@ class MemberServiceTest2 {
   @Test
   void getMyParticipatePosts() {
     //Given
-    Member fakeMember = MemberTestData.fakeMemberBuilder().build();
 
     PostState postState = PostState.ONGOING;
     PostParticipateType postParticipateType = PostParticipateType.CHAT;
@@ -453,7 +437,6 @@ class MemberServiceTest2 {
     Pageable pageable = Pageable.ofSize(10);
 
     List<MyParticipatePostDto> fakeMyParticipatePosts = creatFakeMyParticipatePosts();
-
 
     when(postRepository.getMyParticipatePostPages(
         eq(fakeMember.getMemberId()),
@@ -497,7 +480,6 @@ class MemberServiceTest2 {
         .voteCount(4)
         .chatCount(20)
         .build();
-
 
     fakeData.add(post1);
     fakeData.add(post2);

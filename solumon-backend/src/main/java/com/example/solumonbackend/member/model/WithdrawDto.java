@@ -1,18 +1,23 @@
 package com.example.solumonbackend.member.model;
 
 import com.example.solumonbackend.member.entity.Member;
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 public class WithdrawDto {
 
   @Getter
+  @Setter
   @AllArgsConstructor
+  @NoArgsConstructor
   public static class Request {
 
+    @NotBlank(message = "비밀번호는 필수입력값입니다.")
     private String password;
 
   }

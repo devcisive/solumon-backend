@@ -1,6 +1,8 @@
 package com.example.solumonbackend.post.repository;
 
 import com.example.solumonbackend.chat.entity.QChannelMember;
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.post.entity.QPost;
 import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
@@ -50,7 +52,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     QPost qpost = QPost.post;
 
-
     // 조건1 (참여타입)
     BooleanExpression participateTypeCondition
         = createParticipateTypeCondition(memberId, postParticipateType, qpost);
@@ -64,7 +65,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     List<MyParticipatePostDto> resultContents
         = jpaQueryFactory.select(Projections.bean(MyParticipatePostDto.class,
             qpost.postId,
-            qpost.member.nickname.as("writerNickname"), // 매칭되는 이름이 다를 땐 별칭사용
+            qpost.member.nickname.as("writerNickname"), // MyParticipatePostDto 의 필드이름과 일치하지않다면 as()사용
             qpost.title,
             qpost.contents,
             qpost.chatCount,
@@ -97,22 +98,20 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
   private BooleanExpression createStateCondition(PostState state, QPost qpost) {
-
-    if (state == null) {
-      throw new RuntimeException("조건값이 없습니다.");
+  // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
+    if (qpost == null || state == null) {
+      throw new PostException(ErrorCode.NullPointerException);
     }
 
-    // 마감상태일때
     if (state == PostState.COMPLETED) {
       return qpost.endAt.after(LocalDateTime.now());
     }
 
-    // 마감일 자체를 설정하지 않았거나 아직 진행중일때
     if (state == PostState.ONGOING) {
       return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
     }
 
-    return null;
+    throw new PostException(ErrorCode.IllegalArgumentException);
   }
 
 
@@ -120,8 +119,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
   private BooleanExpression createParticipateTypeCondition(
       Long memberId, PostParticipateType participateType, QPost qPost) {
 
+    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
     if (memberId == null || participateType == null) {
-      throw new RuntimeException("조건값이 없습니다.");
+      throw new PostException(ErrorCode.NullPointerException);
     }
 
     // 채팅
@@ -151,32 +151,34 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       return qPost.member.memberId.eq(memberId);
     }
 
-    return null;
+    throw new PostException(ErrorCode.IllegalArgumentException);
   }
 
 
   // Order By 값 구하기
-  private OrderSpecifier<?> createOrderSpecifier( PostOrder order, QPost qpost) {
+  private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
+    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
+      if (qpost == null || order == null) {
+        throw new PostException(ErrorCode.NullPointerException);
+      }
 
-    if (qpost == null || order == null) {
-      throw new RuntimeException("조건값이 없습니다.");
-    }
+      // 최신순)  post.createdAt.desc()
+      if (order == PostOrder.POST_ORDER) {
+        return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
+      }
 
-    // 최신순)  post.createdAt.desc()
-    if (order == PostOrder.POST_ORDER) {
-      return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
-    }
+      // 투표참여인원)  post.voteCount.desc()
+      if (order == PostOrder.MOST_VOTES) {
+        return qpost.voteCount.desc(); // OrderSpecifier<Integer>
+      }
 
-    // 투표참여인원)  post.voteCount.desc()
-    if (order == PostOrder.MOST_VOTES) {
-      return qpost.voteCount.desc(); // OrderSpecifier<Integer>
-    }
+      // 채팅참여인원)  post.chatCount.desc()
+      if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
+        return qpost.chatCount.desc();  // OrderSpecifier<Integer>
+      }
 
-    // 채팅참여인원)  post.chatCount.desc()
-    if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
-      return qpost.chatCount.desc();  // OrderSpecifier<Integer>
-    }
+    throw new PostException(ErrorCode.IllegalArgumentException);
 
-    return null;
   }
+
 }
