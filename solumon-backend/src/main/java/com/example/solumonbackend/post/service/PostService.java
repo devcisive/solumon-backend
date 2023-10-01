@@ -78,7 +78,7 @@ public class PostService {
         .filter(Objects::nonNull)
         .map(s3 -> Image.builder()
             .post(post)
-            .key(s3.getKey())
+            .imageKey(s3.getKey())
             .imageUrl(s3.getPath())
             .build())
         .collect(Collectors.toList()));
@@ -196,7 +196,7 @@ public class PostService {
     if (!imageList.isEmpty()) {
       awsS3Service.removeAll(imageList.stream()
           .map(image -> AwsS3.builder()
-              .key(image.getKey())
+              .key(image.getImageKey())
               .path(image.getImageUrl())
               .build())
           .collect(Collectors.toList()));

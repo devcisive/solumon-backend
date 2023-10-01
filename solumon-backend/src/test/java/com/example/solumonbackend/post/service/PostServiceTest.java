@@ -190,13 +190,13 @@ class PostServiceTest {
             Image.builder()
                 .imageId(1L)
                 .post(mockPost)
-                .key("dir/image1.jpg")
+                .imageKey("dir/image1.jpg")
                 .imageUrl("imageUrl1")
                 .build(),
             Image.builder()
                 .imageId(2L)
                 .post(mockPost)
-                .key("dir/image2.jpg")
+                .imageKey("dir/image2.jpg")
                 .imageUrl("imageUrl2")
                 .build()));
     when(voteCustomRepository.getChoiceResults(1L))
@@ -273,7 +273,7 @@ class PostServiceTest {
             Image.builder()
                 .imageId(1L)
                 .post(updatePost)
-                .key("dir/image2.jpg")
+                .imageKey("dir/image2.jpg")
                 .imageUrl("imageUrl2")
                 .build()));
     when(voteRepository.countByPost_PostId(1L))

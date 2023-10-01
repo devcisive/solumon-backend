@@ -21,7 +21,7 @@ public class Image {
   @JoinColumn(name = "post_id")
   private Post post;
 
-  private String key;
+  private String imageKey;
 
   private String imageUrl;
 }
