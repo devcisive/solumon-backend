@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @AutoConfigureMockMvc(addFilters = false)
-class MemberControllerTest3 {
+class MemberControllerTest_Report {
 
   @Autowired
   private MockMvc mockMvc;
