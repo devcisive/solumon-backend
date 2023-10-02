@@ -3,9 +3,9 @@ package com.example.solumonbackend.member.model;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter
 public class LogOutDto {
 
+  @Getter
   @Builder
   public static class Response {
     private Long memberId;

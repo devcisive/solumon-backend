@@ -1,8 +1,8 @@
 package com.example.solumonbackend.member.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,11 +16,11 @@ public class GeneralSignInDto {
   @Builder
   public static class Request {
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "이메일은 필수 입력 값입니다.")
+    @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$", message = "이메일 형식이 올바르지 않습니다.")
     private String email;
 
-    @NotBlank
+    @NotBlank(message = "비밀번호는 필수 입력 값입니다.")
     private String password;
   }
 
@@ -37,6 +37,8 @@ public class GeneralSignInDto {
     @JsonProperty("refresh_token")
     private String refreshToken;
 
+    @JsonProperty("is_first_login")
+    private boolean isFirstLogIn;
   }
 
 
