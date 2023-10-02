@@ -118,12 +118,7 @@ public class MemberService {
         .build();
   }
 
-  /**
-   * (#6) 내 정보 조회
-   *
-   * @param member
-   * @return
-   */
+
   public MemberLogDto.Info getMyInfo(Member member) {
 
     // List<MemberTag>  ->  List<String>
@@ -135,16 +130,6 @@ public class MemberService {
   }
 
 
-  /**
-   * (#6) 내 활동한 게시글목록 조회 (작성한 글/ 채팅참여한 글/ 투표한 참여글)
-   *
-   * @param member
-   * @param postState
-   * @param postParticipateType
-   * @param postOrder
-   * @param pageable
-   * @return
-   */
   public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
       PostState postState, PostParticipateType postParticipateType, PostOrder postOrder,
       Pageable pageable) {
@@ -156,13 +141,6 @@ public class MemberService {
   }
 
 
-  /**
-   * (#6) 내 정보 수정하기
-   *
-   * @param member
-   * @param request
-   * @return
-   */
   @Transactional
   public MemberUpdateDto.Response updateMyInfo(Member member, MemberUpdateDto.Request request) {
 
@@ -171,17 +149,14 @@ public class MemberService {
       throw new MemberException(NOT_CORRECT_PASSWORD);
     }
 
-
     if (!request.getNickname().equals(member.getNickname()) &&
-        memberRepository.existsByNickname(request.getNickname()) ){
+        memberRepository.existsByNickname(request.getNickname())) {
 
       throw new MemberException((ErrorCode.ALREADY_REGISTERED_NICKNAME));
 
     } else {
       member.setNickname(request.getNickname());
     }
-
-  
 
     // 비밀번호 수정 시 새 비밀번호1 == 새 비밀번호2 인지 확인
     if (request.getNewPassword1() != null) {
@@ -203,12 +178,6 @@ public class MemberService {
   }
 
 
-  /**
-   * #6 회원탈퇴
-   *
-   * @param member
-   * @param request
-   */
   @Transactional
   public WithdrawDto.Response withdrawMember(Member member, WithdrawDto.Request request) {
 
@@ -224,13 +193,6 @@ public class MemberService {
   }
 
 
-  /**
-   * (#8) 관심주제 설정
-   *
-   * @param member
-   * @param request
-   * @return
-   */
   @Transactional
   public MemberInterestDto.Response registerInterest(Member member,
       MemberInterestDto.Request request) {

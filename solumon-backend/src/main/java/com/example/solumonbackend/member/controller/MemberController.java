@@ -69,29 +69,14 @@ public class MemberController {
     System.out.println(memberDetail.getMember().getEmail());
   }
 
-  /**
-   * (#6) 내 정보 조회(프로필)
-   *
-   * @param memberDetail
-   * @return
-   */
+
   @GetMapping
   public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
 
-    MemberLogDto.Info response = memberService.getMyInfo(memberDetail.getMember());
-    return ResponseEntity.ok().body(response);
+    return ResponseEntity.ok().body(memberService.getMyInfo(memberDetail.getMember()));
   }
 
 
-  /**
-   * (#6) 내 활동한 게시글목록 조회 (작성한 글/ 채팅참여한 글/ 투표한 참여글)
-   * @param memberDetail
-   * @param postParticipateType
-   * @param postState
-   * @param postOrder
-   * @param page
-   * @return
-   */
   @GetMapping("/mylog")
   public ResponseEntity<Page<MyParticipatePostDto>> getMyParticipatePosts(
       @AuthenticationPrincipal MemberDetail memberDetail,
@@ -99,61 +84,38 @@ public class MemberController {
       @RequestParam(name = "postState") PostState postState,
       @RequestParam(name = "postOrder") PostOrder postOrder,
       @RequestParam(name = "page", defaultValue = "1") int page
-      ) {
+  ) {
 
-    Page<MyParticipatePostDto> myParticipatePosts
-        = memberService.getMyParticipatePosts(memberDetail.getMember(),
-                        postState, postParticipateType, postOrder,
-                        PageRequestCustom.of(page, postOrder));
-
-    return ResponseEntity.ok().body(myParticipatePosts);
+    return ResponseEntity.ok()
+        .body(memberService.getMyParticipatePosts(memberDetail.getMember(),
+            postState, postParticipateType, postOrder,
+            PageRequestCustom.of(page, postOrder)));
   }
 
 
-  /**
-   * (#6) 내 정보 수정 (프로필)
-   *
-   * @param memberDetail
-   * @return
-   */
   @PutMapping
-  public ResponseEntity<MemberUpdateDto.Response> updateMyInfo(@AuthenticationPrincipal MemberDetail memberDetail,
+  public ResponseEntity<MemberUpdateDto.Response> updateMyInfo(
+      @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody @Valid MemberUpdateDto.Request update) {
-
-    MemberUpdateDto.Response response = memberService.updateMyInfo(memberDetail.getMember(), update);
-    return ResponseEntity.ok().body(response);
+    return ResponseEntity.ok()
+        .body(memberService.updateMyInfo(memberDetail.getMember(), update));
   }
 
 
-  /**
-   * (#6) 회원 탈퇴
-   *
-   * @param memberDetail
-   * @param request
-   * @return
-   */
   @DeleteMapping("/withdraw")
-  public ResponseEntity<WithdrawDto.Response> withdrawMember(@AuthenticationPrincipal MemberDetail memberDetail,
+  public ResponseEntity<WithdrawDto.Response> withdrawMember(
+      @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody WithdrawDto.Request request) {
-
-    WithdrawDto.Response response = memberService.withdrawMember(memberDetail.getMember(), request);
-    return ResponseEntity.ok().body(response);
+    return ResponseEntity.ok()
+        .body(memberService.withdrawMember(memberDetail.getMember(), request));
   }
 
 
-  /**
-   * (#8) 관심주제 선택
-   *
-   * @param memberDetail
-   * @param request
-   * @return
-   */
   @PostMapping("/interests")
-  public ResponseEntity<MemberInterestDto.Response> registerInterest(@AuthenticationPrincipal MemberDetail memberDetail,
+  public ResponseEntity<MemberInterestDto.Response> registerInterest(
+      @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody MemberInterestDto.Request request) {
-
-    MemberInterestDto.Response response = memberService.registerInterest(memberDetail.getMember(), request);
-    return ResponseEntity.ok().body(response);
-
+    return ResponseEntity.ok()
+        .body(memberService.registerInterest(memberDetail.getMember(), request));
   }
 }
