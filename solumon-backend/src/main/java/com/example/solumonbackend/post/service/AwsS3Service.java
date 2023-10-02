@@ -4,6 +4,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.post.model.AwsS3;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,8 @@ public class AwsS3Service {
       return null;
     }
     File file = convertMultipartFileToFile(multipartFile)
-        .orElseThrow(() -> new IllegalArgumentException("MultipartFile -> File convert fail"));
+        .orElseThrow(() -> new IllegalArgumentException(ErrorCode.IMAGE_CAN_NOT_SAVE.getDescription()
+            + " : MultipartFile -> File convert fail"));
     log.debug("MultipartFile -> File 변환 완료");
 
     return upload(file, dirName);
@@ -85,7 +87,7 @@ public class AwsS3Service {
   public void remove(AwsS3 awsS3) {
     // 파일명(키 값)을 통해 s3에서 삭제
     if (!amazonS3.doesObjectExist(bucket, awsS3.getKey())) {
-      throw new AmazonS3Exception("Object " + awsS3.getKey() + " does not exist");
+      throw new AmazonS3Exception("이미지 삭제에 실패했습니다 : Object " + awsS3.getKey() + " does not exist");
     }
     amazonS3.deleteObject(bucket, awsS3.getKey());
     log.debug("S3에서 이미지 삭제 완료 : {}", awsS3.getKey());

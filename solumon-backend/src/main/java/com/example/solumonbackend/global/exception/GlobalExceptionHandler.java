@@ -1,5 +1,6 @@
 package com.example.solumonbackend.global.exception;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -27,6 +28,18 @@ public class GlobalExceptionHandler {
   public ErrorResponse handleAccountException(CustomSecurityException e) {
     log.error("{} is occurred", e.getErrorCode());
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
+  @ExceptionHandler(AmazonS3Exception.class)
+  public ErrorResponse handleAmazonS3Exception(AmazonS3Exception e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.AmazonS3Exception, e.getMessage());
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
