@@ -13,10 +13,12 @@ import org.springframework.stereotype.Repository;
 public class MemberRepositoryCustomImpl implements MemberRepositoryCustom {
 
   private final JPAQueryFactory jpaQueryFactory;
-  private final QMember qMember = QMember.member;
+
 
   @Override
   public List<Member> findMembersToReleaseBannedStatus() {
+
+    QMember qMember = QMember.member;
 
     // bannedAt이 7일이 지난 멤버들
     return jpaQueryFactory.select(qMember).from(qMember)

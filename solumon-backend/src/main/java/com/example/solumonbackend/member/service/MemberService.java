@@ -101,11 +101,14 @@ public class MemberService {
   }
 
   @Transactional
-  public void reportMember(Member member, Long memberId, ReportDto.Request request) {
+  public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findByMemberId(memberId)
-        .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
+    Optional<Member> optionalMember = memberRepository.findByMemberId(reportedMemberId);
+    if(optionalMember.isEmpty() || optionalMember.get().getUnregisteredAt() != null ){
+      throw new MemberException(NOT_FOUND_MEMBER);
+    }
+    Member reportedMember = optionalMember.get();
 
     // 이미 정지상태면 신고불가
     if (reportedMember.getBannedAt() != null) {
@@ -126,7 +129,7 @@ public class MemberService {
     reportRepository.save(
         Report.builder()
             .member(reportedMember)
-            .reporterId(memberId)
+            .reporterId(member.getMemberId())
             .reportType(request.getReportType())
             .content(request.getReportContent())
             .reportedAt(LocalDateTime.now())

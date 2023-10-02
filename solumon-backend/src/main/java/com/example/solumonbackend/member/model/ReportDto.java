@@ -7,12 +7,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@AllArgsConstructor
 @NoArgsConstructor
 public class ReportDto {
 
   @Getter
   @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
   public static class Request {
 
     @NotNull

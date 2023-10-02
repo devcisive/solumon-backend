@@ -51,13 +51,13 @@ public class MemberController {
   }
 
 
-  @PostMapping("/{memberId}/ban")
+  @PostMapping("/{memberId}/report")
   public ResponseEntity<?> reportMember(
-      @AuthenticationPrincipal Member member,
+      @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody ReportDto.Request reportRequest,
       @PathVariable Long memberId) {
 
-    memberService.reportMember(member, memberId, reportRequest);
+    memberService.reportMember(memberDetail.getMember(), memberId, reportRequest);
     return ResponseEntity.ok().build();
 
   }
