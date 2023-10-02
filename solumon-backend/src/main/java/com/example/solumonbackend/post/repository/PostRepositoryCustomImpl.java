@@ -103,11 +103,11 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       throw new PostException(ErrorCode.NullPointerException);
     }
 
-    if (state == PostState.COMPLETED) {
+    if (state == PostState.ONGOING) {
       return qpost.endAt.after(LocalDateTime.now());
     }
 
-    if (state == PostState.ONGOING) {
+    if (state == PostState.COMPLETED) {
       return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
     }
 

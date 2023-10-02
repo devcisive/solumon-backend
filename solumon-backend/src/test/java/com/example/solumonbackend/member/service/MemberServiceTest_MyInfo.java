@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
-import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.model.MemberInterestDto;
@@ -27,7 +26,6 @@ import com.example.solumonbackend.member.model.MemberUpdateDto.Response;
 import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
-import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
@@ -58,17 +56,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 @ExtendWith(MockitoExtension.class)
-class MemberServiceTest3 {
+class MemberServiceTest_MyInfo {
 
   @Mock
   public PasswordEncoder passwordEncoder;
   @Mock
   private MemberRepository memberRepository;
-  @Mock
-  private JwtTokenProvider jwtTokenProvider;
 
-  @Mock
-  private RefreshTokenRedisRepository refreshTokenRedisRepository;
   @Mock
   private PostRepository postRepository;
 
