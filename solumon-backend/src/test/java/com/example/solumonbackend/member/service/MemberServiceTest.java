@@ -17,12 +17,14 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
+import com.example.solumonbackend.member.model.LogOutDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -263,4 +265,42 @@ class MemberServiceTest {
     assertEquals(ErrorCode.UNREGISTERED_MEMBER, exception.getErrorCode());
   }
 
+
+  @Test
+  void logOut_success() {
+    //given
+    Member member = Member.builder()
+        .email("sample@sample.com")
+        .build();
+    String accessToken = "accessToken";
+    RefreshToken refreshToken = new RefreshToken("accessToken", "refreshToken");
+
+    //when
+    when(refreshTokenRedisRepository.findByAccessToken(accessToken))
+        .thenReturn(Optional.of(refreshToken));
+
+    LogOutDto.Response response = memberService.logOut(member, accessToken);
+    //then
+    verify(refreshTokenRedisRepository, times(1)).findByAccessToken(accessToken);
+    Assertions.assertEquals(member.getMemberId(), response.getMemberId());
+    Assertions.assertEquals("로그아웃 되었습니다.", response.getStatus());
+  }
+
+  @Test
+  void logOut_fail_accessTokenNotFound() {
+    //given
+    Member member = Member.builder()
+        .email("sample@sample.com")
+        .build();
+    String accessToken = "accessToken";
+
+    //when
+    when(refreshTokenRedisRepository.findByAccessToken(accessToken))
+        .thenReturn(Optional.empty());
+
+    MemberException exception = Assertions.assertThrows(MemberException.class, () -> memberService.logOut(member, accessToken));
+    //then
+    verify(refreshTokenRedisRepository, times(1)).findByAccessToken(accessToken);
+    Assertions.assertEquals(ErrorCode.ACCESS_TOKEN_NOT_FOUND, exception.getErrorCode());
+  }
 }

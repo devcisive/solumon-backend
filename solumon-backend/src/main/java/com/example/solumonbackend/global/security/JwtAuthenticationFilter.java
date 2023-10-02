@@ -34,14 +34,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // 제대로 됐을 때
     if (accessToken != null & jwtTokenProvider.validateTokenExpiration(accessToken)) {
       log.info("[doFilterInternal] 토큰 유효 검증 성공");
-      Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-      SecurityContextHolder.getContext().setAuthentication(authentication);
-    } else if (accessToken != null & !jwtTokenProvider.validateTokenExpiration(accessToken)) {
 
-      // 액세스 토큰으로 레디스에서 리프레쉬 토큰 가져오기
       RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
           .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));
 
+      // 로그아웃 처리된 액서스 토큰이 아닌지 검증, 아닐 시에만 authentication 부여
+      // 로그아웃 처리된 액서스 토큰일 경우 authentication 부여하지 않고 401 error
+      if (!"logout".equals(byAccessToken.getRefreshToken())) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+      }
+    } else if (accessToken != null & !jwtTokenProvider.validateTokenExpiration(accessToken)) {
+      // 액세스 토큰으로 레디스에서 리프레쉬 토큰 가져오기
+      RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
+          .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));
       // 1. 리프레쉬도 만료됐다면 -> 다시 로그인 하도록 함
       if (!jwtTokenProvider.validateTokenExpiration(byAccessToken.getRefreshToken())) {
         throw new CustomSecurityException(ErrorCode.INVALID_REFRESH_TOKEN);
@@ -52,7 +58,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
       SecurityContextHolder.getContext().setAuthentication(authentication);
     }
-
     filterChain.doFilter(request, response);
   }
 }

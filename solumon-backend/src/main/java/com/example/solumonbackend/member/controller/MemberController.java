@@ -4,6 +4,7 @@ import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
 import com.example.solumonbackend.global.mail.EmailAuthService;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.LogOutDto;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.service.MemberService;
 import javax.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -50,6 +52,12 @@ public class MemberController {
   @PostMapping("/sign-in/general")
   public ResponseEntity<GeneralSignInDto.Response> signIn(@Valid @RequestBody GeneralSignInDto.Request request) {
     return ResponseEntity.ok(memberService.signIn(request));
+  }
+
+  @GetMapping("/log-out")
+  public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
+                                                    @RequestHeader("X-AUTH-TOKEN") String accessToken) {
+    return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
   }
 
   @GetMapping("/exception")
