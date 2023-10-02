@@ -17,7 +17,8 @@ public enum ErrorCode {
 
   INVALID_REFRESH_TOKEN("refresh token이 유효하지 않습니다."),
   NOT_FOUND_TOKEN_SET("해당 accessToken으로 저장된 token을 찾을 수 없습니다."),
-  ALREADY_REPORT_MEMBER("이미 신고상태인 사용자입니다.");
+  ALREADY_BANNED_MEMBER("이미 정지상태인 사용자입니다."),
+  COOL_TIME_REPORT_MEMBER("해당 유저를 다시 신고할 수 있는 기간이 지나지 않았습니다.");
 
   private final String description;
 

@@ -12,13 +12,15 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -46,12 +48,12 @@ public class Member {
   @Enumerated(EnumType.STRING)
   private MemberRole role;
 
-  private int reportCount;
-
   @LastModifiedDate
   private LocalDateTime modifiedAt;
 
-  private int banCount;
+  private LocalDateTime bannedAt;
 
   private LocalDateTime unregisteredAt;
+
+  private boolean isFirstLogIn;
 }

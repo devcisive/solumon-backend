@@ -4,6 +4,7 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.MemberDetail;
+import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.service.MemberService;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,19 +50,14 @@ public class MemberController {
     System.out.println(memberDetail.getMember().getEmail());
   }
 
-  /**
-   * (#7) 유저신고 기능
-   *
-   * @param member
-   * @param memberId
-   * @return
-   */
-  @PostMapping("/{member_id}/ban")
+
+  @PostMapping("/{memberId}/ban")
   public ResponseEntity<?> reportMember(
       @AuthenticationPrincipal Member member,
+      @RequestBody ReportDto.Request reportRequest,
       @PathVariable Long memberId) {
 
-    memberService.reportMember(member, memberId);
+    memberService.reportMember(member, memberId, reportRequest);
     return ResponseEntity.ok().build();
 
   }

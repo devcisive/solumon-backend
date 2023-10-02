@@ -6,18 +6,21 @@ import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_ME
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
-import com.example.solumonbackend.member.entity.Ban;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
+import com.example.solumonbackend.member.entity.Report;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
-import com.example.solumonbackend.member.repository.BanRepository;
+import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
+import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +36,7 @@ public class MemberService {
   private final PasswordEncoder passwordEncoder;
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
-  private final BanRepository banRepository;
+  private final ReportRepository reportRepository;
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
@@ -49,9 +52,8 @@ public class MemberService {
             .email(request.getEmail())
             .password(passwordEncoder.encode(request.getPassword()))
             .nickname(request.getNickname())
+            .isFirstLogIn(true)
             .role(MemberRole.GENERAL)
-            .reportCount(0)
-            .banCount(0)
             .build())
     );
   }
@@ -98,46 +100,74 @@ public class MemberService {
         .build();
   }
 
-  /**
-   * (#7) 유저 신고 (5회 이상시 자동 밴)
-   *
-   * @param member
-   * @param memberId
-   */
-  public void reportMember(Member member, Long memberId) {
+  @Transactional
+  public void reportMember(Member member, Long memberId, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
     Member reportedMember = memberRepository.findByMemberId(memberId)
         .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
-    // 이미 신고당한 상태면 중복신고불가
-    if (banRepository.existsByMember(reportedMember)) {
-      throw new MemberException(ErrorCode.ALREADY_REPORT_MEMBER);
+    // 이미 정지상태면 신고불가
+    if (reportedMember.getBannedAt() != null) {
+      throw new MemberException(ErrorCode.ALREADY_BANNED_MEMBER);
     }
 
-    // 신고횟수 + 1
-    reportedMember.setReportCount(member.getReportCount() + 1);
+    // 내가 3일안에 신고한 유저인지 확인 (가장 최근의 신고날짜를 확인)
+    Optional<Report> latestReportByMe
+        = reportRepository.findTopByMemberAndReporterIdOrderByReportedAtDesc(reportedMember,
+        member.getMemberId());
 
-    // 신고횟수가 5의 배수일때마다 밴
-    if (reportedMember.getBanCount() % 5 == 0) {
-      reportedMember.setBanCount(member.getBanCount() + 1);
-      reportedMember.setRole(MemberRole.BANNED);
+    if (latestReportByMe.isPresent()
+        && latestReportByMe.get().getReportedAt().plusDays(3).isAfter(LocalDateTime.now())) {
+      throw new MemberException(ErrorCode.COOL_TIME_REPORT_MEMBER);
     }
 
-    // 밴이 3회 이상일 경우 영구정지
-    if (reportedMember.getBanCount() >= 3) {
-      reportedMember.setRole(MemberRole.PERMANENT_BAN);
-    }
-
-    memberRepository.save(reportedMember);
-
-    banRepository.save(
-        Ban.builder()
+    // 신고가 가능한 상태라면 신고
+    reportRepository.save(
+        Report.builder()
             .member(reportedMember)
-            .bannedBy(member.getMemberId())
-            .bannedAt(LocalDateTime.now())
-            .build());
+            .reporterId(memberId)
+            .reportType(request.getReportType())
+            .content(request.getReportContent())
+            .reportedAt(LocalDateTime.now())
+            .build()
+    );
+
+    // 정지조건 충족 시 정지상태로 변환
+    banMember(reportedMember);
+  }
+
+  @Transactional
+  public void banMember(Member member) {
+
+    int reportedCount = reportRepository.countByMember(member);
+
+    if (reportedCount >= 15) {      // 영구정지(ROLE_PERMANENT_BAN)
+      member.setRole(MemberRole.PERMANENT_BAN);
+      member.setBannedAt(LocalDateTime.now());
+
+    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
+      member.setRole(MemberRole.BANNED);
+      member.setBannedAt(LocalDateTime.now());
+    }
+
+    memberRepository.save(member);
 
   }
 
+
+  @Transactional
+  public void releaseBan() {
+
+    // 정지상태를 해제할 조건이 되는 멤버들을 뽑아온다.
+    List<Member> membersToReleaseBan = memberRepository.findMembersToReleaseBannedStatus();
+
+    // 정지해제
+    for (Member member : membersToReleaseBan) {
+      member.setBannedAt(null);
+      member.setRole(MemberRole.GENERAL);
+    }
+
+    memberRepository.saveAll(membersToReleaseBan);
+  }
 }

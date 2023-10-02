@@ -38,6 +38,38 @@ dependencies {
 	testImplementation 'org.springframework.batch:spring-batch-test'
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+
+	implementation 'com.google.code.gson:gson:2.10.1'
+
+	// 자바8에 추가된 데이터타입들에 대한 기능을 jackson 에 지원해주는 라이브러리
+	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.13.5'
+
+
+
+
+	// 엔티티가 수정될 때도 complie 을 해주어야함 (우측 Gradle -> Tasks -> other -> compileJava(클릭해주세요))
+	// QueryDSL JPA
+	implementation 'com.querydsl:querydsl-jpa'
+	// QFile 생성 및 가져오기
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jpa"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+}
+
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+// Qfile이 build 폴더 아래 생겨 import에 문제가 생길때를 위함
+sourceSets {
+	main {
+		java {
+			srcDirs = ['src/main/java', buildDir.toString() + '/generated/sources/annotationProcessor/java/main']
+		}
+	}
 }
 
 tasks.named('test') {
