@@ -72,16 +72,6 @@ public class MemberService {
         .reportCount(0)
         .isFirstLogIn(true)
         .build()));
-    return Response.memberToResponse(
-        memberRepository.save(Member.builder()
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .nickname(request.getNickname())
-            .role(MemberRole.GENERAL)
-            .reportCount(0)
-            .isFirstLogIn(true)
-            .build())
-    );
   }
 
   private void validateDuplicatedEmail(String email) {
