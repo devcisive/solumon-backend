@@ -4,6 +4,7 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
+import com.example.solumonbackend.post.common.AwsS3Component;
 import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
@@ -42,7 +43,7 @@ class PostServiceTest {
   @Mock
   private ImageRepository imageRepository;
   @Mock
-  private AwsS3Service awsS3Service;
+  private AwsS3Component awsS3Component;
   @Mock
   private TagRepository tagRepository;
   @Mock
@@ -102,7 +103,7 @@ class PostServiceTest {
                 .tag(Tag.builder().tagId(2L).name("태그2").build())
                 .post(mockPost)
                 .build()));
-    when(awsS3Service.upload(images.get(0), "post"))
+    when(awsS3Component.upload(images.get(0), "post"))
         .thenReturn(AwsS3.builder()
             .key("dirName/image1.jpg")
             .path("imageUrl")
@@ -124,7 +125,7 @@ class PostServiceTest {
     verify(postTagRepository, times(2)).save(any(PostTag.class));
     verify(tagRepository, times(2)).save(any(Tag.class));
     verify(choiceRepository, times(1)).saveAll(anyList());
-    verify(awsS3Service, times(1)).upload(images.get(0), "post");
+    verify(awsS3Component, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
   }
 
@@ -163,7 +164,7 @@ class PostServiceTest {
     verify(postTagRepository, times(2)).save(any(PostTag.class));
     verify(tagRepository, times(2)).save(any(Tag.class));
     verify(choiceRepository, times(1)).saveAll(anyList());
-    verify(awsS3Service, times(0)).upload(any(), eq("post"));
+    verify(awsS3Component, times(0)).upload(any(), eq("post"));
     verify(imageRepository, times(0)).saveAll(anyList());
   }
 
@@ -294,7 +295,7 @@ class PostServiceTest {
     verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
     verify(postTagRepository, times(2)).save(any(PostTag.class));
     verify(imageRepository, times(1)).findAllByPost_PostId(1L);
-    verify(awsS3Service, times(1)).upload(images.get(0), "post");
+    verify(awsS3Component, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
   }
 
@@ -351,7 +352,7 @@ class PostServiceTest {
     //then
     verify(postRepository, times(1)).findById(1L);
     verify(imageRepository, times(1)).findAllByPost_PostId(1L);
-    verify(awsS3Service, times(1)).removeAll(anyList());
+    verify(awsS3Component, times(1)).removeAll(anyList());
     verify(imageRepository, times(1)).deleteAll(anyList());
     verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
     verify(voteRepository, times(1)).deleteAllByPost_PostId(1L);
@@ -374,7 +375,7 @@ class PostServiceTest {
     //then
     verify(postRepository, times(1)).findById(1L);
     verify(imageRepository, times(1)).findAllByPost_PostId(1L);
-    verify(awsS3Service, times(0)).removeAll(anyList());
+    verify(awsS3Component, times(0)).removeAll(anyList());
     verify(imageRepository, times(0)).deleteAll(anyList());
     verify(postTagRepository, times(1)).deleteAllByPost_PostId(1L);
     verify(voteRepository, times(1)).deleteAllByPost_PostId(1L);

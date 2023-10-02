@@ -3,6 +3,7 @@ package com.example.solumonbackend.post.service;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.post.common.AwsS3Component;
 import com.example.solumonbackend.post.entity.*;
 import com.example.solumonbackend.post.model.AwsS3;
 import com.example.solumonbackend.post.model.PostAddDto;
@@ -32,7 +33,7 @@ public class PostService {
 
   private final PostRepository postRepository;
   private final ImageRepository imageRepository;
-  private final AwsS3Service awsS3Service;
+  private final AwsS3Component awsS3Component;
   private final TagRepository tagRepository;
   private final PostTagRepository postTagRepository;
   private final ChoiceRepository choiceRepository;
@@ -68,7 +69,7 @@ public class PostService {
     List<AwsS3> awsS3List = new ArrayList<>();
     for (MultipartFile image : images) {
       try {
-        awsS3List.add(awsS3Service.upload(image, POST_DIR));
+        awsS3List.add(awsS3Component.upload(image, POST_DIR));
       } catch (IOException e) {
         throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
       }
@@ -194,7 +195,7 @@ public class PostService {
     // 해당 post에 이미지가 있다면 s3와 image 테이블에서 삭제
     List<Image> imageList = imageRepository.findAllByPost_PostId(postId);
     if (!imageList.isEmpty()) {
-      awsS3Service.removeAll(imageList.stream()
+      awsS3Component.removeAll(imageList.stream()
           .map(image -> AwsS3.builder()
               .key(image.getImageKey())
               .path(image.getImageUrl())

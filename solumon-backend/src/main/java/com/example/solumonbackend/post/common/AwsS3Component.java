@@ -1,4 +1,4 @@
-package com.example.solumonbackend.post.service;
+package com.example.solumonbackend.post.common;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AwsS3Service {
+public class AwsS3Component {
 
   private final AmazonS3 amazonS3;
 
