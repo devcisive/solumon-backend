@@ -143,7 +143,7 @@ public class MemberService {
   @Transactional
   public void banMember(Member member) {
 
-    int reportedCount = reportRepository.countByMember(member);
+    int reportedCount = reportRepository.countByMember_MemberId(member.getMemberId());
 
     if (reportedCount >= 15) {      // 영구정지(ROLE_PERMANENT_BAN)
       member.setRole(MemberRole.PERMANENT_BAN);

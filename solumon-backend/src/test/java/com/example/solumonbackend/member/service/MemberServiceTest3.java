@@ -85,7 +85,7 @@ class MemberServiceTest3 {
 
   @DisplayName("유저신고 - 성공( 내가 해당유저를 신고한적은 있으나 3일이 지남)")
   @Test
-  void reportMember_success() {
+  void reportMember_success_reportablePeriod() {
 
     // Given
     Member otherMember = otherMemberBuilder.build();
@@ -217,7 +217,7 @@ class MemberServiceTest3 {
   @Test
   void banMember_PERMANENT_BAN(){
 
-    when(reportRepository.countByMember(fakeMember1)).thenReturn(15);
+    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(15);
     when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
@@ -236,7 +236,7 @@ class MemberServiceTest3 {
   @Test
   void banMember_BAN(){
 
-    when(reportRepository.countByMember(fakeMember1)).thenReturn(5);
+    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(5);
     when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
@@ -256,7 +256,7 @@ class MemberServiceTest3 {
   @Test
   void banMember_fail(){
 
-    when(reportRepository.countByMember(fakeMember1)).thenReturn(7);
+    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(7);
     when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 

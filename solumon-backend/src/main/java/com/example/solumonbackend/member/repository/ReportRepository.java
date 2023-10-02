@@ -15,6 +15,6 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
 
   Optional<Report> findTopByMemberAndReporterIdOrderByReportedAtDesc(Member member, Long reporterId);
 
-  int countByMember(Member member);
+  int countByMember_MemberId(Long memberId);
 
 }
