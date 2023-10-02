@@ -16,9 +16,7 @@ import com.example.solumonbackend.member.type.ReportType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,10 +47,18 @@ class MemberControllerTest3 {
   private ReportRepository reportRepository;
 
 
-  private Map<String, Member> fakeMembers;
-  private List<Report> reports;
+
 
   private ReportDto.Request request;
+
+
+  private Member reporterMember ;
+  private Member withdrawnMember ;
+  private Member bannedMember ;
+  private Member nonReportingMember ;
+  private Member reportedPossibleDaysMember;
+  private Member reportedCoolTimeMember;
+  private List<Report> reports;
 
 
   @BeforeEach
@@ -67,20 +73,17 @@ class MemberControllerTest3 {
 
     LocalDateTime of = LocalDateTime.of(2023, 04, 01, 0, 0);
 
+//    fakeMembers = new HashMap<>();
+    reporterMember = Member.builder().memberId(1L).email("reporter@gmail.com").isFirstLogIn(false).build();
+    withdrawnMember = Member.builder().memberId(2L).email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build();
+    bannedMember = Member.builder().memberId(3L).email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build();
+    nonReportingMember = Member.builder().memberId(4L).email("nonReporting@gmail.com").isFirstLogIn(false).build();
 
-    fakeMembers = new HashMap<>();
-    fakeMembers.put("reporter", Member.builder().memberId(1L).email("reporter@gmail.com").isFirstLogIn(false).build());
-    fakeMembers.put("withdrawnMember",Member.builder().memberId(2L).email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build());
-    fakeMembers.put("bannedMember",Member.builder().memberId(3L).email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build());
-    fakeMembers.put("nonReportingMember", Member.builder().memberId(4L).email("nonReporting@gmail.com").isFirstLogIn(false).build());
+    reportedPossibleDaysMember = Member.builder().email("DaysAgo@gmail.com").isFirstLogIn(false).build();
+    reportedCoolTimeMember = Member.builder().email("WithInDays@gmail.com").isFirstLogIn(false).build();
 
-
-    fakeMembers.put("reportedMoreThan3DaysAgoMember", Member.builder().memberId(5L).email("3DaysAgo@gmail.com").isFirstLogIn(false).build());
-    fakeMembers.put("reportedWithIn3DaysMember", Member.builder().memberId(6L).email("WithIn3Days@gmail.com").isFirstLogIn(false).build());
-
-    memberRepository.saveAll(new ArrayList<>(fakeMembers.values()));
-    // 5,6번 데이터는 저장이 안되는 것으로 확인됨
-    // 멤버의 날짜값 저장이 안됨 (report의 날짜값은 저장 됨)
+    memberRepository.saveAll(List.of(reporterMember,withdrawnMember,bannedMember,nonReportingMember,reportedPossibleDaysMember,reportedCoolTimeMember));
+    // 왜인진 몰라도 5,6번째 데이터만 pk 값이 증가하는 문제가 있어서 pk값 할당을 제거함 (1,2,3,4번은 증가하지않고 그대로인 상태)
     
 
 
@@ -88,9 +91,8 @@ class MemberControllerTest3 {
     reports = new ArrayList<>();
     reports.add(Report.builder()
         .reportId(1L)
-//        .member(fakeMembers.get("reportedMoreThan3DaysAgoMember")) // 찾을 수 없는 데이터라 에러가 뜸
-          .member(fakeMembers.get("reporter")) // 저장이 안되는 이슈때문에 1번으로 대신 넣었음
-        .reporterId(fakeMembers.get("reporter").getMemberId())
+        .member(reportedPossibleDaysMember)
+        .reporterId(reporterMember.getMemberId())
         .reportedAt(LocalDateTime.now().minusDays(7))
         .build());
 
@@ -99,16 +101,16 @@ class MemberControllerTest3 {
     // 내가 신고한지 3일이 지나지않은 신고데이터
     reports.add(Report.builder()
         .reportId(2L)
-//        .member(fakeMembers.get("reportedWithIn3DaysMember")) // 찾을 수 없는 데이터라 에러가 뜸
-            .member(fakeMembers.get("reporter")) // 저장이 안되는 이슈때문에 1번으로 대신 넣었음
-        .reporterId(fakeMembers.get("reporter").getMemberId())
+        .member(reportedCoolTimeMember)
+        .reporterId(reporterMember.getMemberId())
         .reportedAt(LocalDateTime.now().minusDays(2))
         .build());
 
-    reportRepository.saveAll(reports);  // 5번 6번 데이터를 찾을 수 없다고 안된다.
+    reportRepository.saveAll(reports);
 
 
     request = new ReportDto.Request(ReportType.OTHER,"신고합니다");
+
 
 
   }
@@ -122,7 +124,7 @@ class MemberControllerTest3 {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + fakeMembers.get("nonReportingMember").getMemberId() +"/report")
+    mockMvc.perform(post("/user/" + nonReportingMember.getMemberId() +"/report")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -138,7 +140,7 @@ class MemberControllerTest3 {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + fakeMembers.get("reporter").getMemberId() +"/report")  // 원래는 "reportedMoreThan3DaysAgoMember"
+    mockMvc.perform(post("/user/" + reportedPossibleDaysMember.getMemberId() +"/report")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -171,7 +173,7 @@ class MemberControllerTest3 {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + fakeMembers.get("withdrawnMember").getMemberId() +"/report")
+    mockMvc.perform(post("/user/" + withdrawnMember.getMemberId()+"/report")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -181,7 +183,7 @@ class MemberControllerTest3 {
   }
 
 
-  // 멤버에 날짜값 저장이 안되는 이슈로 통과 X
+
   @DisplayName("유저신고 - 실패(현재 정지상태인 유저)")
   @Test
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
@@ -189,7 +191,7 @@ class MemberControllerTest3 {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + fakeMembers.get("bannedMember").getMemberId() +"/report") //bannedMember
+    mockMvc.perform(post("/user/" + bannedMember.getMemberId() +"/report") //bannedMember
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -206,7 +208,7 @@ class MemberControllerTest3 {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + fakeMembers.get("reporter").getMemberId() +"/report") //reportedWithIn3DaysMember
+    mockMvc.perform(post("/user/" + reportedCoolTimeMember.getMemberId() +"/report")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
