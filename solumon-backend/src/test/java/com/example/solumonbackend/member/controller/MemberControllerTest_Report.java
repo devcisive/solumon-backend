@@ -179,7 +179,7 @@ class MemberControllerTest_Report {
             .content(jsonRequest))
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_MEMBER.toString()));
+        .andExpect(jsonPath("$.errorCode").value(ErrorCode.UNREGISTERED_MEMBER.toString()));
   }
 
 

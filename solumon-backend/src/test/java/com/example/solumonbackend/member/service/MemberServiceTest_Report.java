@@ -90,7 +90,7 @@ class MemberServiceTest_Report {
     // Given
     Member otherMember = otherMemberBuilder.build();
     when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberAndReporterIdOrderByReportedAtDesc(otherMember,fakeMember1.getMemberId()))
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
         .thenReturn(Optional.of(Report.builder()
             .reportId(1L)
             .member(otherMember)
@@ -118,7 +118,7 @@ class MemberServiceTest_Report {
     // Given
     Member otherMember = otherMemberBuilder.build();
     when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberAndReporterIdOrderByReportedAtDesc(otherMember,fakeMember1.getMemberId()))
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
         .thenReturn(Optional.empty()); // 신고한 적 없음
 
     when(reportRepository.save(any())).thenReturn(report);
@@ -165,7 +165,7 @@ class MemberServiceTest_Report {
 
     // Then
     verify(memberRepository, times(1)).findByMemberId(anyLong());
-    assertEquals(ErrorCode.NOT_FOUND_MEMBER, memberException.getErrorCode());
+    assertEquals(ErrorCode.UNREGISTERED_MEMBER, memberException.getErrorCode());
 
   }
 
@@ -195,7 +195,7 @@ class MemberServiceTest_Report {
     // Given
     Member otherMember = otherMemberBuilder.build();
     when(memberRepository.findByMemberId(2L)).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberAndReporterIdOrderByReportedAtDesc(otherMember,fakeMember1.getMemberId()))
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
         .thenReturn(Optional.of(Report.builder()
                                       .reportId(1L)
                                       .member(otherMember)

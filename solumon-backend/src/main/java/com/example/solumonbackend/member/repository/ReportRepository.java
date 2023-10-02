@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
 
-  Optional<Report> findTopByMemberAndReporterIdOrderByReportedAtDesc(Member member, Long reporterId);
+  Optional<Report> findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(Long reportedId, Long reporterId);
 
   int countByMember_MemberId(Long memberId);
 

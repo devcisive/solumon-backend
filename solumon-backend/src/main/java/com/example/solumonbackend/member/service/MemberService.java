@@ -121,11 +121,13 @@ public class MemberService {
   public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Optional<Member> optionalMember = memberRepository.findByMemberId(reportedMemberId);
-    if (optionalMember.isEmpty() || optionalMember.get().getUnregisteredAt() != null) {
-      throw new MemberException(NOT_FOUND_MEMBER);
+    Member reportedMember = memberRepository.findByMemberId(reportedMemberId)
+        .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
+
+    if (reportedMember.getUnregisteredAt() != null) {
+      throw new MemberException(UNREGISTERED_MEMBER);
     }
-    Member reportedMember = optionalMember.get();
+
 
     // 이미 정지상태면 신고불가
     if (reportedMember.getBannedAt() != null) {
@@ -134,8 +136,8 @@ public class MemberService {
 
     // 내가 3일안에 신고한 유저인지 확인 (가장 최근의 신고날짜를 확인)
     Optional<Report> latestReportByMe
-        = reportRepository.findTopByMemberAndReporterIdOrderByReportedAtDesc(reportedMember,
-        member.getMemberId());
+        = reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc
+            (reportedMember.getMemberId(),member.getMemberId());
 
     if (latestReportByMe.isPresent()
         && latestReportByMe.get().getReportedAt().plusDays(3).isAfter(LocalDateTime.now())) {
