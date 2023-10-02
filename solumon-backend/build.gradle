@@ -30,6 +30,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
@@ -43,7 +44,6 @@ dependencies {
 
 	// 자바8에 추가된 데이터타입들에 대한 기능을 jackson 에 지원해주는 라이브러리
 	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.13.5'
-
 
 
 
@@ -70,6 +70,7 @@ sourceSets {
 			srcDirs = ['src/main/java', buildDir.toString() + '/generated/sources/annotationProcessor/java/main']
 		}
 	}
+
 }
 
 tasks.named('test') {
