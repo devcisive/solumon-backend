@@ -427,7 +427,7 @@ class MemberServiceTest_MyInfo {
 
     PostState postState = PostState.ONGOING;
     PostParticipateType postParticipateType = PostParticipateType.CHAT;
-    PostOrder postOrder = PostOrder.POST_ORDER;
+    PostOrder postOrder = PostOrder.LATEST;
     Pageable pageable = Pageable.ofSize(10);
 
     List<MyParticipatePostDto> fakeMyParticipatePosts = creatFakeMyParticipatePosts();

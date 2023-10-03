@@ -304,7 +304,7 @@ class MemberControllerTest_MyInfo {
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.WRITE))
             .param("postState", String.valueOf(PostState.COMPLETED))
-            .param("postOrder", String.valueOf(PostOrder.POST_ORDER))
+            .param("postOrder", String.valueOf(PostOrder.LATEST))
             .param("page", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))

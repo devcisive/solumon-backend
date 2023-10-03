@@ -163,7 +163,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       }
 
       // 최신순)  post.createdAt.desc()
-      if (order == PostOrder.POST_ORDER) {
+      if (order == PostOrder.LATEST) {
         return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
       }
 
