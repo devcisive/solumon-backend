@@ -42,8 +42,9 @@ class MemberServiceTest_Report {
   @InjectMocks
   private MemberService memberService;
 
+  private Member reporterMember;
 
-  private Member fakeMember1;
+
   private MemberBuilder otherMemberBuilder;
 
   private ReportDto.Request request;
@@ -53,7 +54,8 @@ class MemberServiceTest_Report {
   @BeforeEach
   public void dataSetup() {
 
-    fakeMember1 = Member.builder()
+
+    reporterMember = Member.builder()
         .memberId(1L)
         .email("example1@naver.com")
         .nickname("nickname1")
@@ -64,16 +66,14 @@ class MemberServiceTest_Report {
         .isFirstLogIn(true)
         .build();
 
-
     otherMemberBuilder = Member.builder()
         .memberId(2L)
         .email("example2@naver.com")
         .nickname("nickname2");
 
+    request = new ReportDto.Request(ReportType.OTHER, "신고합니다");
 
-    request = new ReportDto.Request(ReportType.OTHER,"신고합니다");
-
-    report= Report.builder()
+    report = Report.builder()
         .reportId(1L)
         .reportedAt(LocalDateTime.now())
         .reportType(ReportType.OTHER)
@@ -89,25 +89,25 @@ class MemberServiceTest_Report {
 
     // Given
     Member otherMember = otherMemberBuilder.build();
-    when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
+    when(memberRepository.findById(anyLong())).thenReturn(Optional.of(otherMember));
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(
+        otherMember.getMemberId(), reporterMember.getMemberId()))
         .thenReturn(Optional.of(Report.builder()
             .reportId(1L)
             .member(otherMember)
-            .reporterId(fakeMember1.getMemberId())
+            .reporterId(reporterMember.getMemberId())
             .reportedAt(LocalDateTime.now().minusDays(4)) // 가장 최근의 신고날짜가 4일전
             .build()));
     when(reportRepository.save(any())).thenReturn(report);
 
     ArgumentCaptor<Report> memberArgumentCaptor = ArgumentCaptor.forClass(Report.class);
 
-
     // When
-    memberService.reportMember(fakeMember1,2L,request);
+    memberService.reportMember(reporterMember, 2L, request);
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(anyLong());
-    verify(reportRepository,times(1)).save(memberArgumentCaptor.capture());
+    verify(memberRepository, times(1)).findById(anyLong());
+    verify(reportRepository, times(1)).save(memberArgumentCaptor.capture());
   }
 
 
@@ -117,20 +117,20 @@ class MemberServiceTest_Report {
 
     // Given
     Member otherMember = otherMemberBuilder.build();
-    when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
+    when(memberRepository.findById(anyLong())).thenReturn(Optional.of(otherMember));
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(
+        otherMember.getMemberId(), reporterMember.getMemberId()))
         .thenReturn(Optional.empty()); // 신고한 적 없음
 
     when(reportRepository.save(any())).thenReturn(report);
     ArgumentCaptor<Report> memberArgumentCaptor = ArgumentCaptor.forClass(Report.class);
 
-
     // When
-    memberService.reportMember(fakeMember1,2L,request);
+    memberService.reportMember(reporterMember, 2L, request);
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(anyLong());
-    verify(reportRepository,times(1)).save(memberArgumentCaptor.capture());
+    verify(memberRepository, times(1)).findById(anyLong());
+    verify(reportRepository, times(1)).save(memberArgumentCaptor.capture());
   }
 
   @DisplayName("유저신고 - 실패(존재하지 않는 유저)")
@@ -138,15 +138,15 @@ class MemberServiceTest_Report {
   void reportMember_fail_NOT_FOUND_MEMBER() {
 
     // Given
-    when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.empty()); // 빈 객체
-
+    when(memberRepository.findById(anyLong())).thenReturn(Optional.empty()); // 빈 객체
 
     // When
     MemberException memberException
-        = assertThrows(MemberException.class,()-> memberService.reportMember(fakeMember1,4L,request));
+        = assertThrows(MemberException.class,
+        () -> memberService.reportMember(reporterMember, 4L, request));
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(4L);
+    verify(memberRepository, times(1)).findById(4L);
     assertEquals(ErrorCode.NOT_FOUND_MEMBER, memberException.getErrorCode());
 
   }
@@ -157,14 +157,15 @@ class MemberServiceTest_Report {
 
     // Given
     Member otherMember = otherMemberBuilder.unregisteredAt(LocalDateTime.now()).build();
-    when(memberRepository.findByMemberId(anyLong())).thenReturn(Optional.of(otherMember)); // 탈퇴한 멤버
+    when(memberRepository.findById(anyLong())).thenReturn(Optional.of(otherMember)); // 탈퇴한 멤버
 
     // When
     MemberException memberException
-        = assertThrows(MemberException.class,()-> memberService.reportMember(fakeMember1,2L,request));
+        = assertThrows(MemberException.class,
+        () -> memberService.reportMember(reporterMember, 2L, request));
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(anyLong());
+    verify(memberRepository, times(1)).findById(anyLong());
     assertEquals(ErrorCode.UNREGISTERED_MEMBER, memberException.getErrorCode());
 
   }
@@ -176,14 +177,15 @@ class MemberServiceTest_Report {
 
     // Given
     Member otherMember = otherMemberBuilder.bannedAt(LocalDateTime.now()).build();
-    when(memberRepository.findByMemberId(2L)).thenReturn(Optional.of(otherMember));
+    when(memberRepository.findById(2L)).thenReturn(Optional.of(otherMember));
 
     // When
     MemberException memberException
-        = assertThrows(MemberException.class,()->memberService.reportMember(fakeMember1,2L,request));
+        = assertThrows(MemberException.class,
+        () -> memberService.reportMember(reporterMember, 2L, request));
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(anyLong());
+    verify(memberRepository, times(1)).findById(anyLong());
     assertEquals(ErrorCode.ALREADY_BANNED_MEMBER, memberException.getErrorCode());
 
   }
@@ -194,80 +196,82 @@ class MemberServiceTest_Report {
   void reportMember_fail_COOL_TIME_REPORT_MEMBER() {
     // Given
     Member otherMember = otherMemberBuilder.build();
-    when(memberRepository.findByMemberId(2L)).thenReturn(Optional.of(otherMember));
-    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(otherMember.getMemberId(),fakeMember1.getMemberId()))
+    when(memberRepository.findById(2L)).thenReturn(Optional.of(otherMember));
+    when(reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(
+        otherMember.getMemberId(), reporterMember.getMemberId()))
         .thenReturn(Optional.of(Report.builder()
-                                      .reportId(1L)
-                                      .member(otherMember)
-                                      .reporterId(fakeMember1.getMemberId())  // 내가 신고했고 
-                                      .reportedAt(LocalDateTime.now().minusDays(1))  // 아직 3일이 지나지 않음
-                                      .build()));
+            .reportId(1L)
+            .member(otherMember)
+            .reporterId(reporterMember.getMemberId())  // 내가 신고했고
+            .reportedAt(LocalDateTime.now().minusDays(1))  // 아직 3일이 지나지 않음
+            .build()));
 
     // When
     MemberException memberException
-        = assertThrows(MemberException.class,()->memberService.reportMember(fakeMember1,2L,request));
+        = assertThrows(MemberException.class,
+        () -> memberService.reportMember(reporterMember, 2L, request));
 
     // Then
-    verify(memberRepository, times(1)).findByMemberId(anyLong());
+    verify(memberRepository, times(1)).findById(anyLong());
     assertEquals(ErrorCode.COOL_TIME_REPORT_MEMBER, memberException.getErrorCode());
   }
 
 
   @DisplayName("유저 정지 - 영구정지")
   @Test
-  void banMember_PERMANENT_BAN(){
+  void banMember_PERMANENT_BAN() {
 
-    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(15);
-    when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
+    when(reportRepository.countByMember_MemberId(reporterMember.getMemberId())).thenReturn(15);
+    when(memberRepository.save(reporterMember)).thenReturn(reporterMember);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
     // When
-    memberService.banMember(fakeMember1);
+    memberService.banMember(reporterMember);
 
     // Then
-    verify(memberRepository,times(1)).save(memberArgumentCaptor.capture());
+    verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
     Member captorValue = memberArgumentCaptor.getValue();
 
-    assertEquals(MemberRole.PERMANENT_BAN.value(),captorValue.getRole().value());
+    assertEquals(MemberRole.PERMANENT_BAN.value(), captorValue.getRole().value());
 
   }
 
   @DisplayName("유저 정지 - 정지")
   @Test
-  void banMember_BAN(){
+  void banMember_BAN() {
 
-    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(5);
-    when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
+    when(reportRepository.countByMember_MemberId(reporterMember.getMemberId())).thenReturn(5);
+    when(memberRepository.save(reporterMember)).thenReturn(reporterMember);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
     // When
-    memberService.banMember(fakeMember1);
+    memberService.banMember(reporterMember);
 
     // Then
-    verify(memberRepository,times(1)).save(memberArgumentCaptor.capture());
+    verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
     Member captorValue = memberArgumentCaptor.getValue();
 
-    assertEquals(MemberRole.BANNED.value(),captorValue.getRole().value());
+    assertEquals(MemberRole.BANNED.value(), captorValue.getRole().value());
 
   }
 
 
   @DisplayName("유저 정지 - 정지조건 미충족")
   @Test
-  void banMember_fail(){
+  void banMember_fail() {
 
-    when(reportRepository.countByMember_MemberId(fakeMember1.getMemberId())).thenReturn(7);
-    when(memberRepository.save(fakeMember1)).thenReturn(fakeMember1);
+    when(reportRepository.countByMember_MemberId(reporterMember.getMemberId())).thenReturn(7);
+    when(memberRepository.save(reporterMember)).thenReturn(reporterMember);
     ArgumentCaptor<Member> memberArgumentCaptor = ArgumentCaptor.forClass(Member.class);
 
     // When
-    memberService.banMember(fakeMember1);
+    memberService.banMember(reporterMember);
 
     // Then
-    verify(memberRepository,times(1)).save(memberArgumentCaptor.capture());
+    verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
     Member captorValue = memberArgumentCaptor.getValue();
 
-    assertEquals(MemberRole.GENERAL.value(),captorValue.getRole().value());
+    assertEquals(MemberRole.GENERAL.value(), captorValue.getRole().value());
 
   }
 

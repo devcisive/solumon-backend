@@ -14,9 +14,8 @@ import com.example.solumonbackend.member.entity.Report;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
-import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.model.LogOutDto;
+import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
@@ -121,7 +120,7 @@ public class MemberService {
   public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findByMemberId(reportedMemberId)
+    Member reportedMember = memberRepository.findById(reportedMemberId)
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
     if (reportedMember.getUnregisteredAt() != null) {
