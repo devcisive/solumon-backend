@@ -1,5 +1,8 @@
 package com.example.solumonbackend.post.type;
 
-public class PostState {
+public enum PostState {
+
+  ONGOING,
+  COMPLETED
 
 }

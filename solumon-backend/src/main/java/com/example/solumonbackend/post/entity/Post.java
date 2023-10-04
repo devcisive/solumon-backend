@@ -37,6 +37,8 @@ public class Post {
   @LastModifiedDate
   private LocalDateTime modifiedAt;
 
+  private String thumbnailUrl;
+
   private LocalDateTime endAt;
 
   private int voteCount;
