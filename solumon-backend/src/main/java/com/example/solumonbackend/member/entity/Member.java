@@ -48,10 +48,10 @@ public class Member {
   @Enumerated(EnumType.STRING)
   private MemberRole role;
 
-  private int reportCount;
-
   @LastModifiedDate
   private LocalDateTime modifiedAt;
+
+  private LocalDateTime bannedAt;
 
   private LocalDateTime unregisteredAt;
 

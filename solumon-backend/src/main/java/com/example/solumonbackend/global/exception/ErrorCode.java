@@ -29,7 +29,9 @@ public enum ErrorCode {
   NOT_FOUND_TAG("해당 태그를 찾을 수 없습니다."),
   UNREGISTERED_MEMBER("탈퇴한 회원입니다."),
   INVALID_KAKAO_CODE("카카오 로그인 결과가 유효하지 않습니다. 재시도 해주세요."),
-  INVALID_KAKAO_TOKEN("카카오에서 잘못된 토큰값을 내려주었습니다. 재시도 해주세요.");
+  INVALID_KAKAO_TOKEN("카카오에서 잘못된 토큰값을 내려주었습니다. 재시도 해주세요."),
+  ALREADY_BANNED_MEMBER("이미 정지상태인 사용자입니다."),
+  COOL_TIME_REPORT_MEMBER("해당 유저를 다시 신고할 수 있는 기간이 지나지 않았습니다.");
 
   private final String description;
 

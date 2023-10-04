@@ -9,6 +9,7 @@ import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
+import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.service.KakaoService;
 import com.example.solumonbackend.member.service.MemberService;
@@ -25,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -122,6 +124,18 @@ public class MemberController {
       @RequestBody WithdrawDto.Request request) {
     return ResponseEntity.ok()
         .body(memberService.withdrawMember(memberDetail.getMember(), request));
+  }
+
+
+  @PostMapping("/{memberId}/report")
+  public ResponseEntity<?> reportMember(
+      @AuthenticationPrincipal MemberDetail memberDetail,
+      @RequestBody ReportDto.Request reportRequest,
+      @PathVariable Long memberId) {
+
+    memberService.reportMember(memberDetail.getMember(), memberId, reportRequest);
+    return ResponseEntity.ok().build();
+
   }
 
 

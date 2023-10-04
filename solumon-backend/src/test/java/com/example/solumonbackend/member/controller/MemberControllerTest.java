@@ -98,7 +98,7 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname("testUser2")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -129,7 +129,7 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname(request.getNickname())
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -340,7 +340,7 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -395,7 +395,7 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode("otherPassword12!@"))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -426,7 +426,7 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .unregisteredAt(LocalDateTime.now())
         .build());

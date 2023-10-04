@@ -69,7 +69,7 @@ class MemberServiceTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname(request.getNickname())
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build();
 
@@ -148,8 +148,8 @@ class MemberServiceTest {
         .email(email)
         .password(passwordEncoder.encode(password))
         .nickname("testUser")
-        .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .role(MemberRole.GENERAL)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build();
 
@@ -214,7 +214,7 @@ class MemberServiceTest {
         .password(passwordEncoder.encode("password1456@!#$"))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .build();
 
@@ -246,7 +246,7 @@ class MemberServiceTest {
         .password(request.getPassword())
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-        .reportCount(0)
+//        .reportCount(0)
         .isFirstLogIn(true)
         .unregisteredAt(LocalDateTime.now())
         .build();
