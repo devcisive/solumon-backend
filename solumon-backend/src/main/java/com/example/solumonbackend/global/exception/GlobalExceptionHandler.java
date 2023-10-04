@@ -34,4 +34,16 @@ public class GlobalExceptionHandler {
     // 테스트를 원할하게 하기 위해 바꾼 코드입니다. 나중에 수정 예정
     return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString());
   }
+
+  @ExceptionHandler(TagException.class)
+  public ErrorResponse handleTagException(TagException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
+  @ExceptionHandler(PostException.class)
+  public ErrorResponse handlePostException(PostException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
 }

@@ -1,6 +1,7 @@
-package com.example.solumonbackend.member.entity;
+package com.example.solumonbackend.chat.entity;
 
-import com.example.solumonbackend.post.entity.Tag;
+import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.post.entity.Post;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,30 +12,25 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Entity
-public class MemberTag {
+public class ChannelMember {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long memberTagId;
+  private Long id;
 
-  @JoinColumn(name = "member_id")
   @ManyToOne
+  @JoinColumn(name = "member_id")
   private Member member;
 
-  @JoinColumn(name = "tag_id")
   @ManyToOne
-  private Tag tag;
-
-
-  public MemberTag(Member member, Tag tag) {
-    this.member = member;
-    this.tag = tag;
-  }
-
+  @JoinColumn(name = "post_id")
+  private Post post;
 }
