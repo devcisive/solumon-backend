@@ -11,6 +11,7 @@ public enum ErrorCode {
   // 임시
   NullPointerException("null 값"),
   IllegalArgumentException("잘못된 인자값"),
+  AmazonS3Exception("amazonS3 exception"),
 
   NOT_FOUND_MEMBER("해당 사용자를 찾을 수 없습니다."),
   ALREADY_EXIST_MEMBER("이미 존재하는 사용자 입니다."),
