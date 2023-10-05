@@ -52,9 +52,7 @@ public class PostUpdateDto {
     @JsonProperty("chat_count")
     private int chatCount;
 
-    // TODO : chatCount 추가
-    public static Response postToResponse(Post post, List<TagDto> tags, List<Image> images,
-                                          int voteCount) {
+    public static Response postToResponse(Post post, List<TagDto> tags, List<Image> images) {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
@@ -68,7 +66,8 @@ public class PostUpdateDto {
                   .build())
               .collect(Collectors.toList()))
           .createdAt(post.getCreatedAt())
-          .voteCount(voteCount)
+          .voteCount(post.getVoteCount())
+          .chatCount(post.getChatCount())
           .build();
     }
   }

@@ -42,6 +42,7 @@ public class PostService {
 
   private final String POST_DIR = "post";
 
+  // TODO : 대표 이미지 넘어오는 방식 정해지면 저장방식 수정
   @Transactional
   public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
                                         List<MultipartFile> images) {
@@ -145,7 +146,6 @@ public class PostService {
     }
   }
 
-  // TODO : chatCount 추가
   @Transactional
   public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
                                            List<MultipartFile> images) {
@@ -165,9 +165,7 @@ public class PostService {
       throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
     }
 
-    int voteCount = voteRepository.countByPost_PostId(postId);
-
-    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList, voteCount);
+    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
   }
 
   private List<Image> updateImages(Post post, List<MultipartFile> images) throws IOException {

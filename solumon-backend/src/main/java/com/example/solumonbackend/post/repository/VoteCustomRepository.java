@@ -1,42 +1,50 @@
 package com.example.solumonbackend.post.repository;
 
+import com.example.solumonbackend.post.entity.QChoice;
+import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.PostDto.ChoiceResultDto;
+import com.querydsl.core.types.Expression;
+import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
+@RequiredArgsConstructor
 public class VoteCustomRepository {
 
-  @PersistenceContext
-  private EntityManager em;
+  private final JPAQueryFactory jpaQueryFactory;
 
   public List<ChoiceResultDto> getChoiceResults(Long postId) {
-    // choicePercent 도 함께 쿼리에서 계산하고 싶었으나 계속되는 오류로 제외하고 구함(queryDSL 공부 후 수정 예정)
-    List<ChoiceResultDto> resultList = em.createQuery(
-            "SELECT new com.example.solumonbackend.post.model.PostDto$ChoiceResultDto" +
-                "(c.choiceNum, c.choiceText, COUNT(v.selectedNum), 0.0) "
-                + "FROM Choice c "
-                + "LEFT JOIN Vote v ON c.post.postId = v.post.postId AND c.choiceNum = v.selectedNum "
-                + "WHERE c.post.postId = :postId "
-                + "GROUP BY c.choiceNum, c.choiceText "
-                + "having COUNT(*) > 0 "
-                + "ORDER BY c.choiceNum", ChoiceResultDto.class)
-        .setParameter("postId", postId)
-        .getResultList();
+    QChoice qChoice = QChoice.choice;
+    QVote qVote = QVote.vote;
 
-    long countSum = resultList.stream().mapToLong(ChoiceResultDto::getChoiceCount).sum();
+    // 전체 투표 수를 구하는 서브쿼리
+    Expression<Long> totalVotes = JPAExpressions.select(qVote.count())
+        .from(qVote)
+        .where(qVote.post.postId.eq(postId));
 
-    return resultList.stream()
-        .map(result -> ChoiceResultDto.builder()
-            .choiceNum(result.getChoiceNum())
-            .choiceText(result.getChoiceText())
-            .choiceCount(result.getChoiceCount())
-            .choicePercent(countSum == 0 ? 0.0 : result.getChoiceCount() * 100.0 / countSum)
-            .build())
+    // 투표 수(count)와 전체 투표 수에 대한 퍼센트 값을 계산하여 ChoiceResultDto를 생성
+    List<ChoiceResultDto> dtoList = jpaQueryFactory
+        .select(Projections.constructor(ChoiceResultDto.class,
+            qChoice.choiceNum,
+            qChoice.choiceText,
+            qVote.count().as("choiceCount"),
+            qVote.count().divide(totalVotes).multiply(100).as("choicePercent")))
+        .from(qChoice)
+        .leftJoin(qVote).on(qChoice.post.postId.eq(qVote.post.postId),
+            qChoice.choiceNum.eq(qVote.selectedNum))
+        .where(qChoice.post.postId.eq(postId))
+        .groupBy(qChoice.choiceNum, qChoice.choiceText)
+        .fetch();
+
+    return dtoList.stream()
+        .map(dto -> dto.getChoicePercent() == null ? dto.setChoicePercent(0L) : dto)
         .collect(Collectors.toList());
   }
+
 }

@@ -63,24 +63,21 @@ public class PostDto {
 
   @Getter
   @Builder
+  @AllArgsConstructor
   @NoArgsConstructor
   public static class ChoiceResultDto {
     @JsonProperty("choice_num")
-    private int choiceNum;
+    private Integer choiceNum;
     @JsonProperty("choice_text")
     private String choiceText;
     @JsonProperty("choice_count")
     private Long choiceCount;
     @JsonProperty("choice_percent")
-    private double choicePercent;
+    private Long choicePercent;
 
-    // voteCustomRepository에서 @AllArgsConstructor 인식이 안되어 직접 작성
-    public ChoiceResultDto(int choiceNum, String choiceText,
-                           Long choiceCount, double choicePercent) {
-      this.choiceNum = choiceNum;
-      this.choiceText = choiceText;
-      this.choiceCount = choiceCount;
+    public ChoiceResultDto setChoicePercent(Long choicePercent) {
       this.choicePercent = choicePercent;
+      return this;
     }
   }
 

@@ -42,6 +42,10 @@ public class VoteService {
         .post(post)
         .build());
 
+    // 게시글 투표수 업데이트
+    post.setVoteCount(voteRepository.countByPost_PostId(postId));
+    postRepository.save(post);
+
     return VoteAddDto.Response.builder()
         .choices(voteCustomRepository.getChoiceResults(postId))
         .build();
@@ -49,13 +53,17 @@ public class VoteService {
 
   @Transactional
   public void deleteVote(Member member, long postId) {
-    checkExistPostAndIfClosedPost(postId);
+    Post post = checkExistPostAndIfClosedPost(postId);
 
     if (!voteRepository.existsByPost_PostIdAndMember_MemberId(postId, member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL);
     }
 
     voteRepository.deleteByPost_PostIdAndMember_MemberId(postId, member.getMemberId());
+
+    // 게시글 투표수 업데이트
+    post.setVoteCount(voteRepository.countByPost_PostId(postId));
+    postRepository.save(post);
   }
 
   private Post checkExistPostAndIfClosedPost(long postId) {
@@ -68,4 +76,5 @@ public class VoteService {
 
     return post;
   }
+
 }
