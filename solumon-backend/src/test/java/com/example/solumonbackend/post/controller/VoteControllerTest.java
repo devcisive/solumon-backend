@@ -110,9 +110,9 @@ class VoteControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.choices[0].choice_text").value("선택지1"))
         .andExpect(jsonPath("$.choices[0].choice_count").value(1L))
-        .andExpect(jsonPath("$.choices[0].choice_percent").value(100.0))
+        .andExpect(jsonPath("$.choices[0].choice_percent").value(100))
         .andExpect(jsonPath("$.choices[1].choice_text").value("선택지2"))
-        .andExpect(jsonPath("$.choices[1].choice_percent").value(0.0));
+        .andExpect(jsonPath("$.choices[1].choice_percent").value(0));
   }
 
   @Test

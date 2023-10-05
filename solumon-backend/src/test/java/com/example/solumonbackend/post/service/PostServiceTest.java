@@ -81,8 +81,8 @@ class PostServiceTest {
   Post mockPost;
 
   @Test
-  @DisplayName("게시글 작성")
-  void createPost() throws IOException {
+  @DisplayName("게시글 작성 성공")
+  void createPost_success() throws IOException {
     //given
     PostAddDto.Request request = getAddRequest();
     List<MultipartFile> images = new ArrayList<>();
@@ -130,8 +130,8 @@ class PostServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 작성 - 이미지 없을 때")
-  void createPost_noImages() throws IOException {
+  @DisplayName("게시글 작성 성공 - 이미지 없을 때")
+  void createPost_success_noImages() throws IOException {
     //given
     PostAddDto.Request request = getAddRequest();
 
@@ -169,8 +169,8 @@ class PostServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 상세 조회")
-  void getPostDetail() {
+  @DisplayName("게시글 상세 조회 성공")
+  void getPostDetail_success() {
     //given
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(mockPost));
@@ -206,12 +206,12 @@ class PostServiceTest {
                 .choiceNum(1)
                 .choiceText("선택1")
                 .choiceCount(5L)
-                .choicePercent(50).build(),
+                .choicePercent(50L).build(),
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(2)
                 .choiceText("선택2")
                 .choiceCount(5L)
-                .choicePercent(50).build()));
+                .choicePercent(50L).build()));
 
     //when
     PostDetailDto.Response response = postService.getPostDetail(postMember, 1);
@@ -246,8 +246,8 @@ class PostServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 수정")
-  void updatePost() throws IOException {
+  @DisplayName("게시글 수정 성공")
+  void updatePost_success() throws IOException {
     //given
     PostUpdateDto.Request request = getUpdateRequest();
 
@@ -277,8 +277,6 @@ class PostServiceTest {
                 .imageKey("dir/image2.jpg")
                 .imageUrl("imageUrl2")
                 .build()));
-    when(voteRepository.countByPost_PostId(1L))
-        .thenReturn(10);
 
     //when
     PostUpdateDto.Response response = postService.updatePost(postMember, 1, request, images);
@@ -288,7 +286,6 @@ class PostServiceTest {
     assertThat(response.getTags().get(0).getTag()).isEqualTo("태그2");
     assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
     assertThat(response.getImages().get(0).getImage()).isEqualTo("imageUrl2");
-    assertThat(response.getVoteCount()).isEqualTo(10);
 
     verify(postRepository, times(1)).findById(1L);
     verify(postRepository, times(1)).save(any(Post.class));
@@ -337,8 +334,8 @@ class PostServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 삭제")
-  void deletePost() {
+  @DisplayName("게시글 삭제 성공")
+  void deletePost_success() {
     //given
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(mockPost));
@@ -361,8 +358,8 @@ class PostServiceTest {
   }
 
   @Test
-  @DisplayName("게시글 삭제 - 이미지 없는 경우")
-  void deletePost_noImages() {
+  @DisplayName("게시글 삭제 성공 - 이미지 없는 경우")
+  void deletePost_success_noImages() {
     //given
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(mockPost));

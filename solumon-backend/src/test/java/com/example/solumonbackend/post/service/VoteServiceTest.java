@@ -65,7 +65,7 @@ class VoteServiceTest {
         .contents("내용")
         .member(postMember)
         .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
-            .plusDays(2))
+            .plusDays(20))
         .build();
   }
 
@@ -74,8 +74,8 @@ class VoteServiceTest {
   Post post;
 
   @Test
-  @DisplayName("투표하기")
-  void createVote() {
+  @DisplayName("투표하기 성공")
+  void createVote_success() {
     //given
     VoteAddDto.Request request = VoteAddDto.Request.builder()
         .selectedNum(1)
@@ -92,19 +92,21 @@ class VoteServiceTest {
             .member(otherMember)
             .selectedNum(1)
             .build());
+    when(voteRepository.countByPost_PostId(1L))
+        .thenReturn(5);
     when(voteCustomRepository.getChoiceResults(1L))
         .thenReturn(List.of(
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(1)
                 .choiceText("선택지1")
                 .choiceCount(5L)
-                .choicePercent(100.0)
+                .choicePercent(100L)
                 .build(),
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(2)
                 .choiceText("선택지2")
                 .choiceCount(0L)
-                .choicePercent(0.0)
+                .choicePercent(0L)
                 .build()));
 
     //when
@@ -117,6 +119,8 @@ class VoteServiceTest {
     verify(postRepository, times(1)).findById(1L);
     verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
     verify(voteRepository, times(1)).save(any(Vote.class));
+    verify(voteRepository, times(1)).countByPost_PostId(1L);
+    verify(postRepository, times(1)).save(any(Post.class));
     verify(voteCustomRepository, times(1)).getChoiceResults(1L);
   }
 
@@ -203,13 +207,15 @@ class VoteServiceTest {
   }
 
   @Test
-  @DisplayName("투표 취소")
-  void deleteVote() {
+  @DisplayName("투표 취소 성공")
+  void deleteVote_success() {
     //given
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(post));
     when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
         .thenReturn(true);
+    when(voteRepository.countByPost_PostId(1L))
+        .thenReturn(4);
 
     //when
     voteService.deleteVote(otherMember, 1L);
@@ -218,6 +224,8 @@ class VoteServiceTest {
     verify(postRepository, times(1)).findById(1L);
     verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
     verify(voteRepository, times(1)).deleteByPost_PostIdAndMember_MemberId(1L, 2L);
+    verify(voteRepository, times(1)).countByPost_PostId(1L);
+    verify(postRepository, times(1)).save(any(Post.class));
   }
 
   @Test

@@ -4,17 +4,11 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.type.MemberRole;
-import com.example.solumonbackend.post.entity.Image;
-import com.example.solumonbackend.post.entity.Post;
-import com.example.solumonbackend.post.entity.PostTag;
-import com.example.solumonbackend.post.entity.Tag;
+import com.example.solumonbackend.post.entity.*;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.ImageRepository;
-import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.PostTagRepository;
-import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,6 +53,8 @@ class PostControllerTest {
   private TagRepository tagRepository;
   @Autowired
   private PostTagRepository postTagRepository;
+  @Autowired
+  private ChoiceRepository choiceRepository;
 
   Member member;
   Member otherMember;
@@ -87,6 +83,18 @@ class PostControllerTest {
 
     Tag tag = tagRepository.save(Tag.builder().name("태그1").build());
     postTagRepository.save(PostTag.builder().post(savePost).tag(tag).build());
+
+    choiceRepository.saveAll(List.of(
+        Choice.builder()
+            .choiceNum(1)
+            .choiceText("잠자기")
+            .post(savePost)
+            .build(),
+        Choice.builder()
+            .choiceNum(2)
+            .choiceText("나가기")
+            .post(savePost)
+            .build()));
   }
 
   @Test
@@ -138,7 +146,9 @@ class PostControllerTest {
         .andExpect(jsonPath("$.post_id").value(savePost.getPostId()))
         .andExpect(jsonPath("$.title").value("제목"))
         .andExpect(jsonPath("$.contents").value("내용"))
-        .andExpect(jsonPath("$.tags[0].tag").value("태그1"));
+        .andExpect(jsonPath("$.tags[0].tag").value("태그1"))
+        .andExpect(jsonPath("$.vote.choices[0].choice_num").value(1))
+        .andExpect(jsonPath("$.vote.choices[0].choice_percent").value(0));
   }
 
   @Test
