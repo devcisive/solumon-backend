@@ -114,7 +114,8 @@ public class RecommendationService {
     // 게시글 목록의 각 게시글에 대하여
     for(Post post: possiblePosts) {
       // 해당 게시글의 태그 목록을 가져옴
-      List<Tag> postTags = postTagRepository.findAllByPost(post).stream().map(PostTag::getTag).collect(Collectors.toList());
+      List<Tag> postTags =
+          postTagRepository.findAllByPost_PostId(post.getPostId()).stream().map(PostTag::getTag).collect(Collectors.toList());
       for(int i = 0; i < n; i++) {
         // 각 관심 주제에 대해 해당 게시글의 태그 목록에 그 관심 주제가 포함되어 있으면 1, 없으면 0
         Tag interestTag = interestTags.get(i);
