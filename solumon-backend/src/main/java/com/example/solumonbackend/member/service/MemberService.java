@@ -17,7 +17,6 @@ import com.example.solumonbackend.member.entity.Report;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
@@ -35,14 +34,11 @@ import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -153,12 +149,12 @@ public class MemberService {
 
 
   public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
-      PostState postState, PostParticipateType postParticipateType, PostOrder postOrder,
+      PostStatus postStatus, PostParticipateType postParticipateType, PostOrder postOrder,
       Pageable pageable) {
 
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getMyParticipatePostPages(member.getMemberId(),
-        postParticipateType, postState, postOrder, pageable);
+        postParticipateType, postStatus, postOrder, pageable);
 
   }
 

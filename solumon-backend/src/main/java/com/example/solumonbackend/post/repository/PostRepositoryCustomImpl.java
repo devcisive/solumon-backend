@@ -8,7 +8,7 @@ import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -47,7 +47,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   @Override
   public Page<MyParticipatePostDto> getMyParticipatePostPages(Long memberId,
-      PostParticipateType postParticipateType, PostState postState, PostOrder postOrder,
+      PostParticipateType postParticipateType, PostStatus postStatus, PostOrder postOrder,
       Pageable pageable) {
 
     QPost qpost = QPost.post;
@@ -56,7 +56,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     BooleanExpression participateTypeCondition
         = createParticipateTypeCondition(memberId, postParticipateType, qpost);
     // 조건2 (상태)
-    BooleanExpression stateCondition = createStateCondition(postState, qpost);
+    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
 
     // 정렬기준
     OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qpost);
@@ -97,17 +97,17 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
-  private BooleanExpression createStateCondition(PostState state, QPost qpost) {
+  private BooleanExpression createStateCondition(PostStatus state, QPost qpost) {
   // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
     if (qpost == null || state == null) {
       throw new PostException(ErrorCode.NullPointerException);
     }
 
-    if (state == PostState.ONGOING) {
+    if (state == PostStatus.ONGOING) {
       return qpost.endAt.after(LocalDateTime.now());
     }
 
-    if (state == PostState.COMPLETED) {
+    if (state == PostStatus.COMPLETED) {
       return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
     }
 

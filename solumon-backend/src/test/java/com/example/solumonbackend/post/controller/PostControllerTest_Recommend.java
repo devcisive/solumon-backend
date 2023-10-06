@@ -1,0 +1,372 @@
+package com.example.solumonbackend.post.controller;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.entity.MemberTag;
+import com.example.solumonbackend.member.repository.MemberRepository;
+import com.example.solumonbackend.member.repository.MemberTagRepository;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Tag;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.RecommendRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.service.RecommendationService;
+import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostStatus;
+import com.example.solumonbackend.post.type.PostType;
+import java.time.LocalDateTime;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.TestExecutionEvent;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+@SpringBootTest
+@AutoConfigureMockMvc
+@WithUserDetails(value = "sample@sample.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
+class PostControllerTest_Recommend {
+  @Autowired
+  private MockMvc mockMvc;
+  @Autowired
+  private RecommendationService recommendationService;
+  @Autowired
+  private MemberTagRepository memberTagRepository;
+  @Autowired
+  private PostTagRepository postTagRepository;
+  @Autowired
+  private RecommendRepository recommendRepository;
+  @Autowired
+  private MemberRepository memberRepository;
+  @Autowired
+  private PostRepository postRepository;
+  @Autowired
+  private TagRepository tagRepository;
+
+  Member testMember;
+  Tag tag1, tag2, tag3;
+  MemberTag memberTag1, memberTag2, memberTag3;
+  Post post1, post2, post3, post4, post5, post6, post7, post8;
+  PostTag postTag1, postTag2, postTag3, postTag4, postTag5, postTag6, postTag7, postTag8, postTag9, postTag10;
+
+/*
+ testMember의 관심 태그: 태그1, 태그2, 태그3
+ 유사도: post1 = post2 -> post3 && post5 = post6 -> post7
+ ONGOING: post1의 태그: 태그1, 태그2 / post2의 태그: 태그2, 태그3 / post3의 태그: 태그3 / post4의 태그: 없음
+    - 최신순 예상 순서: post2 -> post1 -> post3
+    - 투표 마감 임박 예상 순서: post1 -> post2 -> post3
+    - 투표 참여자순 예상 순서: post1 -> post2 -> post3
+    - 채팅 참여자순 예상 순서: post2 -> post1 -> post3
+ COMPLETED: post5의 태그: 태그1, 태그2 / post6의 태그: 태그2, 태그3 / post7의 태그: 태그3 / post8의 태그: 없음
+    - 최신순 예상 순서: post6 -> post5 -> post7
+    - 투표 참여자순 예상 순서: post5 -> post6 -> post7
+    - 채팅 참여자순 예상 순서: post6 -> post5 -> post7
+ */
+
+  @BeforeEach
+  public void setUp() {
+    postRepository.deleteAll();
+
+    testMember = Member.builder()
+        .email("sample@sample.com")
+        .build();
+
+    memberRepository.save(testMember);
+
+    tag1 = Tag.builder()
+        .name("태그1")
+        .build();
+
+    tag2 = Tag.builder()
+        .name("태그2")
+        .build();
+
+    tag3 = Tag.builder()
+        .name("태그3")
+        .build();
+
+    tagRepository.saveAll(List.of(tag1, tag2, tag3));
+
+    memberTag1 = MemberTag.builder()
+        .member(testMember)
+        .tag(tag1)
+        .build();
+
+    memberTag2 = MemberTag.builder()
+        .member(testMember)
+        .tag(tag2)
+        .build();
+
+    memberTag3 = MemberTag.builder()
+        .member(testMember)
+        .tag(tag3)
+        .build();
+
+    memberTagRepository.saveAll(List.of(memberTag1, memberTag2, memberTag3));
+
+    post1 = Post.builder()
+        .title("post1")
+        .member(testMember)
+        .createdAt(LocalDateTime.now().minusDays(2))
+        .endAt(LocalDateTime.now().plusDays(1))
+        .voteCount(10)
+        .chatCount(5)
+        .build();
+
+    post2 = Post.builder()
+        .title("post2")
+        .member(testMember)
+        .createdAt(LocalDateTime.now().minusDays(1))
+        .endAt(LocalDateTime.now().plusDays(2))
+        .voteCount(0)
+        .chatCount(10)
+        .build();
+
+    post3 = Post.builder()
+        .title("post3")
+        .member(testMember)
+        .createdAt(LocalDateTime.now())
+        .endAt(LocalDateTime.now().plusDays(3))
+        .voteCount(5)
+        .chatCount(0)
+        .build();
+
+    post4 = Post.builder()
+        .title("post4")
+        .member(testMember)
+        .createdAt(LocalDateTime.now())
+        .endAt(LocalDateTime.now().plusDays(3))
+        .voteCount(5)
+        .chatCount(0)
+        .build();
+
+    post5 = Post.builder()
+        .title("post5")
+        .member(testMember)
+        .createdAt(LocalDateTime.now().minusDays(2))
+        .endAt(LocalDateTime.now().minusDays(1))
+        .voteCount(10)
+        .chatCount(5)
+        .build();
+
+    post6 = Post.builder()
+        .title("post6")
+        .member(testMember)
+        .createdAt(LocalDateTime.now().minusDays(1))
+        .endAt(LocalDateTime.now().minusDays(2))
+        .voteCount(0)
+        .chatCount(10)
+        .build();
+
+    post7 = Post.builder()
+        .title("post7")
+        .member(testMember)
+        .createdAt(LocalDateTime.now())
+        .endAt(LocalDateTime.now().minusDays(3))
+        .voteCount(5)
+        .chatCount(0)
+        .build();
+
+    post8 = Post.builder()
+        .title("post8")
+        .member(testMember)
+        .createdAt(LocalDateTime.now())
+        .endAt(LocalDateTime.now().minusDays(3))
+        .voteCount(5)
+        .chatCount(0)
+        .build();
+
+    postRepository.saveAll(List.of(post1, post2, post3, post4, post5, post6, post7, post8));
+
+    postTag1 = PostTag.builder()
+        .post(post1)
+        .tag(tag1)
+        .build();
+
+    postTag2 = PostTag.builder()
+        .post(post1)
+        .tag(tag2)
+        .build();
+
+    postTag3 = PostTag.builder()
+        .post(post2)
+        .tag(tag2)
+        .build();
+
+    postTag4 = PostTag.builder()
+        .post(post2)
+        .tag(tag3)
+        .build();
+
+    postTag5 = PostTag.builder()
+        .post(post3)
+        .tag(tag3)
+        .build();
+
+    postTag6 = PostTag.builder()
+        .post(post5)
+        .tag(tag1)
+        .build();
+
+    postTag7 = PostTag.builder()
+        .post(post5)
+        .tag(tag2)
+        .build();
+
+    postTag8 = PostTag.builder()
+        .post(post6)
+        .tag(tag2)
+        .build();
+
+    postTag9 = PostTag.builder()
+        .post(post6)
+        .tag(tag3)
+        .build();
+
+    postTag10 = PostTag.builder()
+        .post(post7)
+        .tag(tag3)
+        .build();
+
+    postTagRepository.saveAll(
+        List.of(postTag1, postTag2, postTag3, postTag4, postTag5, postTag6, postTag7, postTag8, postTag9, postTag10));
+  }
+
+  @Test
+  void recommend_success_ongoing_latest() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.ONGOING))
+            .queryParam("postOrder", String.valueOf(PostOrder.LATEST))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post2"))
+        .andExpect(jsonPath("$.content[1].title").value("post1"))
+        .andExpect(jsonPath("$.content[2].title").value("post3"));
+  }
+
+  @Test
+  void recommend_success_ongoing_imminentDeadline() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.ONGOING))
+            .queryParam("postOrder", String.valueOf(PostOrder.IMMINENT_DEADLINE))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post1"))
+        .andExpect(jsonPath("$.content[1].title").value("post2"))
+        .andExpect(jsonPath("$.content[2].title").value("post3"));
+  }
+
+  @Test
+  void recommend_success_ongoing_mostVotes() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.ONGOING))
+            .queryParam("postOrder", String.valueOf(PostOrder.MOST_VOTES))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post1"))
+        .andExpect(jsonPath("$.content[1].title").value("post2"))
+        .andExpect(jsonPath("$.content[2].title").value("post3"));
+  }
+
+  @Test
+  void recommend_success_ongoing_mostChatParticipants() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.ONGOING))
+            .queryParam("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post2"))
+        .andExpect(jsonPath("$.content[1].title").value("post1"))
+        .andExpect(jsonPath("$.content[2].title").value("post3"));
+  }
+
+  @Test
+  void recommend_success_completed_latest() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.COMPLETED))
+            .queryParam("postOrder", String.valueOf(PostOrder.LATEST))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post6"))
+        .andExpect(jsonPath("$.content[1].title").value("post5"))
+        .andExpect(jsonPath("$.content[2].title").value("post7"));
+  }
+
+  @Test
+  void recommend_success_completed_mostVotes() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.COMPLETED))
+            .queryParam("postOrder", String.valueOf(PostOrder.MOST_VOTES))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post5"))
+        .andExpect(jsonPath("$.content[1].title").value("post6"))
+        .andExpect(jsonPath("$.content[2].title").value("post7"));
+  }
+
+  @Test
+  void recommend_success_completed_mostChatParticipants() throws Exception {
+    //given
+    //when
+    //then
+    mockMvc.perform(MockMvcRequestBuilders.get("/posts")
+            .queryParam("postType", String.valueOf(PostType.INTEREST))
+            .queryParam("postStatus", String.valueOf(PostStatus.COMPLETED))
+            .queryParam("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
+            .queryParam("page", "1")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.content[0].title").value("post6"))
+        .andExpect(jsonPath("$.content[1].title").value("post5"))
+        .andExpect(jsonPath("$.content[2].title").value("post7"));
+  }
+}
