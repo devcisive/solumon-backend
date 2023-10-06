@@ -2,17 +2,22 @@ package com.example.solumonbackend.post.service;
 
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostDto.ChoiceDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
+import com.example.solumonbackend.post.model.PostListDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
 import com.example.solumonbackend.post.repository.*;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
