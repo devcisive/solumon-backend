@@ -22,32 +22,35 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-batch'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'io.jsonwebtoken:jjwt:0.9.1'
+	implementation 'com.google.code.gson:gson:2.10.1'
+
+	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.hibernate:hibernate-core'
+
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.batch:spring-batch-test'
 	testImplementation 'org.springframework.security:spring-security-test'
-	implementation 'io.jsonwebtoken:jjwt:0.9.1'
-
-	implementation 'com.google.code.gson:gson:2.10.1'
 
 	// 자바8에 추가된 데이터타입들에 대한 기능을 jackson 에 지원해주는 라이브러리
 	implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.13.5'
 
 
-
-
-	// 엔티티가 수정될 때도 complie 을 해주어야함 (우측 Gradle -> Tasks -> other -> compileJava(클릭해주세요))
+	// 엔티티가 수정될 때도 compile 을 해주어야함 (우측 Gradle -> Tasks -> other -> compileJava(클릭해주세요))
 	// QueryDSL JPA
 	implementation 'com.querydsl:querydsl-jpa'
 	// QFile 생성 및 가져오기
@@ -56,14 +59,13 @@ dependencies {
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 }
 
-
 configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
 }
 
-// Qfile이 build 폴더 아래 생겨 import에 문제가 생길때를 위함
+// Qfile 이 build 폴더 아래 생겨 import 에 문제가 생길때를 위함
 sourceSets {
 	main {
 		java {

@@ -1,7 +1,5 @@
 package com.example.solumonbackend.post.repository;
 
-import com.example.solumonbackend.member.entity.Member;
-import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.Vote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -9,10 +7,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
-  boolean existsByPostAndMember(Post post, Member member);
+  boolean existsByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
 
-  void deleteAllByPost(Post post);
+  void deleteAllByPost_PostId(Long postId);
 
-  void deleteByPostAndMember(Post post, Member member);
+  void deleteByPost_PostIdAndMember_MemberId(Long postId, Long memberId);
+
+  int countByPost_PostId(Long postId);
 
 }
