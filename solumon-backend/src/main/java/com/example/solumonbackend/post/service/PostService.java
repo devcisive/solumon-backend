@@ -9,6 +9,8 @@ import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
 import com.example.solumonbackend.post.repository.*;
+import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -139,5 +141,12 @@ public class PostService {
     voteRepository.deleteAllByPost(post);
     choiceRepository.deleteAllByPost(post);
     postRepository.delete(post);
+  }
+
+  public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder, Integer pageNum) {
+
+    Pageable pageable = PageRequestCustom.ofType(pageNum, postOrder);
+    // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
+    return postRepository.getGeneralPostList(postStatus, postOrder, pageable);
   }
 }
