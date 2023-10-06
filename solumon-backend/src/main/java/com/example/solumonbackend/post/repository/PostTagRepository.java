@@ -1,6 +1,5 @@
 package com.example.solumonbackend.post.repository;
 
-import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,9 +10,9 @@ import java.util.List;
 @Repository
 public interface PostTagRepository extends JpaRepository<PostTag, Long> {
 
-  List<PostTag> findAllByPost(Post post);
+  List<PostTag> findAllByPost_PostId(Long postId);
 
-  void deleteAllByPost(Post post);
+  void deleteAllByPost_PostId(Long postId);
 
   List<PostTag> findDistinctByTagIn(List<Tag> tags);
 
