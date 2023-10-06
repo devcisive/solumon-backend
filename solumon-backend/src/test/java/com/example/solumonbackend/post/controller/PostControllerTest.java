@@ -67,11 +67,11 @@ class PostControllerTest {
         .nickname("별명")
         .role(MemberRole.GENERAL)
         .build();
-    otherMember = memberRepository.save(Member.builder()
+    otherMember = Member.builder()
         .email("test2@gmail.com")
         .nickname("별명2")
         .role(MemberRole.GENERAL)
-        .build());
+        .build();
     memberRepository.saveAll(List.of(member, otherMember));
 
     savePost = postRepository.save(Post.builder()
