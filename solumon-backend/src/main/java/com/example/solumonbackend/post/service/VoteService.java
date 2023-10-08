@@ -1,5 +1,7 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.elasticsearch.PostSearchRepository;
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
@@ -23,6 +25,7 @@ public class VoteService {
   private final VoteRepository voteRepository;
   private final VoteCustomRepository voteCustomRepository;
   private final PostRepository postRepository;
+  private final PostSearchService postSearchService;
 
   @Transactional
   public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
@@ -45,6 +48,7 @@ public class VoteService {
     // 게시글 투표수 업데이트
     post.setVoteCount(voteRepository.countByPost_PostId(postId));
     postRepository.save(post);
+    postSearchService.updateVoteCount(post.getVoteCount(), post.getPostId());
 
     return VoteAddDto.Response.builder()
         .choices(voteCustomRepository.getChoiceResults(postId))
@@ -64,6 +68,7 @@ public class VoteService {
     // 게시글 투표수 업데이트
     post.setVoteCount(voteRepository.countByPost_PostId(postId));
     postRepository.save(post);
+    postSearchService.updateVoteCount(post.getVoteCount(), post.getPostId());
   }
 
   private Post checkExistPostAndIfClosedPost(long postId) {

@@ -195,15 +195,12 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     // 조건1 (상태)
     BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
 
-    // 정렬기준
-    OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qpost);
-
     // 가져올 데이터
     List<PostListDto.Response> resultContents
-        = jpaQueryFactory.select(Projections.bean(PostListDto.Response.class,
+        = jpaQueryFactory.select(Projections.constructor(PostListDto.Response.class,
             qpost.postId,
             qpost.title,
-            qpost.member.nickname.as("writer"), // MyParticipatePostDto 의 필드이름과 일치하지않다면 as()사용
+            qpost.member.nickname.as("writer"),
             qpost.contents,
             qpost.thumbnailUrl.as("imageUrl"),
             qpost.voteCount,

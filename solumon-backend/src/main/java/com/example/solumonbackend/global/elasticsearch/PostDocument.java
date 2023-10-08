@@ -12,6 +12,9 @@ import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
 
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Document(indexName = "posts")
 @Mapping(mappingPath = "elasticsearch/search-mapping.json")
 @Setting(settingPath = "elasticsearch/search-setting.json")
@@ -29,6 +32,10 @@ public class PostDocument {
   private String createdAt;
   private String tags;
 
+  public void setVoteCount(int voteCount) {
+    this.voteCount = voteCount;
+  }
+
   public static PostDocument createPostDocument(Post post, List<String> tags) {
     return PostDocument.builder()
         .id(post.getPostId())
@@ -44,7 +51,7 @@ public class PostDocument {
         .build();
   }
 
-  public void updatePostDocument(Post post, List<String> tags) {
+  public PostDocument updatePostDocument(Post post, List<String> tags) {
     this.title = post.getTitle();
     this.content = post.getContents();
     this.imageUrl = post.getThumbnailUrl();
@@ -53,6 +60,8 @@ public class PostDocument {
     this.endAt = post.getEndAt().toString();
     this.createdAt = post.getCreatedAt().toString();
     this.tags = tags.toString();
+
+    return this;
   }
 
 }

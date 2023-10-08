@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 public class PostSearchService {
 
   private final ElasticsearchRestTemplate elasticsearchRestTemplate;
-
   private final PostSearchRepository postSearchRepository;
 
   /**

@@ -6,12 +6,17 @@ import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.common.AwsS3Component;
+import com.example.solumonbackend.post.entity.Choice;
 import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.*;
+import com.example.solumonbackend.post.model.PostListDto.Response;
 import com.example.solumonbackend.post.repository.*;
+import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostStatus;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +28,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -130,12 +139,14 @@ class PostServiceTest {
                 .tag(Tag.builder().tagId(2L).name("태그2").build())
                 .post(mockPost)
                 .build()));
+    when(choiceRepository.saveAll(anyList()))
+        .thenReturn(choices);
     when(awsS3Component.upload(images.get(0), "post"))
         .thenReturn(AwsS3.builder()
             .key("dirName/image1.jpg")
             .path("imageUrl")
             .build());
-    when(imageRepository.saveAll(any()))
+    when(imageRepository.saveAll(anyList()))
         .thenReturn(List.of(new Image(1L, mockPost,
             "dirName/image1.jpg", "imageUrl")));
 
