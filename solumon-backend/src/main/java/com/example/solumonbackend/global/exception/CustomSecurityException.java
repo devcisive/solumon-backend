@@ -17,6 +17,7 @@ public class CustomSecurityException extends RuntimeException{
   private String errorMessage;
 
   public CustomSecurityException(ErrorCode errorCode) {
+    super(errorCode.getDescription());
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }

@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ChannelMemberRepository extends JpaRepository<ChannelMember,Long> {
 
+  boolean existsByPostPostIdAndMemberMemberId(Long postId, Long memberId);
 }
