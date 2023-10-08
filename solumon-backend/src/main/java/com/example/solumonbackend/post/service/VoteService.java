@@ -7,7 +7,6 @@ import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.Vote;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,12 +20,12 @@ import java.util.Objects;
 public class VoteService {
 
   private final VoteRepository voteRepository;
-  private final VoteCustomRepository voteCustomRepository;
   private final PostRepository postRepository;
 
   @Transactional
   public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
-    Post post = checkExistPostAndIfClosedPost(postId);
+    Post post = getPost(postId);
+    isClosedPost(post);
 
     if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       throw new PostException(ErrorCode.WRITER_CAN_NOT_VOTE);
@@ -47,13 +46,14 @@ public class VoteService {
     postRepository.save(post);
 
     return VoteAddDto.Response.builder()
-        .choices(voteCustomRepository.getChoiceResults(postId))
+        .choices(voteRepository.getChoiceResults(postId))
         .build();
   }
 
   @Transactional
   public void deleteVote(Member member, long postId) {
-    Post post = checkExistPostAndIfClosedPost(postId);
+    Post post = getPost(postId);
+    isClosedPost(post);
 
     if (!voteRepository.existsByPost_PostIdAndMember_MemberId(postId, member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL);
@@ -66,15 +66,15 @@ public class VoteService {
     postRepository.save(post);
   }
 
-  private Post checkExistPostAndIfClosedPost(long postId) {
-    Post post = postRepository.findById(postId)
+  private Post getPost(long postId) {
+    return postRepository.findById(postId)
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+  }
 
+  private void isClosedPost(Post post) {
     if (post.getEndAt().isBefore(LocalDateTime.now())) {
       throw new PostException(ErrorCode.POST_IS_CLOSED);
     }
-
-    return post;
   }
 
 }

@@ -38,7 +38,6 @@ public class PostService {
   private final PostTagRepository postTagRepository;
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
-  private final VoteCustomRepository voteCustomRepository;
 
   private final String POST_DIR = "post";
 
@@ -131,17 +130,18 @@ public class PostService {
   }
 
   private VoteResultDto getVoteResultDto(Member member, Post post) {
-    // 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
+    // 글쓴이거나, 투표를 했거나, 투표 기간이 지나면 결과접근 true 상태로 표시
     if (voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
-        || post.getEndAt().isBefore(LocalDateTime.now())) {
+        || post.getEndAt().isBefore(LocalDateTime.now())
+        || Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       return VoteResultDto.builder()
           .resultAccessStatus(true)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     } else {
       return VoteResultDto.builder()
           .resultAccessStatus(false)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     }
   }
@@ -149,7 +149,8 @@ public class PostService {
   @Transactional
   public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
                                            List<MultipartFile> images) {
-    Post post = checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    isAuthorOfPost(member, post);
 
     post.setTitle(request.getTitle());
     post.setContents(request.getContents());
@@ -158,14 +159,13 @@ public class PostService {
     postTagRepository.deleteAllByPost_PostId(postId);
     savePostTag(request.getTags(), post);
 
-    List<Image> imageList;
     try {
-      imageList = updateImages(post, images);
+      List<Image> imageList = updateImages(post, images);
+      return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
+
     } catch (IOException e) {
       throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
     }
-
-    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
   }
 
   private List<Image> updateImages(Post post, List<MultipartFile> images) throws IOException {
@@ -180,7 +180,8 @@ public class PostService {
 
   @Transactional
   public void deletePost(Member member, long postId) {
-    checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    isAuthorOfPost(member, post);
 
     deleteImage(postId);
     postTagRepository.deleteAllByPost_PostId(postId);
@@ -203,15 +204,15 @@ public class PostService {
     }
   }
 
-  private Post checkExistPostAndEqualMemberId(Member member, long postId) {
-    Post post = postRepository.findById(postId)
+  private Post getPost(long postId) {
+    return postRepository.findById(postId)
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+  }
 
+  private void isAuthorOfPost(Member member, Post post) {
     if (!Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
     }
-
-    return post;
   }
 
 }
