@@ -1,7 +1,11 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.post.common.AwsS3Component;
 import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.model.AwsS3;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostDto.ChoiceDto;
@@ -13,9 +17,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,45 +33,76 @@ public class PostService {
 
   private final PostRepository postRepository;
   private final ImageRepository imageRepository;
-
+  private final AwsS3Component awsS3Component;
   private final TagRepository tagRepository;
   private final PostTagRepository postTagRepository;
-
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
   private final VoteCustomRepository voteCustomRepository;
 
-  // TODO : 이미지 s3 저장, image_url db 저장
+  private final String POST_DIR = "post";
+
+  // TODO : 대표 이미지 넘어오는 방식 정해지면 저장방식 수정
   @Transactional
-  public PostAddDto.Response createPost(Member member, PostAddDto.Request dto) {
+  public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
+                                        List<MultipartFile> images) {
     Post post = postRepository.save(Post.builder()
         .member(member)
-        .title(dto.getTitle())
-        .contents(dto.getContents())
-        .endAt(dto.getVote().getEndAt())
+        .title(request.getTitle())
+        .contents(request.getContents())
+        .endAt(request.getVote().getEndAt())
         .build());
 
-    savePostTag(dto.getTags(), post);
-    saveChoices(dto.getVote().getChoices(), post);
+    List<PostTag> savePostTags = savePostTag(request.getTags(), post);
+    List<Choice> saveChoices = saveChoices(request.getVote().getChoices(), post);
+    List<Image> saveImages = saveImages(images, post);
 
-    return PostAddDto.Response.postToResponse(post, dto.getTags(), dto.getVote());
+    return PostAddDto.Response.postToResponse(post, savePostTags, saveChoices, saveImages);
   }
 
-  private void saveChoices(List<ChoiceDto> choices, Post post) {
-    for (ChoiceDto choice : choices) {
-      choiceRepository.save(Choice.builder()
-          .post(post)
-          .choiceNum(choice.getChoiceNum())
-          .choiceText(choice.getChoiceText())
-          .build());
+  private List<Image> saveImages(List<MultipartFile> images, Post post) {
+    // 이미지 파일이 없다면 빈 리스트 리턴(NullPointException 방지 차원)
+    if (images.isEmpty()) {
+      return List.of();
     }
+
+    // s3에 저장 후 key와 imageUrl 값을 가진 AwsS3를 리스트에 저장
+    List<AwsS3> awsS3List = new ArrayList<>();
+    for (MultipartFile image : images) {
+      try {
+        awsS3List.add(awsS3Component.upload(image, POST_DIR));
+      } catch (IOException e) {
+        throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
+      }
+    }
+
+    return imageRepository.saveAll(awsS3List.stream()
+        .filter(Objects::nonNull)
+        .map(s3 -> Image.builder()
+            .post(post)
+            .imageKey(s3.getKey())
+            .imageUrl(s3.getPath())
+            .build())
+        .collect(Collectors.toList()));
   }
 
-  private void savePostTag(List<TagDto> tags, Post post) {
+  private List<Choice> saveChoices(List<ChoiceDto> choices, Post post) {
+    return choiceRepository.saveAll(choices.stream()
+        .map(choice -> Choice.builder()
+            .post(post)
+            .choiceNum(choice.getChoiceNum())
+            .choiceText(choice.getChoiceText())
+            .build())
+        .collect(Collectors.toList()));
+  }
+
+  private List<PostTag> savePostTag(List<TagDto> tags, Post post) {
+    // Tag 테이블에 저장된 것이 아니라면 Tag에 먼저 저장, 저장된 거라면 태그이름으로 찾와서 PostTag 테이블에 저장
     for (TagDto tagDto : tags) {
       Tag tag;
       if (tagRepository.existsByName(tagDto.getTag())) {
-        tag = tagRepository.findByName(tagDto.getTag()).get();
+        tag = tagRepository.findByName(tagDto.getTag())
+            .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_TAG));
       } else {
         tag = tagRepository.save(Tag.builder()
             .name(tagDto.getTag())
@@ -74,70 +114,104 @@ public class PostService {
           .tag(tag)
           .build());
     }
+
+    return postTagRepository.findAllByPost_PostId(post.getPostId());
   }
 
-  // TODO : exception 수정, 채팅 부분 추가
+  // TODO : 채팅 부분 추가
   public PostDetailDto.Response getPostDetail(Member member, long postId) {
     Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
 
-    List<PostTag> tags = postTagRepository.findAllByPost(post);
-    List<Image> images = imageRepository.findAllByPost(post);
+    List<PostTag> tags = postTagRepository.findAllByPost_PostId(postId);
+    List<Image> images = imageRepository.findAllByPost_PostId(postId);
     VoteResultDto voteResultDto = getVoteResultDto(member, post);
 
     return PostDetailDto.Response.postToResponse(post, tags, images, voteResultDto);
   }
 
-  // TODO : voteCustomRepository.getChoiceResults() 쿼리 테스트 후 안되면 수정
   private VoteResultDto getVoteResultDto(Member member, Post post) {
-    if (voteRepository.existsByPostAndMember(post, member)
+    // 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
+    if (voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
         || post.getEndAt().isBefore(LocalDateTime.now())) {
       return VoteResultDto.builder()
           .resultAccessStatus(true)
-          .choices(voteCustomRepository.getChoiceResults(post))
+          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
           .build();
     } else {
       return VoteResultDto.builder()
           .resultAccessStatus(false)
-          .choices(voteCustomRepository.getChoiceResults(post))
+          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
           .build();
     }
   }
 
-  // TODO : exception 수정, 이미지 수정 부분, voteCount, chatCount 추가
   @Transactional
-  public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request) {
-    Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
-
-    if (!post.getMember().equals(member)) {
-      throw new RuntimeException("작성자만 수정이 가능합니다.");
-    }
+  public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
+                                           List<MultipartFile> images) {
+    Post post = checkExistPostAndEqualMemberId(member, postId);
 
     post.setTitle(request.getTitle());
     post.setContents(request.getContents());
     postRepository.save(post);
 
-    List<PostTag> tags = postTagRepository.findAllByPost(post);
-    postTagRepository.deleteAll(tags);
+    postTagRepository.deleteAllByPost_PostId(postId);
     savePostTag(request.getTags(), post);
 
-    return PostUpdateDto.Response.postToResponse(post, request.getTags(), request.getImages());
-  }
-
-  // TODO : exception 수정, 이미지 삭제 부분
-  @Transactional
-  public void deletePost(Member member, long postId) {
-    Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new RuntimeException("게시글이 존재하지 않습니다."));
-
-    if (!post.getMember().equals(member)) {
-      throw new RuntimeException("작성자만 삭제가 가능합니다.");
+    List<Image> imageList;
+    try {
+      imageList = updateImages(post, images);
+    } catch (IOException e) {
+      throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
     }
 
-    postTagRepository.deleteAllByPost(post);
-    voteRepository.deleteAllByPost(post);
-    choiceRepository.deleteAllByPost(post);
-    postRepository.delete(post);
+    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
   }
+
+  private List<Image> updateImages(Post post, List<MultipartFile> images) throws IOException {
+    deleteImage(post.getPostId());
+
+    if (images.isEmpty()) {
+      return List.of();
+    }
+
+    return saveImages(images, post);
+  }
+
+  @Transactional
+  public void deletePost(Member member, long postId) {
+    checkExistPostAndEqualMemberId(member, postId);
+
+    deleteImage(postId);
+    postTagRepository.deleteAllByPost_PostId(postId);
+    voteRepository.deleteAllByPost_PostId(postId);
+    choiceRepository.deleteAllByPost_PostId(postId);
+    postRepository.deleteById(postId);
+  }
+
+  private void deleteImage(long postId) {
+    // 해당 post에 이미지가 있다면 s3와 image 테이블에서 삭제
+    List<Image> imageList = imageRepository.findAllByPost_PostId(postId);
+    if (!imageList.isEmpty()) {
+      awsS3Component.removeAll(imageList.stream()
+          .map(image -> AwsS3.builder()
+              .key(image.getImageKey())
+              .path(image.getImageUrl())
+              .build())
+          .collect(Collectors.toList()));
+      imageRepository.deleteAll(imageList);
+    }
+  }
+
+  private Post checkExistPostAndEqualMemberId(Member member, long postId) {
+    Post post = postRepository.findById(postId)
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+
+    if (!Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
+      throw new PostException(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
+    }
+
+    return post;
+  }
+
 }
