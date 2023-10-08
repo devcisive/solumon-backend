@@ -1,5 +1,6 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,6 +56,8 @@ class PostServiceTest {
   private VoteRepository voteRepository;
   @Mock
   private VoteCustomRepository voteCustomRepository;
+  @Mock
+  private PostSearchService postSearchService;
 
   @InjectMocks
   private PostService postService;
@@ -89,6 +93,29 @@ class PostServiceTest {
     images.add(new MockMultipartFile("images", "image1.jpg",
         "image/jpeg", "image data".getBytes()));
 
+    List<String> tags = request.getTags()
+        .stream().map(tag -> tag.getTag())
+        .collect(Collectors.toList());
+
+    List<AwsS3> awsS3List = List.of(AwsS3.builder()
+        .key("dirName/image1.jpg")
+        .path("imageUrl")
+        .build());
+
+    List<Choice> choices = List.of(
+        Choice.builder()
+            .choiceId(1L)
+            .post(mockPost)
+            .choiceNum(1)
+            .choiceText("선택1")
+            .build(),
+        Choice.builder()
+            .choiceId(2L)
+            .post(mockPost)
+            .choiceNum(2)
+            .choiceText("선택2")
+            .build());
+
     when(postRepository.save(any(Post.class)))
         .thenReturn(mockPost);
     when(postTagRepository.findAllByPost_PostId(mockPost.getPostId()))
@@ -114,6 +141,12 @@ class PostServiceTest {
 
     //when
     PostAddDto.Response response = postService.createPost(postMember, request, images);
+    System.out.println(images);
+
+    ArgumentCaptor<Post> postArgumentCaptor = ArgumentCaptor.forClass(Post.class);
+    ArgumentCaptor<List> elasticTags = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<PostTag> postTagArgumentCaptor = ArgumentCaptor.forClass(PostTag.class);
+    ArgumentCaptor<Tag> tagArgumentCaptor = ArgumentCaptor.forClass(Tag.class);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
@@ -121,9 +154,10 @@ class PostServiceTest {
     assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
     assertThat(response.getImages().size()).isEqualTo(1);
 
-    verify(postRepository, times(1)).save(any(Post.class));
-    verify(postTagRepository, times(2)).save(any(PostTag.class));
-    verify(tagRepository, times(2)).save(any(Tag.class));
+    verify(postSearchService, times(1)).save(postArgumentCaptor.capture(), elasticTags.capture());
+    verify(postRepository, times(1)).save(postArgumentCaptor.capture());
+    verify(postTagRepository, times(2)).save(postTagArgumentCaptor.capture());
+    verify(tagRepository, times(2)).save(tagArgumentCaptor.capture());
     verify(choiceRepository, times(1)).saveAll(anyList());
     verify(awsS3Component, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
@@ -433,5 +467,6 @@ class PostServiceTest {
         .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
         .build();
   }
+
 
 }

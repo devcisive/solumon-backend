@@ -187,9 +187,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   }
 
+  @Override
   public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder,
       Pageable pageable) {
-
     QPost qpost = QPost.post;
 
     // 조건1 (상태)
@@ -219,7 +219,6 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
     JPAQuery<Long> totalCount = jpaQueryFactory.select(qpost.count()).from(qpost)
         .where(stateCondition);
-//        .orderBy(orderSpecifier);
 
     return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);
   }

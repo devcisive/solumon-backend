@@ -1,40 +1,37 @@
 {
-  "mappings": {
-    "properties": {
-      "postId": {
-        "type": "keyword"
-      },
-      "title": {
-        "type": "text",
-        "analyzer": "korean"
-      },
-      "contents": {
-        "type": "text",
-        "analyzer": "korean"
-      },
-      "writer": {
-        "type": "text",
-        "analyzer": "korean"
-      },
-      "imageUrl": {
-        "type": "text"
-      },
-      "voteCount": {
-        "type": "integer"
-      },
-      "chatCount": {
-        "type": "integer"
-      },
-      "endAt": {
-        "type": "date"
-      },
-      "createdAt": {
-        "type": "date"
-      },
-      "tags": {
-        "type": "text",
-        "analyzer": "korean"
-      }
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "title": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "content": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "writer": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "imageUrl": {
+      "type": "text"
+    },
+    "voteCount": {
+      "type": "integer"
+    },
+    "chatCount": {
+      "type": "integer"
+    },
+    "endAt": {
+      "type": "date"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "tags": {
+      "type": "text"
     }
   }
 }

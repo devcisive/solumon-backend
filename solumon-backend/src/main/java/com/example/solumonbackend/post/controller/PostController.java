@@ -1,4 +1,5 @@
 package com.example.solumonbackend.post.controller;
+import com.example.solumonbackend.global.elasticsearch.PostDocument;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.post.model.PostAddDto;
@@ -68,7 +69,10 @@ public class PostController {
       @RequestParam PostOrder postOrder,
       @RequestParam(defaultValue = "1") Integer pageNum) {
 
+
     if (postType == PostType.GENERAL) {
+      Page<Response> generalPostList = postService.getGeneralPostList(postStatus, postOrder,
+          pageNum);
       return ResponseEntity.ok(postService.getGeneralPostList(postStatus, postOrder, pageNum));
     } else {
       // 관심목록 조회
@@ -103,5 +107,20 @@ public class PostController {
         return ResponseEntity.ok(postSearchService.completedSearchByTag(keyWord, pageNum, postOrder));
       }
     }
+  }
+
+  // 테스트용 엘라스틱 서치 인덱스 내 데이터 전체 삭제
+  // 나중에 완성하면 지우기
+  @DeleteMapping("/elasticsearch")
+  public ResponseEntity<String> elasticSearchDeleteAll() {
+    postSearchService.deleteAll();
+    return ResponseEntity.ok("엘라스틱 서치 전체 삭제");
+  }
+
+  // 테스트용 엘라스틱 서치 인덱스 내 데이터 전체 조회
+  // 나중에 완성하면 지우기
+  @GetMapping("/search/all-data")
+  public Iterable<PostDocument> getElasticsearchAllData() {
+    return postSearchService.getAllData();
   }
 }
