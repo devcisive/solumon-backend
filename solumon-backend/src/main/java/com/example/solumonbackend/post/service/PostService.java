@@ -1,7 +1,5 @@
 package com.example.solumonbackend.post.service;
 
-import com.example.solumonbackend.global.elasticsearch.PostDocument;
-import com.example.solumonbackend.global.elasticsearch.PostSearchRepository;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
@@ -26,7 +24,6 @@ import com.example.solumonbackend.post.repository.ImageRepository;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.PostTagRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
-import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
@@ -56,7 +53,6 @@ public class PostService {
   private final PostTagRepository postTagRepository;
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
-  private final VoteCustomRepository voteCustomRepository;
   private final PostSearchService postSearchService;
 
   private final String POST_DIR = "post";
@@ -143,8 +139,7 @@ public class PostService {
 
   // TODO : 채팅 부분 추가
   public PostDetailDto.Response getPostDetail(Member member, long postId) {
-    Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+    Post post = getPost(postId);
 
     List<PostTag> tags = postTagRepository.findAllByPost_PostId(postId);
     List<Image> images = imageRepository.findAllByPost_PostId(postId);
@@ -154,17 +149,18 @@ public class PostService {
   }
 
   private VoteResultDto getVoteResultDto(Member member, Post post) {
-    // 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
-    if (voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
+    // 글쓴이거나 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
+    if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())
+        || voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
         || post.getEndAt().isBefore(LocalDateTime.now())) {
       return VoteResultDto.builder()
           .resultAccessStatus(true)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     } else {
       return VoteResultDto.builder()
           .resultAccessStatus(false)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     }
   }
@@ -172,7 +168,8 @@ public class PostService {
   @Transactional
   public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
                                            List<MultipartFile> images) {
-    Post post = checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    validatePostWriter(member, post);
 
     post.setTitle(request.getTitle());
     post.setContents(request.getContents());
@@ -185,14 +182,13 @@ public class PostService {
     postTagRepository.deleteAllByPost_PostId(postId);
     savePostTag(request.getTags(), post);
 
-    List<Image> imageList;
     try {
-      imageList = updateImages(post, images);
+      List<Image> imageList = updateImages(post, images);
+      return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
+
     } catch (IOException e) {
       throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
     }
-
-    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
   }
 
   private List<Image> updateImages(Post post, List<MultipartFile> images) throws IOException {
@@ -207,7 +203,8 @@ public class PostService {
 
   @Transactional
   public void deletePost(Member member, long postId) {
-    Post post = checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    validatePostWriter(member, post);
 
     deleteImage(postId);
     postTagRepository.deleteAllByPost_PostId(postId);
@@ -232,15 +229,15 @@ public class PostService {
     }
   }
 
-  private Post checkExistPostAndEqualMemberId(Member member, long postId) {
-    Post post = postRepository.findById(postId)
+  private Post getPost(long postId) {
+    return postRepository.findById(postId)
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+  }
 
+  private void validatePostWriter(Member member, Post post) {
     if (!Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
     }
-
-    return post;
   }
 
 

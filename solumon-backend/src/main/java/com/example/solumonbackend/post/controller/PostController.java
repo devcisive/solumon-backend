@@ -108,7 +108,10 @@ public class PostController {
         return ResponseEntity.ok(postSearchService.searchOngoingPostsByTag(keyWord, pageNum, postOrder));
       } else {
         // 마감된 고민
-        return ResponseEntity.ok(postSearchService.completedSearchByTag(keyWord, pageNum, postOrder));
+        if (postOrder == PostOrder.IMMINENT_CLOSE) {
+          throw new SearchException(ErrorCode.CLOSED_DOCUMENT_FETCH_DISALLOWED);
+        }
+        return ResponseEntity.ok(postSearchService.searchCompletedPostsByTag(keyWord, pageNum, postOrder));
       }
     }
   }

@@ -82,7 +82,7 @@ public class PostSearchService {
         .collect(Collectors.toList());
   }
 
-  public List<PostListDto.Response> completedSearchByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchCompletedPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
