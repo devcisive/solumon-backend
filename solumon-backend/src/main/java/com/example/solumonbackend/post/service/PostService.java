@@ -243,7 +243,7 @@ public class PostService {
 
   public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder, Integer pageNum) {
 
-    Pageable pageable = PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder);
+    Pageable pageable = PageRequestCustom.of(pageNum, postOrder);
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getGeneralPostList(postStatus, postOrder, pageable);
   }

@@ -37,7 +37,7 @@ public class PostSearchService {
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
+        .withPageable(PageRequestCustom.of(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -59,7 +59,7 @@ public class PostSearchService {
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
+        .withPageable(PageRequestCustom.of(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -73,7 +73,7 @@ public class PostSearchService {
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
+        .withPageable(PageRequestCustom.of(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -87,7 +87,7 @@ public class PostSearchService {
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
+        .withPageable(PageRequestCustom.of(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
