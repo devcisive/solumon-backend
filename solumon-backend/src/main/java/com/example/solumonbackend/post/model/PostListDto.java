@@ -5,6 +5,7 @@ import com.example.solumonbackend.post.entity.Post;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class PostListDto {
     private int chatCount;
     @JsonProperty("created_at")
     private LocalDateTime createdAt;
-    private String tags;
+    private List<String> tags;
 
     public Response(long postId, String title, String writer, String contents,
         String imageUrl, int voteCount, int chatCount, LocalDateTime createdAt) {

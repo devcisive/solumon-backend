@@ -30,7 +30,7 @@ public class PostDocument {
   private int chatCount;
   private String endAt;
   private String createdAt;
-  private String tags;
+  private List<String> tags;
 
   public void setVoteCount(int voteCount) {
     this.voteCount = voteCount;
@@ -47,7 +47,7 @@ public class PostDocument {
         .chatCount(post.getChatCount())
         .endAt(post.getEndAt().toString())
         .createdAt(post.getCreatedAt().toString())
-        .tags(tags.toString())
+        .tags(tags)
         .build();
   }
 
@@ -59,7 +59,7 @@ public class PostDocument {
     this.chatCount = post.getChatCount();
     this.endAt = post.getEndAt().toString();
     this.createdAt = post.getCreatedAt().toString();
-    this.tags = tags.toString();
+    this.tags = tags;
 
     return this;
   }
