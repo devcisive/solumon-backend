@@ -5,12 +5,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.solumonbackend.member.entity.Member;
-import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.post.entity.Post;
-import com.example.solumonbackend.post.entity.PostTag;
-import com.example.solumonbackend.post.entity.Tag;
+import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.PostTagRepository;
 import com.example.solumonbackend.post.repository.RecommendRepository;
@@ -56,10 +54,9 @@ class PostControllerTest_Recommend {
   private TagRepository tagRepository;
 
   Member testMember;
-  Tag tag1, tag2, tag3;
-  MemberTag memberTag1, memberTag2, memberTag3;
   Post post1, post2, post3, post4, post5, post6, post7, post8;
-  PostTag postTag1, postTag2, postTag3, postTag4, postTag5, postTag6, postTag7, postTag8, postTag9, postTag10;
+  double score1, score2, score3, score5, score6, score7;
+  Recommend r1, r2, r3, r5, r6, r7;
 
 /*
  testMember의 관심 태그: 태그1, 태그2, 태그3
@@ -77,44 +74,11 @@ class PostControllerTest_Recommend {
 
   @BeforeEach
   public void setUp() {
-    postRepository.deleteAll();
-
     testMember = Member.builder()
         .email("sample@sample.com")
         .build();
 
     memberRepository.save(testMember);
-
-    tag1 = Tag.builder()
-        .name("태그1")
-        .build();
-
-    tag2 = Tag.builder()
-        .name("태그2")
-        .build();
-
-    tag3 = Tag.builder()
-        .name("태그3")
-        .build();
-
-    tagRepository.saveAll(List.of(tag1, tag2, tag3));
-
-    memberTag1 = MemberTag.builder()
-        .member(testMember)
-        .tag(tag1)
-        .build();
-
-    memberTag2 = MemberTag.builder()
-        .member(testMember)
-        .tag(tag2)
-        .build();
-
-    memberTag3 = MemberTag.builder()
-        .member(testMember)
-        .tag(tag3)
-        .build();
-
-    memberTagRepository.saveAll(List.of(memberTag1, memberTag2, memberTag3));
 
     post1 = Post.builder()
         .title("post1")
@@ -190,58 +154,47 @@ class PostControllerTest_Recommend {
 
     postRepository.saveAll(List.of(post1, post2, post3, post4, post5, post6, post7, post8));
 
-    postTag1 = PostTag.builder()
+    double[] targetVector = new double[] {1, 1, 1};
+
+    score1 = calculateCosineSimilarity(targetVector, new double[] {1, 1, 0});
+    score2 = calculateCosineSimilarity(targetVector, new double[] {0, 1, 1});
+    score3 = calculateCosineSimilarity(targetVector, new double[] {0, 0, 1});
+    score5 = calculateCosineSimilarity(targetVector, new double[] {1, 1, 0});
+    score6 = calculateCosineSimilarity(targetVector, new double[] {0, 1, 1});
+    score7 = calculateCosineSimilarity(targetVector, new double[] {0, 0, 1});
+
+    r1 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post1)
-        .tag(tag1)
+        .score(score1)
         .build();
-
-    postTag2 = PostTag.builder()
-        .post(post1)
-        .tag(tag2)
-        .build();
-
-    postTag3 = PostTag.builder()
+    r2 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post2)
-        .tag(tag2)
+        .score(score2)
         .build();
-
-    postTag4 = PostTag.builder()
-        .post(post2)
-        .tag(tag3)
-        .build();
-
-    postTag5 = PostTag.builder()
+    r3 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post3)
-        .tag(tag3)
+        .score(score3)
         .build();
-
-    postTag6 = PostTag.builder()
+    r5 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post5)
-        .tag(tag1)
+        .score(score5)
         .build();
-
-    postTag7 = PostTag.builder()
-        .post(post5)
-        .tag(tag2)
-        .build();
-
-    postTag8 = PostTag.builder()
+    r6 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post6)
-        .tag(tag2)
+        .score(score6)
         .build();
-
-    postTag9 = PostTag.builder()
-        .post(post6)
-        .tag(tag3)
-        .build();
-
-    postTag10 = PostTag.builder()
+    r7 = Recommend.builder()
+        .memberId(testMember.getMemberId())
         .post(post7)
-        .tag(tag3)
+        .score(score7)
         .build();
 
-    postTagRepository.saveAll(
-        List.of(postTag1, postTag2, postTag3, postTag4, postTag5, postTag6, postTag7, postTag8, postTag9, postTag10));
+    recommendRepository.saveAll(List.of(r1, r2, r3, r5, r6, r7));
   }
 
   @Test
@@ -368,5 +321,17 @@ class PostControllerTest_Recommend {
         .andExpect(jsonPath("$.content[0].title").value("post6"))
         .andExpect(jsonPath("$.content[1].title").value("post5"))
         .andExpect(jsonPath("$.content[2].title").value("post7"));
+  }
+
+  private double calculateCosineSimilarity(double[] targetVector, double[] tagVector) {
+    double dotProduct = 0.0;
+    double normA = 0.0;
+    double normB = 0.0;
+    for (int i = 0; i < tagVector.length; i++) {
+      dotProduct += targetVector[i] * tagVector[i];
+      normA += Math.pow(targetVector[i], 2);
+      normB += Math.pow(tagVector[i], 2);
+    }
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 }

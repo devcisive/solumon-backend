@@ -4,7 +4,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +21,10 @@ public class Recommend {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long recommendId;
 
-  @OneToOne
+  private Long memberId;
+
+  @ManyToOne
+  @JoinColumn(name = "post_id")
   private Post post;
 
   private Double score;

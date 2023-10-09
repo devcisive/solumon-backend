@@ -11,25 +11,23 @@ import com.example.solumonbackend.post.service.RecommendationService;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
 import com.example.solumonbackend.post.type.PostType;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.data.domain.Page;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.Valid;
-import java.util.List;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/posts")
@@ -71,7 +69,7 @@ public class PostController {
   public ResponseEntity<Page<PostListDto.Response>> getPosts(@AuthenticationPrincipal MemberDetail memberDetail,
       @RequestParam PostType postType, @RequestParam PostStatus postStatus, @RequestParam PostOrder postOrder,
       @RequestParam(defaultValue = "1") Integer pageNum) {
-    if (PostType.INTEREST.equals(postType)) {
+    if (PostType.INTEREST == postType) {
       return ResponseEntity.ok(
           recommendationService.recommendBasedOnInterest(
               memberDetail.getMember(), postStatus, postOrder, PageRequestCustom.of(pageNum)));
