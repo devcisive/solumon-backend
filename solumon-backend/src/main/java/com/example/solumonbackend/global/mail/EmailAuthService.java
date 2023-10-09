@@ -14,7 +14,9 @@ import com.example.solumonbackend.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 public class EmailAuthService {
 
   private final JavaMailSender javaMailSender;
+  private final PasswordEncoder passwordEncoder;
   private final MemberRepository memberRepository;
 
   private static final char[] rndAllCharacters = new char[]{
@@ -87,13 +90,14 @@ public class EmailAuthService {
     return key.toString();
   }
 
-  public void sendNewPasswordMessage(String email) throws Exception {
+  @Transactional
+  public void sendTempPasswordMessage(String email) throws Exception {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
     String tempPassword = createRandomPassword();
 
-    member.setPassword(tempPassword);
+    member.setPassword(passwordEncoder.encode(tempPassword));
     memberRepository.save(member);
 
     MimeMessage message = createTempPasswordMessage(email, tempPassword);
@@ -119,6 +123,7 @@ public class EmailAuthService {
     if (!Pattern.matches(pattern, randomPassword)) {
       return createRandomPassword();    //비밀번호 조건(패턴)에 맞지 않는 경우 메서드 재실행
     }
+
     return randomPassword.toString();
   }
 

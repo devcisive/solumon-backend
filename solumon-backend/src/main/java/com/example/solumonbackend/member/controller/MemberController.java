@@ -2,39 +2,21 @@ package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
 import com.example.solumonbackend.global.mail.EmailAuthService;
-import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.LogOutDto;
-import com.example.solumonbackend.member.model.MemberDetail;
-import com.example.solumonbackend.member.model.MemberInterestDto;
-import com.example.solumonbackend.member.model.MemberLogDto;
-import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.ReportDto;
-import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.service.KakaoService;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.service.MemberService;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostState;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -71,13 +53,13 @@ public class MemberController {
 
   @GetMapping("/log-out")
   public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
-                                                    @RequestHeader("X-AUTH-TOKEN") String accessToken) {
+                                                   @RequestHeader("X-AUTH-TOKEN") String accessToken) {
     return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
   }
 
   @GetMapping(value = "/find-password")
   public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request) throws Exception {
-    emailAuthService.sendNewPasswordMessage(request.getEmail());
+    emailAuthService.sendTempPasswordMessage(request.getEmail());
     log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
 
     return ResponseEntity.ok("임시 비밀번호가 " + request.getEmail() + "으로 발송되었습니다.");
@@ -93,13 +75,11 @@ public class MemberController {
     System.out.println(memberDetail.getMember().getEmail());
   }
 
-
   @GetMapping
   public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
 
     return ResponseEntity.ok().body(memberService.getMyInfo(memberDetail.getMember()));
   }
-
 
   @GetMapping("/mylog")
   public ResponseEntity<Page<MyParticipatePostDto>> getMyParticipatePosts(
@@ -116,7 +96,6 @@ public class MemberController {
             PageRequestCustom.of(page, postOrder)));
   }
 
-
   @PutMapping
   public ResponseEntity<MemberUpdateDto.Response> updateMyInfo(
       @AuthenticationPrincipal MemberDetail memberDetail,
@@ -125,7 +104,6 @@ public class MemberController {
         .body(memberService.updateMyInfo(memberDetail.getMember(), update));
   }
 
-
   @DeleteMapping("/withdraw")
   public ResponseEntity<WithdrawDto.Response> withdrawMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
@@ -133,7 +111,6 @@ public class MemberController {
     return ResponseEntity.ok()
         .body(memberService.withdrawMember(memberDetail.getMember(), request));
   }
-
 
   @PostMapping("/{memberId}/report")
   public ResponseEntity<?> reportMember(
@@ -145,7 +122,6 @@ public class MemberController {
     return ResponseEntity.ok().build();
 
   }
-
 
   @PostMapping("/interests")
   public ResponseEntity<MemberInterestDto.Response> registerInterest(
