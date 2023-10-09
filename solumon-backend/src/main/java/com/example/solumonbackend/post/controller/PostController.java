@@ -75,8 +75,6 @@ public class PostController {
     }
 
     if (postType == PostType.GENERAL) {
-      Page<Response> generalPostList = postService.getGeneralPostList(postStatus, postOrder,
-          pageNum);
       return ResponseEntity.ok(postService.getGeneralPostList(postStatus, postOrder, pageNum));
     } else {
       // 관심목록 조회
