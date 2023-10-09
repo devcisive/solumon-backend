@@ -45,7 +45,8 @@ public enum ErrorCode {
   IMAGE_CAN_NOT_SAVE("이미지를 저장하는 중 오류가 발생했습니다."),
 
   // SearchException
-  NOT_FOUND_POST_DOCUMENT("해당 게시물을 찾을 수 없습니다.");
+  NOT_FOUND_POST_DOCUMENT("해당 게시물을 찾을 수 없습니다."),
+  CLOSED_DOCUMENT_FETCH_DISALLOWED("이미 종료된 문서는 마감 임박순으로 가져올 수 없습니다.");
 
   private final String description;
 

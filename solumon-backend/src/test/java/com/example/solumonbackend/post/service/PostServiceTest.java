@@ -12,10 +12,7 @@ import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.*;
-import com.example.solumonbackend.post.model.PostListDto.Response;
 import com.example.solumonbackend.post.repository.*;
-import com.example.solumonbackend.post.type.PostOrder;
-import com.example.solumonbackend.post.type.PostStatus;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,9 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -64,7 +58,7 @@ class PostServiceTest {
   @Mock
   private VoteRepository voteRepository;
   @Mock
-  private VoteCustomRepository voteCustomRepository;
+  private VoteRepositoryCustomImpl voteCustomRepository;
   @Mock
   private PostSearchService postSearchService;
 

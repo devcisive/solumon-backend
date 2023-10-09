@@ -1,6 +1,9 @@
 package com.example.solumonbackend.post.controller;
 import com.example.solumonbackend.global.elasticsearch.PostDocument;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.PostException;
+import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostListDto;
@@ -14,7 +17,6 @@ import com.example.solumonbackend.post.type.PostType;
 import com.example.solumonbackend.post.type.SearchQueryType;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.elasticsearch.action.search.SearchType;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/posts")
@@ -92,16 +93,19 @@ public class PostController {
     if (searchQueryType == SearchQueryType.CONTENT) {
       if (postStatus == PostStatus.ONGOING) {
         // 진행 중인 고민
-        return ResponseEntity.ok(postSearchService.ongoingSearchByContent(keyWord, pageNum, postOrder));
+        return ResponseEntity.ok(postSearchService.searchOngoingPostsByContent(keyWord, pageNum, postOrder));
       } else {
         // 마감된 고민
-        return ResponseEntity.ok(postSearchService.completedSearchByContent(keyWord, pageNum, postOrder));
+        if (postOrder == PostOrder.IMMINENT_CLOSE) {
+          throw new SearchException(ErrorCode.CLOSED_DOCUMENT_FETCH_DISALLOWED);
+        }
+        return ResponseEntity.ok(postSearchService.searchCompletedPostsByContent(keyWord, pageNum, postOrder));
       }
     // 태그 검색
     } else {
       if (postStatus == PostStatus.ONGOING) {
         // 진행 중인 고민
-        return ResponseEntity.ok(postSearchService.ongoingSearchByTag(keyWord, pageNum, postOrder));
+        return ResponseEntity.ok(postSearchService.searchOngoingPostsByTag(keyWord, pageNum, postOrder));
       } else {
         // 마감된 고민
         return ResponseEntity.ok(postSearchService.completedSearchByTag(keyWord, pageNum, postOrder));
@@ -110,7 +114,7 @@ public class PostController {
   }
 
   // 테스트용 엘라스틱 서치 인덱스 내 데이터 전체 삭제
-  // 나중에 완성하면 지우기
+  // TODO: 나중에 완성하면 지우기
   @DeleteMapping("/elasticsearch")
   public ResponseEntity<String> elasticSearchDeleteAll() {
     postSearchService.deleteAll();
@@ -118,7 +122,7 @@ public class PostController {
   }
 
   // 테스트용 엘라스틱 서치 인덱스 내 데이터 전체 조회
-  // 나중에 완성하면 지우기
+  // TODO: 나중에 완성하면 지우기
   @GetMapping("/search/all-data")
   public Iterable<PostDocument> getElasticsearchAllData() {
     return postSearchService.getAllData();

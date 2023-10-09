@@ -32,12 +32,12 @@ public class PostSearchService {
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 진행중인 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> ongoingSearchByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchOngoingPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.ofType(pageNum, postOrder))
+        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -54,12 +54,12 @@ public class PostSearchService {
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 마감된 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> completedSearchByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchCompletedPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.ofType(pageNum, postOrder))
+        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -68,12 +68,12 @@ public class PostSearchService {
         .collect(Collectors.toList());
   }
 
-  public List<PostListDto.Response> ongoingSearchByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchOngoingPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.ofType(pageNum, postOrder))
+        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)
@@ -87,7 +87,7 @@ public class PostSearchService {
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.ofType(pageNum, postOrder))
+        .withPageable(PageRequestCustom.createPageRequestByPostOrder(pageNum, postOrder))
         .build();
 
     return elasticsearchRestTemplate.search(query, PostDocument.class)

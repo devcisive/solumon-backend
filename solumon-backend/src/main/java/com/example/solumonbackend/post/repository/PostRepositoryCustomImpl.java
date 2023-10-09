@@ -99,7 +99,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
   private BooleanExpression createStateCondition(PostStatus state, QPost qpost) {
-  // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
+    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
     if (qpost == null || state == null) {
       throw new PostException(ErrorCode.NullPointerException);
     }
@@ -159,29 +159,29 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
   // Order By 값 구하기
   private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
     // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
-      if (qpost == null || order == null) {
-        throw new PostException(ErrorCode.NullPointerException);
-      }
+    if (qpost == null || order == null) {
+      throw new PostException(ErrorCode.NullPointerException);
+    }
 
-      // 최신순)  post.createdAt.desc()
-      if (order == PostOrder.LATEST) {
-        return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
-      }
+    // 최신순)  post.createdAt.desc()
+    if (order == PostOrder.LATEST) {
+      return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
+    }
 
-      // 투표참여인원)  post.voteCount.desc()
-      if (order == PostOrder.MOST_VOTES) {
-        return qpost.voteCount.desc(); // OrderSpecifier<Integer>
-      }
+    // 투표참여인원)  post.voteCount.desc()
+    if (order == PostOrder.MOST_VOTES) {
+      return qpost.voteCount.desc(); // OrderSpecifier<Integer>
+    }
 
-      // 채팅참여인원)  post.chatCount.desc()
-      if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
-        return qpost.chatCount.desc();  // OrderSpecifier<Integer>
-      }
+    // 채팅참여인원)  post.chatCount.desc()
+    if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
+      return qpost.chatCount.desc();  // OrderSpecifier<Integer>
+    }
 
-      // 마감 임박 순)  post.endAt.desc()
-      if (order == PostOrder.IMMINENT_CLOSE) {
-        return qpost.endAt.desc();  // OrderSpecifier<LocalDateTime>
-      }
+    // 마감 임박 순)  post.endAt.desc()
+    if (order == PostOrder.IMMINENT_CLOSE) {
+      return qpost.endAt.desc();  // OrderSpecifier<LocalDateTime>
+    }
 
     throw new PostException(ErrorCode.IllegalArgumentException);
 

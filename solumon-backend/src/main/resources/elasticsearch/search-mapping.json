@@ -31,7 +31,7 @@
       "type": "date"
     },
     "tags": {
-      "type": "text"
+      "type": "keyword"
     }
   }
 }
