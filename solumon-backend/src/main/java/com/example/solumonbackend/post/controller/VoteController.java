@@ -16,17 +16,17 @@ public class VoteController {
   private final VoteService voteService;
 
   @PostMapping
-  public ResponseEntity<?> createVote(@AuthenticationPrincipal MemberDetail memberDetail,
-                                      @PathVariable long postId,
-                                      @RequestBody VoteAddDto.Request dto) {
+  public ResponseEntity<VoteAddDto.Response> createVote(@AuthenticationPrincipal MemberDetail memberDetail,
+                                                        @PathVariable long postId,
+                                                        @RequestBody VoteAddDto.Request dto) {
     return ResponseEntity.ok(voteService.createVote(memberDetail.getMember(), postId, dto));
   }
 
   @DeleteMapping
-  public ResponseEntity<?> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
-                                      @PathVariable long postId) {
+  public ResponseEntity<String> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
+                                           @PathVariable long postId) {
     voteService.deleteVote(memberDetail.getMember(), postId);
-    return ResponseEntity.ok("게시글이 삭제되었습니다.");
+    return ResponseEntity.ok("투표가 취소되었습니다.");
   }
 
 }

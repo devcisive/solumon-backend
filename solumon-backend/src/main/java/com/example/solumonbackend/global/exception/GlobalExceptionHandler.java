@@ -1,5 +1,6 @@
 package com.example.solumonbackend.global.exception;
 
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -17,10 +18,28 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
 
+  @ExceptionHandler(PostException.class)
+  public ErrorResponse handlePostException(PostException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
   @ExceptionHandler(CustomSecurityException.class)
   public ErrorResponse handleAccountException(CustomSecurityException e) {
     log.error("{} is occurred", e.getErrorCode());
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
+  @ExceptionHandler(AmazonS3Exception.class)
+  public ErrorResponse handleAmazonS3Exception(AmazonS3Exception e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.AmazonS3Exception, e.getMessage());
+  }
+
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -34,4 +53,11 @@ public class GlobalExceptionHandler {
     // 테스트를 원할하게 하기 위해 바꾼 코드입니다. 나중에 수정 예정
     return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString());
   }
+
+  @ExceptionHandler(TagException.class)
+  public ErrorResponse handleTagException(TagException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
 }

@@ -37,6 +37,8 @@ public class Post {
   @LastModifiedDate
   private LocalDateTime modifiedAt;
 
+  private String thumbnailUrl;
+
   private LocalDateTime endAt;
 
   private int voteCount;
@@ -49,6 +51,14 @@ public class Post {
 
   public void setContents(String contents) {
     this.contents = contents;
+  }
+
+  public void setVoteCount(int voteCount) {
+    this.voteCount = voteCount;
+  }
+
+  public void setChatCount(int chatCount) {
+    this.chatCount = chatCount;
   }
 
 }
