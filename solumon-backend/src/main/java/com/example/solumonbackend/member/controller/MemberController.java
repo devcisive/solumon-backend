@@ -2,10 +2,7 @@ package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
 import com.example.solumonbackend.global.mail.EmailAuthService;
-import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.LogOutDto;
-import com.example.solumonbackend.member.model.MemberDetail;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.service.MemberService;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +55,14 @@ public class MemberController {
   public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
                                                     @RequestHeader("X-AUTH-TOKEN") String accessToken) {
     return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
+  }
+
+  @GetMapping(value = "/find-password")
+  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request) throws Exception {
+    emailAuthService.sendNewPasswordMessage(request.getEmail());
+    log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
+
+    return ResponseEntity.ok("임시 비밀번호가 " + request.getEmail() + "으로 발송되었습니다.");
   }
 
   @GetMapping("/exception")
