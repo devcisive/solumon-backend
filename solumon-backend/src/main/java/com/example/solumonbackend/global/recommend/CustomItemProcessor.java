@@ -8,6 +8,8 @@ import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.RecommendRepository;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +21,7 @@ import org.springframework.batch.item.ItemProcessor;
 public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend>> {
   private final MemberTagRepository memberTagRepository;
   private final PostTagRepository postTagRepository;
+  private final RecommendRepository recommendRepository;
 
 
   /*
@@ -39,18 +42,56 @@ public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend
 
    */
 
+  // 넘겨받은 각각의 Member에 대해
   @Override
   public List<Recommend> process(Member member) throws Exception {
-    // 각 멤버의 관심 태그를 가져옴
-    List<MemberTag> memberTags = memberTagRepository.findAllByMember_MemberId(member.getMemberId());
-    List<Tag> interestTags = memberTags.stream().map(MemberTag::getTag).collect(Collectors.toList());
+    // 만약 1시간 전에도 존재하던 멤버라면, 이 사람들의 현재 관심 포스트는 1) 그대로거나 2) 태그가 수정되었거나 3) 삭제됨
+    // 기본적으로 1시간 전 이후에 작성된 포스트들은 추가해야 하고,
+    // 1)의 포스트는 그대로 두되 2), 3)은 값을 새로 교체해주어야 함
+    if (recommendRepository.existsByMemberId(member.getMemberId())) {
+      // 해당 멤버의 관심 태그를 가져옴
+      List<MemberTag> memberTags = memberTagRepository.findAllByMember_MemberId(member.getMemberId());
+      List<Tag> interestTags = memberTags.stream().map(MemberTag::getTag).collect(Collectors.toList());
 
-    // 관심 태그가 하나라도 있는 포스트들을 전부 가져옴
-    List<Post> possiblePosts = postTagRepository.findDistinctByTagIn(interestTags)
-        .stream().map(PostTag::getPost).distinct().collect(Collectors.toList());
+      // 기존 포스트들 중 수정된(삭제된 포스트 포함) 포스트에 대한 recommend는 모두 삭제함
+      // 0 벡터가 되었을(관련 태그가 모두 삭제되었을) 가능성을 대비해 update 대신 삭제 (코사인 유사도는 0 벡터로는 계산이 안 됨)
+      List<Recommend> modifiedPostRecommends = recommendRepository.findAllByMemberId(member.getMemberId()).stream()
+          .filter(r -> r.getPost().getModifiedAt() != null && r.getPost().getModifiedAt().isAfter(LocalDateTime.now().minusHours(1)))
+          .collect(Collectors.toList());
+      recommendRepository.deleteAll(modifiedPostRecommends);
 
-    // 각 포스트에 대하여 코사인 유사도 계산
-    return getCosineSimilarityOfPosts(possiblePosts, member.getMemberId(), interestTags, interestTags.size());
+      // 1시간 전 이후부터 수정된 관심 태그가 있는 포스트들을 전부 가져옴 (삭제된 포스트 포함)
+      List<Post> modifiedPosts = postTagRepository.findDistinctByTagIn(interestTags)
+          .stream().map(PostTag::getPost).distinct()
+          .filter(p -> p.getModifiedAt() != null && p.getModifiedAt().isAfter(LocalDateTime.now().minusHours(1))).collect(Collectors.toList());
+
+
+      // 1시간 전 이후부터 작성된 관심 태그가 하나라도 있는 포스트들을 전부 가져옴
+      List<Post> newPosts = postTagRepository.findDistinctByTagIn(interestTags)
+          .stream().map(PostTag::getPost).distinct()
+          .filter(p -> p.getCreatedAt().isAfter(LocalDateTime.now().minusHours(1))).collect(Collectors.toList());
+
+
+      // 각 포스트에 대하여 코사인 유사도 계산
+      List<Recommend> fullList = new ArrayList<>();
+      fullList.addAll(getCosineSimilarityOfPosts(modifiedPosts, member.getMemberId(), interestTags, interestTags.size()));
+      fullList.addAll(getCosineSimilarityOfPosts(newPosts, member.getMemberId(), interestTags, interestTags.size()));
+
+      return fullList;
+
+    // 1시간 이내에 가입한 멤버라면
+    } else {
+      // 멤버의 관심 태그를 가져옴
+      List<MemberTag> memberTags = memberTagRepository.findAllByMember_MemberId(member.getMemberId());
+      List<Tag> interestTags = memberTags.stream().map(MemberTag::getTag).collect(Collectors.toList());
+
+      // 지금까지 존재하는 모든 포스트에 대하여 관심 태그가 하나라도 있는 포스트들을 전부 가져옴
+      List<Post> possiblePosts = postTagRepository.findDistinctByTagIn(interestTags)
+          .stream().map(PostTag::getPost).distinct().collect(Collectors.toList());
+
+      // 각 포스트에 대하여 코사인 유사도 계산
+      return getCosineSimilarityOfPosts(possiblePosts, member.getMemberId(), interestTags, interestTags.size());
+    }
   }
 
   private List<Recommend> getCosineSimilarityOfPosts(List<Post> possiblePosts, Long memberId, List<Tag> interestTags, int n) {
