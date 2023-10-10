@@ -306,7 +306,7 @@ public class MemberService {
       member.setRole(MemberRole.PERMANENT_BAN);
       member.setBannedAt(LocalDateTime.now());
 
-    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
+    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)  여기서 동시성문제
       member.setRole(MemberRole.BANNED);
       member.setBannedAt(LocalDateTime.now());
     }

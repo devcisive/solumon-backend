@@ -11,13 +11,12 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class CustomSecurityException extends RuntimeException{
+public class ChatException extends RuntimeException {
 
   private ErrorCode errorCode;
   private String errorMessage;
 
-  public CustomSecurityException(ErrorCode errorCode) {
-    super(errorCode.getDescription()); // 소켓연결하면서 인증 에러 터질 때 필요해서 추가
+  public ChatException(ErrorCode errorCode) {
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }

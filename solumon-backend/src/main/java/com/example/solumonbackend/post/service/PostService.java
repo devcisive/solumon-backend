@@ -1,10 +1,17 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.chat.model.ChatMessageDto;
+import com.example.solumonbackend.chat.repository.ChannelMemberRepository;
+import com.example.solumonbackend.chat.repository.ChatMessageRepository;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.common.AwsS3Component;
-import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.entity.Choice;
+import com.example.solumonbackend.post.entity.Image;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.AwsS3;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
@@ -12,19 +19,26 @@ import com.example.solumonbackend.post.model.PostDto.ChoiceDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.VoteCustomRepository;
+import com.example.solumonbackend.post.repository.VoteRepository;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -39,6 +53,8 @@ public class PostService {
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
   private final VoteCustomRepository voteCustomRepository;
+  private final ChannelMemberRepository channelMemberRepository;
+  private final ChatMessageRepository chatMessageRepository;
 
   private final String POST_DIR = "post";
 
@@ -119,7 +135,7 @@ public class PostService {
   }
 
   // TODO : 채팅 부분 추가
-  public PostDetailDto.Response getPostDetail(Member member, long postId) {
+  public PostDetailDto.Response getPostDetail(Member member, long postId, Long lastChatMessageId) {
     Post post = postRepository.findById(postId)
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
 
@@ -127,7 +143,13 @@ public class PostService {
     List<Image> images = imageRepository.findAllByPost_PostId(postId);
     VoteResultDto voteResultDto = getVoteResultDto(member, post);
 
-    return PostDetailDto.Response.postToResponse(post, tags, images, voteResultDto);
+
+    // 해당 게시글의 쌓인 채팅메세지 내역 가져오기
+    Slice<ChatMessageDto.Response> lastChatMessages
+        = chatMessageRepository.getLastChatMessagesScroll(postId,lastChatMessageId ,Pageable.ofSize(10));
+    
+
+    return PostDetailDto.Response.postToResponse(post, tags, images, voteResultDto, lastChatMessages);
   }
 
   private VoteResultDto getVoteResultDto(Member member, Post post) {

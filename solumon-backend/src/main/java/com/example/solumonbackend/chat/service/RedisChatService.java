@@ -1,4 +1,4 @@
-package com.example.solumonbackend.global.redis;
+package com.example.solumonbackend.chat.service;
 
 import com.example.solumonbackend.chat.model.ChatMemberInfo;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @RequiredArgsConstructor
 @Service
-public class RedisService {
+public class RedisChatService {
 
   private final RedisTemplate<String, ChatMemberInfo> chatMemberInfoRedisTemplate;
 

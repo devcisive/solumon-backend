@@ -60,4 +60,9 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
 
+  @ExceptionHandler(ChatException.class)
+  public ErrorResponse handleChatException(ChatException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
 }

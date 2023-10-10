@@ -1,7 +1,7 @@
 package com.example.solumonbackend.global.exception;
 
 import com.example.solumonbackend.chat.model.ChatMemberInfo;
-import com.example.solumonbackend.global.redis.RedisService;
+import com.example.solumonbackend.chat.service.RedisChatService;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
@@ -27,7 +27,7 @@ public class StompHandler implements ChannelInterceptor {
 
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
-  private final RedisService redisService;
+  private final RedisChatService redisChatService;
 
 
   // Stomp 메세지를 전송하기 전 호출되는 메소드
@@ -79,7 +79,7 @@ public class StompHandler implements ChannelInterceptor {
           = ((MemberDetail) jwtTokenProvider.getAuthentication(accessToken)
           .getPrincipal()).getMember();
 
-      redisService.saveChatMemberInfo(
+      redisChatService.saveChatMemberInfo(
           accessor.getSessionId(),
           new ChatMemberInfo(member.getMemberId(), member.getNickname()));
     }
@@ -87,7 +87,7 @@ public class StompHandler implements ChannelInterceptor {
     // DISCONNECT
     if (StompCommand.DISCONNECT == accessor.getCommand()) {
       log.info(accessor.getSessionId() + ": DISCONNECT");
-      redisService.deleteChatMemberInfo(accessor.getSessionId());
+      redisChatService.deleteChatMemberInfo(accessor.getSessionId());
     }
 
     return message;
