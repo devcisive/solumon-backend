@@ -164,8 +164,8 @@ public class PostService {
   private VoteResultDto getVoteResultDto(Member member, Post post) {
     // 글쓴이거나 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
     if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())
-        || voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
-        || post.getEndAt().isBefore(LocalDateTime.now())) {
+        || post.getEndAt().isBefore(LocalDateTime.now())
+        || voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())) {
       return VoteResultDto.builder()
           .resultAccessStatus(true)
           .choices(voteRepository.getChoiceResults(post.getPostId()))
