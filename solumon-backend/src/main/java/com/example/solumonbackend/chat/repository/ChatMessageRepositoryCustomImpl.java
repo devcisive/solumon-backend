@@ -29,6 +29,7 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
 
     List<ChatMessageDto.Response> lastChatMessages
         = jpaQueryFactory.select(Projections.bean(ChatMessageDto.Response.class,
+            qChatMessage.postId,
             qChatMessage.nickname,
             qChatMessage.contents,
             qChatMessage.createdAt

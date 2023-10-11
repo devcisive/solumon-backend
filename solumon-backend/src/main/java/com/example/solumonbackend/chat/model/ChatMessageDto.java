@@ -2,6 +2,7 @@ package com.example.solumonbackend.chat.model;
 
 import com.example.solumonbackend.chat.entity.ChatMessage;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,8 @@ public class ChatMessageDto {
 
   @Getter
   @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
   public static class Request{
     private String content;
   }
@@ -21,6 +24,7 @@ public class ChatMessageDto {
   @Getter
   @Setter
   @Builder
+  @AllArgsConstructor
   public static class Response{
     private Long postId;
     private String nickname;
@@ -35,6 +39,11 @@ public class ChatMessageDto {
                  .createdAt(chatMessage.getCreatedAt())
                  .build();
     }
+
+
+   public Response(){
+     // 역직렬화 에러 뜨기 때문에 따로 만든 기본생성자
+   }
 
   }
 

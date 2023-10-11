@@ -1,15 +1,10 @@
 package com.example.solumonbackend.chat.entity;
 
-import com.example.solumonbackend.member.entity.Member;
-import com.example.solumonbackend.post.entity.Post;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -14,10 +14,6 @@ import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 @Component
 public class StompExceptionHandler extends StompSubProtocolErrorHandler {
 
-  // 여기서 예외를 받게될 때  message의 isSent가 false인 데이터를 저장하려고 했는데 순환참조 돼서 사용할 수 없다.
-  // private ChatService chatService;
-
-
   public StompExceptionHandler() {
     super();
   }

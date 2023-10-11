@@ -20,6 +20,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
   private final StompHandler stompHandler;
   private final StompExceptionHandler stompExceptionHandler;
 
+//  private final TestHandler testHandler;
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {

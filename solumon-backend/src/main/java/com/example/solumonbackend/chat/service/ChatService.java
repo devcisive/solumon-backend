@@ -6,6 +6,7 @@ import com.example.solumonbackend.chat.model.ChatMemberInfo;
 import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.example.solumonbackend.chat.repository.ChannelMemberRepository;
 import com.example.solumonbackend.chat.repository.ChatMessageRepository;
+import com.example.solumonbackend.global.exception.ChatException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.PostException;
@@ -32,8 +33,9 @@ public class ChatService {
   private final KafkaChatService kafkaChatService;
 
 
+
   @Transactional
-  public void sendAndSaveChatMessage(Long postId,
+  public void sendAndSaveChatMessage(long postId,
       ChatMessageDto.Request request, ChatMemberInfo chatMemberInfo) {
 
     Post post = postRepository.findById(postId)
@@ -65,9 +67,15 @@ public class ChatService {
         .isSent(true)
         .build();
 
-//    template.convertAndSend("/sub/chat/" + postId, ChatMessageDto.Response.chatMessageToResponse(chatMessage));
-    kafkaChatService.publishMessage(chatMessage);
-    chatMessageRepository.save(chatMessage);
+
+    try { // 이 예외처리는 먹히지 않고 문제발생 시 무한 재시도되는중
+      kafkaChatService.publishChatMessage(ChatMessageDto.Response.chatMessageToResponse(chatMessage));
+      chatMessageRepository.save(chatMessage);
+    } catch (Exception e) {
+      chatMessage.setSent(false);
+      chatMessageRepository.save(chatMessage);
+      throw new ChatException(ErrorCode.FAIL_SEND_MESSAGE);
+    }
 
   }
 
