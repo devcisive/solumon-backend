@@ -8,6 +8,7 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMessage.RecipientType;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.MailException;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
@@ -49,6 +50,7 @@ public class EmailAuthService {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
       log.error("An error occurred during email sending: {}", e.getMessage(), e);
+      throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
 
     return code;
@@ -95,6 +97,11 @@ public class EmailAuthService {
     Member member = memberRepository.findByEmail(email)
         .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
+    // 탈퇴한 회원일 경우 불가
+    if (member.getUnregisteredAt() != null) {
+      throw new MemberException(ErrorCode.UNREGISTERED_MEMBER);
+    }
+
     String tempPassword = createRandomPassword();
 
     member.setPassword(passwordEncoder.encode(tempPassword));
@@ -106,6 +113,7 @@ public class EmailAuthService {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
       log.error("An error occurred during email sending: {}", e.getMessage(), e);
+      throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
   }
 

@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
 
+  @ExceptionHandler(MailException.class)
+  public ErrorResponse handleMailException(MailException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
   @ExceptionHandler(AmazonS3Exception.class)
   public ErrorResponse handleAmazonS3Exception(AmazonS3Exception e) {
     log.error("{} is occurred", e.getMessage());
