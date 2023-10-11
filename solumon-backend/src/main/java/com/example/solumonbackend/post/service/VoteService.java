@@ -25,7 +25,7 @@ public class VoteService {
   @Transactional
   public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
     Post post = getPost(postId);
-    isClosedPost(post);
+    validateIsPostClosed(post);
 
     if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       throw new PostException(ErrorCode.WRITER_CAN_NOT_VOTE);
@@ -53,7 +53,7 @@ public class VoteService {
   @Transactional
   public void deleteVote(Member member, long postId) {
     Post post = getPost(postId);
-    isClosedPost(post);
+    validateIsPostClosed(post);
 
     if (!voteRepository.existsByPost_PostIdAndMember_MemberId(postId, member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL);
@@ -71,7 +71,7 @@ public class VoteService {
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
   }
 
-  private void isClosedPost(Post post) {
+  private void validateIsPostClosed(Post post) {
     if (post.getEndAt().isBefore(LocalDateTime.now())) {
       throw new PostException(ErrorCode.POST_IS_CLOSED);
     }

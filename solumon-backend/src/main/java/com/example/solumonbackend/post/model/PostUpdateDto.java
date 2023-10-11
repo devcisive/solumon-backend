@@ -31,6 +31,7 @@ public class PostUpdateDto {
     @NotBlank(message = "상세 내용을 입력해주세요")
     private String contents;
     private List<TagDto> tags;
+    private List<ImageDto> images;
   }
 
   @Getter
@@ -63,6 +64,8 @@ public class PostUpdateDto {
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
                   .image(image.getImageUrl())
+                  .index(images.indexOf(image) + 1)
+                  .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
           .createdAt(post.getCreatedAt())

@@ -61,6 +61,8 @@ public class PostDetailDto {
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
                   .image(image.getImageUrl())
+                  .index(images.indexOf(image) + 1)
+                  .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
 

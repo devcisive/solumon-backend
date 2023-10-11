@@ -34,6 +34,7 @@ public class PostAddDto {
     @NotBlank(message = "상세 내용을 입력해주세요")
     private String contents;
     private List<TagDto> tags;
+    private List<ImageDto> images;
     @Valid
     private VoteDto vote;
   }
@@ -74,6 +75,8 @@ public class PostAddDto {
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
                   .image(image.getImageUrl())
+                  .index(images.indexOf(image) + 1)
+                  .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
 

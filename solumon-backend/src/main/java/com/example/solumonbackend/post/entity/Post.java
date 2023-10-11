@@ -53,6 +53,10 @@ public class Post {
     this.contents = contents;
   }
 
+  public void setThumbnailUrl(String imageUrl) {
+    this.thumbnailUrl = imageUrl;
+  }
+
   public void setVoteCount(int voteCount) {
     this.voteCount = voteCount;
   }
