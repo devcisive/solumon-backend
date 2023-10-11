@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -92,7 +93,7 @@ class EmailAuthServiceTest {
 
   @Test
   @DisplayName("임시 비밀번호 발송 실패 - 존재하지 않는 회원")
-  void sendTempPasswordMessage_fail_notFoundMember() throws Exception {
+  void sendTempPasswordMessage_fail_notFoundMember() {
     //given
     when(memberRepository.findByEmail("test@gmail.com"))
         .thenReturn(Optional.empty());
@@ -105,6 +106,27 @@ class EmailAuthServiceTest {
     verify(memberRepository, times(1)).findByEmail("test@gmail.com");
 
     assertEquals(ErrorCode.NOT_FOUND_MEMBER, exception.getErrorCode());
+  }
+
+  @Test
+  @DisplayName("임시 비밀번호 발송 실패 - 탈퇴한 회원")
+  void sendTempPasswordMessage_fail_unregisteredMember() {
+    //given
+    when(memberRepository.findByEmail("test@gmail.com"))
+        .thenReturn(Optional.of(Member.builder()
+            .memberId(1L)
+            .email("test@gmail.com")
+            .unregisteredAt(LocalDateTime.now().minusDays(5))
+            .build()));
+
+    //when
+    MemberException exception = assertThrows(MemberException.class,
+        () -> emailAuthService.sendTempPasswordMessage("test@gmail.com"));
+
+    //then
+    verify(memberRepository, times(1)).findByEmail("test@gmail.com");
+
+    assertEquals(ErrorCode.UNREGISTERED_MEMBER, exception.getErrorCode());
   }
 
 }
