@@ -1,6 +1,8 @@
 package com.example.solumonbackend.post.controller;
 
 import com.example.solumonbackend.member.model.MemberDetail;
+import com.example.solumonbackend.member.service.MemberService;
+import com.example.solumonbackend.post.model.HasInterestTagsDto;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
@@ -21,6 +23,7 @@ import java.util.List;
 public class PostController {
 
   private final PostService postService;
+  private final MemberService memberService;
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<PostAddDto.Response> createPost(@AuthenticationPrincipal MemberDetail memberDetail,
@@ -48,6 +51,15 @@ public class PostController {
                                            @PathVariable long postId) {
     postService.deletePost(memberDetail.getMember(), postId);
     return ResponseEntity.ok("게시글이 삭제되었습니다.");
+  }
+
+  @GetMapping("/post-list")
+  public ResponseEntity<HasInterestTagsDto.Response> hasInterestTags(
+      @AuthenticationPrincipal MemberDetail memberDetail) {
+
+    return ResponseEntity.ok(HasInterestTagsDto.Response.builder()
+        .hasInterestTags(memberService.hasInterestTags(memberDetail.getMember()))
+        .build());
   }
 
 }
