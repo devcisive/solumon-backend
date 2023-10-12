@@ -41,7 +41,7 @@ public class RecommendationService {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r2.getPost().getCreatedAt().compareTo(r1.getPost().getCreatedAt()) : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());
-    } else if (PostOrder.IMMINENT_DEADLINE.equals(postOrder)) {
+    } else if (PostOrder.IMMINENT_CLOSE.equals(postOrder)) {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r1.getPost().getEndAt().compareTo(r2.getPost().getEndAt()) : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());

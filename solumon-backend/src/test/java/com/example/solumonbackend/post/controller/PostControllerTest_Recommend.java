@@ -216,14 +216,14 @@ class PostControllerTest_Recommend {
   }
 
   @Test
-  void recommend_success_ongoing_imminentDeadline() throws Exception {
+  void recommend_success_ongoing_imminentClose() throws Exception {
     //given
     //when
     //then
     mockMvc.perform(MockMvcRequestBuilders.get("/posts")
             .queryParam("postType", String.valueOf(PostType.INTEREST))
             .queryParam("postStatus", String.valueOf(PostStatus.ONGOING))
-            .queryParam("postOrder", String.valueOf(PostOrder.IMMINENT_DEADLINE))
+            .queryParam("postOrder", String.valueOf(PostOrder.IMMINENT_CLOSE))
             .queryParam("page", "1")
             .contentType(MediaType.APPLICATION_JSON))
         .andDo(print())

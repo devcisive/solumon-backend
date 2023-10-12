@@ -6,9 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import com.example.solumonbackend.post.entity.Post;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -75,9 +72,6 @@ public class PostListDto {
           .tags(postDocument.getTags())
           .build();
     }
-
   }
 }
 
-  }
-}
