@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
-public class VoteCustomRepository {
+public class VoteRepositoryCustomImpl implements VoteRepositoryCustom {
 
   private final JPAQueryFactory jpaQueryFactory;
 

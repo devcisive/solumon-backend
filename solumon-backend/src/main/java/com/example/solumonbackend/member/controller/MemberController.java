@@ -11,13 +11,12 @@ import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
 import com.example.solumonbackend.member.model.ReportDto;
 import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.service.KakaoService;
 import com.example.solumonbackend.member.service.MemberService;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,14 +96,14 @@ public class MemberController {
   public ResponseEntity<Page<MyParticipatePostDto>> getMyParticipatePosts(
       @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestParam(name = "postParticipateType") PostParticipateType postParticipateType,
-      @RequestParam(name = "postState") PostState postState,
+      @RequestParam(name = "postStatus") PostStatus postStatus,
       @RequestParam(name = "postOrder") PostOrder postOrder,
       @RequestParam(name = "page", defaultValue = "1") int page
   ) {
 
     return ResponseEntity.ok()
         .body(memberService.getMyParticipatePosts(memberDetail.getMember(),
-            postState, postParticipateType, postOrder,
+            postStatus, postParticipateType, postOrder,
             PageRequestCustom.of(page, postOrder)));
   }
 

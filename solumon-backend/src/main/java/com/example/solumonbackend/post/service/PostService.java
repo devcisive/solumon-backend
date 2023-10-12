@@ -1,30 +1,45 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.common.AwsS3Component;
-import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.entity.Choice;
+import com.example.solumonbackend.post.entity.Image;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.AwsS3;
+import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostDto.ChoiceDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
+import com.example.solumonbackend.post.model.PostListDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.VoteRepository;
+import com.example.solumonbackend.post.type.PostOrder;
+import com.example.solumonbackend.post.type.PostStatus;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -38,7 +53,7 @@ public class PostService {
   private final PostTagRepository postTagRepository;
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
-  private final VoteCustomRepository voteCustomRepository;
+  private final PostSearchService postSearchService;
 
   private final String POST_DIR = "post";
 
@@ -56,6 +71,10 @@ public class PostService {
     List<PostTag> savePostTags = savePostTag(request.getTags(), post);
     List<Choice> saveChoices = saveChoices(request.getVote().getChoices(), post);
     List<Image> saveImages = saveImages(images, post);
+
+    postSearchService.save(post, request.getTags()
+        .stream().map(tag -> tag.getTag())
+        .collect(Collectors.toList()));
 
     return PostAddDto.Response.postToResponse(post, savePostTags, saveChoices, saveImages);
   }
@@ -120,8 +139,7 @@ public class PostService {
 
   // TODO : 채팅 부분 추가
   public PostDetailDto.Response getPostDetail(Member member, long postId) {
-    Post post = postRepository.findById(postId)
-        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+    Post post = getPost(postId);
 
     List<PostTag> tags = postTagRepository.findAllByPost_PostId(postId);
     List<Image> images = imageRepository.findAllByPost_PostId(postId);
@@ -131,17 +149,18 @@ public class PostService {
   }
 
   private VoteResultDto getVoteResultDto(Member member, Post post) {
-    // 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
-    if (voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
+    // 글쓴이거나 투표를 했거나 투표 기간이 지나면 결과접근 true 상태로 표시
+    if (Objects.equals(post.getMember().getMemberId(), member.getMemberId())
+        || voteRepository.existsByPost_PostIdAndMember_MemberId(post.getPostId(), member.getMemberId())
         || post.getEndAt().isBefore(LocalDateTime.now())) {
       return VoteResultDto.builder()
           .resultAccessStatus(true)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     } else {
       return VoteResultDto.builder()
           .resultAccessStatus(false)
-          .choices(voteCustomRepository.getChoiceResults(post.getPostId()))
+          .choices(voteRepository.getChoiceResults(post.getPostId()))
           .build();
     }
   }
@@ -149,23 +168,27 @@ public class PostService {
   @Transactional
   public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
                                            List<MultipartFile> images) {
-    Post post = checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    validatePostWriter(member, post);
 
     post.setTitle(request.getTitle());
     post.setContents(request.getContents());
     postRepository.save(post);
 
+    postSearchService.update(post, request.getTags()
+        .stream().map(tag -> tag.getTag())
+        .collect(Collectors.toList()));
+
     postTagRepository.deleteAllByPost_PostId(postId);
     savePostTag(request.getTags(), post);
 
-    List<Image> imageList;
     try {
-      imageList = updateImages(post, images);
+      List<Image> imageList = updateImages(post, images);
+      return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
+
     } catch (IOException e) {
       throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
     }
-
-    return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
   }
 
   private List<Image> updateImages(Post post, List<MultipartFile> images) throws IOException {
@@ -180,13 +203,16 @@ public class PostService {
 
   @Transactional
   public void deletePost(Member member, long postId) {
-    checkExistPostAndEqualMemberId(member, postId);
+    Post post = getPost(postId);
+    validatePostWriter(member, post);
 
     deleteImage(postId);
     postTagRepository.deleteAllByPost_PostId(postId);
     voteRepository.deleteAllByPost_PostId(postId);
     choiceRepository.deleteAllByPost_PostId(postId);
     postRepository.deleteById(postId);
+
+    postSearchService.delete(post);
   }
 
   private void deleteImage(long postId) {
@@ -203,15 +229,22 @@ public class PostService {
     }
   }
 
-  private Post checkExistPostAndEqualMemberId(Member member, long postId) {
-    Post post = postRepository.findById(postId)
+  private Post getPost(long postId) {
+    return postRepository.findById(postId)
         .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+  }
 
+  private void validatePostWriter(Member member, Post post) {
     if (!Objects.equals(post.getMember().getMemberId(), member.getMemberId())) {
       throw new PostException(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
     }
-
-    return post;
   }
 
+
+  public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder, Integer pageNum) {
+
+    Pageable pageable = PageRequestCustom.of(pageNum, postOrder);
+    // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
+    return postRepository.getGeneralPostList(postStatus, postOrder, pageable);
+  }
 }

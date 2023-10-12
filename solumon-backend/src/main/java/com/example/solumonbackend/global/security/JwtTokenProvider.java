@@ -1,5 +1,7 @@
 package com.example.solumonbackend.global.security;
 
+import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
+
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
@@ -32,7 +34,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-  private static final long ACCESS_TOKEN_VALID_TIME = 1000L * 60 * 30; // 30분 밀리초
+  private static final long ACCESS_TOKEN_VALID_TIME = 1000L * 60 * 60; // 1시간 밀리초
   private static final long REFRESH_TOKEN_VALID_TIME = 1000L * 60 * 24 * 60 * 60; // 2개월 밀리초
 
   private final UserDetailsService memberDetailService;
@@ -102,8 +104,11 @@ public class JwtTokenProvider {
     return request.getHeader("X-AUTH-TOKEN");
   }
 
-  public String reIssue(String refreshToken) {
-    Member byEmail = memberRepository.findByEmail(getMemberEmail(refreshToken))
+  public String reIssue(String accessToken) {
+    RefreshToken refreshToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
+        .orElseThrow(() -> new MemberException(ACCESS_TOKEN_NOT_FOUND));
+
+    Member byEmail = memberRepository.findByEmail(getMemberEmail(refreshToken.getAccessToken()))
         .orElseThrow(() -> new MemberException(
             ErrorCode.NOT_FOUND_MEMBER));
 
@@ -112,9 +117,13 @@ public class JwtTokenProvider {
         .email(byEmail.getEmail())
         .role(byEmail.getRole()).build();
 
-    String accessToken = createAccessToken(createTokenDto.getEmail(), createTokenDto.getRoles());
+    // 원래 그냥 새로운 refreshToken객체를 만들어서 refreshToken만 같게 하고
+    // 저장하고 말았는데 update로 accessToken 바꿔서 저장
+    // -> 안그러면 같은 accessToken으로 refreshToken만료될 때까지 계속 사용가능
+    String newAccessToken = createAccessToken(createTokenDto.getEmail(), createTokenDto.getRoles());
 
-    refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
+    refreshToken.setAccessToken(newAccessToken);
+    refreshTokenRedisRepository.save(refreshToken);
 
     return accessToken;
   }

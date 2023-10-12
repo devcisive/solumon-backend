@@ -48,13 +48,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       // 액세스 토큰으로 레디스에서 리프레쉬 토큰 가져오기
       RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
           .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));
+
       // 1. 리프레쉬도 만료됐다면 -> 다시 로그인 하도록 함
       if (!jwtTokenProvider.validateTokenExpiration(byAccessToken.getRefreshToken())) {
         throw new CustomSecurityException(ErrorCode.INVALID_REFRESH_TOKEN);
       }
 
       // 얘네가 정상이라면? 다시 AccessToken만들어서 기존 RefreshToken이랑 저장한 후 accessToken만 가져오기
-      accessToken = jwtTokenProvider.reIssue(byAccessToken.getRefreshToken());
+      accessToken = jwtTokenProvider.reIssue(byAccessToken.getAccessToken());
+
+      response.setHeader("X-AUTH-TOKEN", accessToken);
       Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
       SecurityContextHolder.getContext().setAuthentication(authentication);
     }
