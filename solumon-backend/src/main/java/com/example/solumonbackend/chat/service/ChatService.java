@@ -1,12 +1,10 @@
 package com.example.solumonbackend.chat.service;
 
 import com.example.solumonbackend.chat.entity.ChannelMember;
-import com.example.solumonbackend.chat.entity.ChatMessage;
 import com.example.solumonbackend.chat.model.ChatMemberInfo;
 import com.example.solumonbackend.chat.model.ChatMessageDto;
+import com.example.solumonbackend.chat.model.ChatMessageDto.Response;
 import com.example.solumonbackend.chat.repository.ChannelMemberRepository;
-import com.example.solumonbackend.chat.repository.ChatMessageRepository;
-import com.example.solumonbackend.global.exception.ChatException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.PostException;
@@ -26,12 +24,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChatService {
 
 
-  private final ChatMessageRepository chatMessageRepository;
   private final ChannelMemberRepository channelMemberRepository;
   private final PostRepository postRepository;
   private final MemberRepository memberRepository;
   private final KafkaChatService kafkaChatService;
-
 
 
   @Transactional
@@ -58,31 +54,17 @@ public class ChatService {
       postRepository.save(post);
     }
 
-    ChatMessage chatMessage = ChatMessage.builder()
-        .postId(post.getPostId())
+    ChatMessageDto.Response sendMessage = Response.builder()
+        .postId(postId)
         .memberId(chatMemberInfo.getMemberId())
         .nickname(chatMemberInfo.getNickname())
         .contents(request.getContent())
         .createdAt(LocalDateTime.now())
-        .isSent(true)
         .build();
 
-
-    try { // 이 예외처리는 먹히지 않고 문제발생 시 무한 재시도되는중
-      kafkaChatService.publishChatMessage(ChatMessageDto.Response.chatMessageToResponse(chatMessage));
-      chatMessageRepository.save(chatMessage);
-    } catch (Exception e) {
-      chatMessage.setSent(false);
-      chatMessageRepository.save(chatMessage);
-      throw new ChatException(ErrorCode.FAIL_SEND_MESSAGE);
-    }
+    kafkaChatService.publishChatMessage(sendMessage);
 
   }
 
 
 }
-
-
-
-
-

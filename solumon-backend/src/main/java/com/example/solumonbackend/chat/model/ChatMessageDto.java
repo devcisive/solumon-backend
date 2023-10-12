@@ -27,22 +27,40 @@ public class ChatMessageDto {
   @AllArgsConstructor
   public static class Response{
     private Long postId;
+    private Long memberId;
     private String nickname;
     private String contents;
     private LocalDateTime createdAt;
 
-    public static ChatMessageDto.Response chatMessageToResponse(ChatMessage chatMessage){
-       return Response.builder()
-                 .postId(chatMessage.getPostId())
-                 .nickname(chatMessage.getNickname())
-                 .contents(chatMessage.getContents())
-                 .createdAt(chatMessage.getCreatedAt())
-                 .build();
+
+
+
+    public static ChatMessage successChatMessageToEntity(ChatMessageDto.Response chatMessageResponse){
+        return ChatMessage.builder()
+            .postId(chatMessageResponse.getPostId())
+            .memberId(chatMessageResponse.getMemberId())
+            .nickname(chatMessageResponse.getNickname())
+            .contents(chatMessageResponse.getContents())
+            .createdAt(chatMessageResponse.getCreatedAt())
+            .isSent(true)
+            .build();
+    }
+
+    public static ChatMessage failChatMessageToEntity(ChatMessageDto.Response chatMessageResponse){
+      return ChatMessage.builder()
+          .postId(chatMessageResponse.getPostId())
+          .memberId(chatMessageResponse.getMemberId())
+          .nickname(chatMessageResponse.getNickname())
+          .contents(chatMessageResponse.getContents())
+          .createdAt(chatMessageResponse.getCreatedAt())
+          .isSent(false)
+          .build();
     }
 
 
-   public Response(){
-     // 역직렬화 에러 뜨기 때문에 따로 만든 기본생성자
+
+    public Response(){
+     // 에러 뜨기 때문에 따로 만든 기본생성자
    }
 
   }

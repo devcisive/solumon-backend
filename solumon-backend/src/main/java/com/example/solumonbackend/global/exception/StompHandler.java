@@ -84,7 +84,7 @@ public class StompHandler implements ChannelInterceptor {
           new ChatMemberInfo(member.getMemberId(), member.getNickname()));
     }
 
-    // DISCONNECT
+    // 웹소켓 연결 끊을 때 레디스에 저장해뒀던 유저정보 삭제
     if (StompCommand.DISCONNECT == accessor.getCommand()) {
       log.info(accessor.getSessionId() + ": DISCONNECT");
       redisChatService.deleteChatMemberInfo(accessor.getSessionId());
@@ -92,7 +92,6 @@ public class StompHandler implements ChannelInterceptor {
 
     return message;
   }
-
 
 
 }

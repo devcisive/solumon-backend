@@ -17,13 +17,12 @@ import com.example.solumonbackend.member.entity.Report;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.model.GeneralSignInDto;
 import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto.Response;
+import com.example.solumonbackend.member.model.LogOutDto;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberLogDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.model.LogOutDto;
 import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
@@ -40,9 +39,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -255,10 +251,10 @@ public class MemberService {
 
 
   @Transactional
-  public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
+  public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findById(reportedMemberId)
+    Member reportedMember = memberRepository.findByNickname(reportedNickname)
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
     if (reportedMember.getUnregisteredAt() != null) {

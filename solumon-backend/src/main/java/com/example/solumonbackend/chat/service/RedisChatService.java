@@ -16,13 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RedisChatService {
 
-  private final RedisTemplate<String, ChatMemberInfo> chatMemberInfoRedisTemplate;
+  private final RedisTemplate<String, ChatMemberInfo> redisChatMemberTemplate;
 
 
   // stomp connect 시에 생성된 세션 아이디 : 토큰으로부터 뽑은 멤버정보를 같이 레디스에 저장
   public void saveChatMemberInfo(String sessionId, ChatMemberInfo memberInfo) {
 
-    HashOperations<String, Object, Object> hashOperations = chatMemberInfoRedisTemplate.opsForHash();
+    HashOperations<String, Object, Object> hashOperations = redisChatMemberTemplate.opsForHash();
     Map<String, Object> chatMemberInfo = new HashMap<>();
     chatMemberInfo.put("memberId", memberInfo.getMemberId());
     chatMemberInfo.put("nickname", memberInfo.getNickname());
@@ -30,10 +30,10 @@ public class RedisChatService {
   }
 
 
-  // 채팅메세지 보낼 때 저장될 chatMessage 엔티티에 들어갈 멤버 정보를 뽑기
+  // 채팅메세지 보낼 때 사용 될 멤버 정보를 뽑기
   public ChatMemberInfo getChatMemberInfo(String sessionId) {
 
-    HashOperations<String, Object, Object> hashOperations = chatMemberInfoRedisTemplate.opsForHash();
+    HashOperations<String, Object, Object> hashOperations = redisChatMemberTemplate.opsForHash();
     Map<Object, Object> chatMemberInfoMap = hashOperations.entries(sessionId);
 
     Long memberId = null;
@@ -51,9 +51,9 @@ public class RedisChatService {
   }
 
 
-  // 구독취소나 disconnect 할때 저장해놨던 멤버 정보 삭제
+  // disconnect 할때 저장해놨던 멤버 정보 삭제
   public void deleteChatMemberInfo(String sessionId) {
-    chatMemberInfoRedisTemplate.delete(sessionId);
+    redisChatMemberTemplate.delete(sessionId);
     log.info("delete ChatMemberInfo: " + sessionId);
   }
 

@@ -4,7 +4,9 @@ import com.example.solumonbackend.chat.model.ChatMemberInfo;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -17,25 +19,49 @@ public class RedisConfig {
   @Value("${spring.redis.port}")
   private int redisPort;
 
+
+  // 0번 저장소 : 토큰
+  // 1번 저장소 : 채팅멤버 정보
+
+
+  // 레디스 데이터베이스 나누기용
+  public RedisConnectionFactory createLettuceConnectionFactory(int dbIndex) {
+    final RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+    redisStandaloneConfiguration.setHostName(redisHost);
+    redisStandaloneConfiguration.setPort(redisPort);
+    redisStandaloneConfiguration.setDatabase(dbIndex);
+
+    return new LettuceConnectionFactory(redisStandaloneConfiguration);
+  }
+
   @Bean
+  @Primary    // 기존에 있던 토큰용 팩토리를 기본으로 설정
   public RedisConnectionFactory redisConnectionFactory() {
-    return new LettuceConnectionFactory(redisHost, redisPort);
+    return createLettuceConnectionFactory(0); // 0번 저장소
   }
 
 
 
-  /* RedisTemplate:
-  - 다양한 데이터 유형의 저장과 검색 가능\
-  - 직렬화 역직렬화 기능을 제공하여 java 객체 <-> Redis 객체
-  - 캐싱 매커니즘 구현에 사용 가능
-  * */
+  // 토큰 저장하는 저장소와 분리
+  @Bean
+  public RedisConnectionFactory redisChatMemberConnectionFactory() {
+
+    final RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
+    redisStandaloneConfiguration.setHostName(redisHost);
+    redisStandaloneConfiguration.setPort(redisPort);
+    redisStandaloneConfiguration.setDatabase(1);
+
+    return new LettuceConnectionFactory(redisStandaloneConfiguration);
+  }
+
 
 
   // 채팅할때 멤버 정보
   @Bean
   public RedisTemplate<String, ChatMemberInfo> redisChatMemberTemplate() {
+
     RedisTemplate<String, ChatMemberInfo> redisTemplate = new RedisTemplate<>();
-    redisTemplate.setConnectionFactory(redisConnectionFactory());
+    redisTemplate.setConnectionFactory(redisChatMemberConnectionFactory());
     redisTemplate.setKeySerializer(new StringRedisSerializer());
     redisTemplate.setValueSerializer(new StringRedisSerializer());
 
