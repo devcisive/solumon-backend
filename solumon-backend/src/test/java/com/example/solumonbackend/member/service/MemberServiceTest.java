@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -69,7 +70,6 @@ class MemberServiceTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname(request.getNickname())
         .role(MemberRole.GENERAL)
-//        .reportCount(0)
         .isFirstLogIn(true)
         .build();
 
@@ -81,8 +81,9 @@ class MemberServiceTest {
     Response response = memberService.signUp(request);
 
     // Then
-    verify(memberRepository, times(1)).save(any(Member.class));
-    verify(passwordEncoder, times(2)).encode(any(String.class));
+    ArgumentCaptor<Member> captor = ArgumentCaptor.forClass(Member.class);
+    verify(memberRepository, times(1)).save(captor.capture());
+    verify(passwordEncoder, times(2)).encode("password123!");
 
     assertThat(response.getEmail()).isEqualTo(request.getEmail());
     assertThat(response.getNickname()).isEqualTo(request.getNickname());
@@ -148,8 +149,7 @@ class MemberServiceTest {
         .email(email)
         .password(passwordEncoder.encode(password))
         .nickname("testUser")
-//        .role(MemberRole.GENERAL)
-//        .reportCount(0)
+        .role(MemberRole.GENERAL)
         .isFirstLogIn(true)
         .build();
 
