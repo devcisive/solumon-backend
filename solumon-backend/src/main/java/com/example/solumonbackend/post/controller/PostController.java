@@ -80,6 +80,9 @@ public class PostController {
       @RequestParam PostOrder postOrder,
       @RequestParam(defaultValue = "1") Integer pageNum) {
 
+    if (postStatus == PostStatus.COMPLETED && postOrder == PostOrder.IMMINENT_CLOSE ) {
+      throw new SearchException(ErrorCode.CLOSED_DOCUMENT_FETCH_DISALLOWED);
+    }
 
     if (postType == PostType.GENERAL) {
       return ResponseEntity.ok(postService.getGeneralPostList(postStatus, postOrder, pageNum));

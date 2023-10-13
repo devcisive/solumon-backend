@@ -30,6 +30,12 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
 
+  @ExceptionHandler(NotifyException.class)
+  public ErrorResponse handleNotifyException(NotifyException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
   @ExceptionHandler(CustomSecurityException.class)
   public ErrorResponse handleAccountException(CustomSecurityException e) {
     log.error("{} is occurred", e.getErrorCode());
