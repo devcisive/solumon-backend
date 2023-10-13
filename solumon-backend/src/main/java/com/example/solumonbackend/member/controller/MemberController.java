@@ -2,38 +2,21 @@ package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
 import com.example.solumonbackend.global.mail.EmailAuthService;
-import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.LogOutDto;
-import com.example.solumonbackend.member.model.MemberDetail;
-import com.example.solumonbackend.member.model.MemberInterestDto;
-import com.example.solumonbackend.member.model.MemberLogDto;
-import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.ReportDto;
-import com.example.solumonbackend.member.model.WithdrawDto;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.service.MemberService;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
-import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -127,7 +110,7 @@ public class MemberController {
 
 
   @PostMapping("/{memberId}/report")
-  public ResponseEntity<?> reportMember(
+  public ResponseEntity<Void> reportMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody ReportDto.Request reportRequest,
       @PathVariable Long memberId) {
