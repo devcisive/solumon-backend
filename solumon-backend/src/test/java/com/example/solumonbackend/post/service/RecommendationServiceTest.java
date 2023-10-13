@@ -178,7 +178,7 @@ class RecommendationServiceTest {
   }
 
   @Test
-  void recommend_success_ongoing_imminentDeadline() {
+  void recommend_success_ongoing_imminentClose() {
     //given
     given(recommendRepository.findAllByMemberId(testMember.getMemberId()))
         .willReturn(List.of(r1, r2, r3, r5, r6, r7));
@@ -186,7 +186,7 @@ class RecommendationServiceTest {
     //when
     Page<PostListDto.Response> response =
         recommendationService.recommendBasedOnInterest(
-            testMember, PostStatus.ONGOING, PostOrder.IMMINENT_DEADLINE, PageRequestCustom.of(1));
+            testMember, PostStatus.ONGOING, PostOrder.IMMINENT_CLOSE, PageRequestCustom.of(1));
 
     //then
     Assertions.assertEquals(3, response.getTotalElements());

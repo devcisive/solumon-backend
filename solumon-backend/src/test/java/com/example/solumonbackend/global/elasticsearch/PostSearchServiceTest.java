@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
-import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
@@ -49,7 +48,7 @@ class PostSearchServiceTest {
         .title("제목200")
         .content("내용200")
         .writer("테스트유저")
-        .tags("[생일, 선물, 생일선물]")
+        .tags(List.of("생일", "선물", "생일선물"))
         .voteCount(0)
         .chatCount(0)
         .imageUrl(
@@ -129,7 +128,7 @@ class PostSearchServiceTest {
         .title("테스트 제목입니다2.")
         .content("테스트 본문 입니다.")
         .writer("테스트유저")
-        .tags("[생일, 선물, 생일선물]")
+        .tags(List.of("생일", "선물", "생일선물"))
         .voteCount(0)
         .chatCount(0)
         .imageUrl(

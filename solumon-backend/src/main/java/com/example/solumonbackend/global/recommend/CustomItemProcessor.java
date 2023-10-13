@@ -55,21 +55,20 @@ public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend
 
       // 기존 포스트들 중 수정된(삭제된 포스트 포함) 포스트에 대한 recommend는 모두 삭제함
       // 0 벡터가 되었을(관련 태그가 모두 삭제되었을) 가능성을 대비해 update 대신 삭제 (코사인 유사도는 0 벡터로는 계산이 안 됨)
-      List<Recommend> modifiedPostRecommends = recommendRepository.findAllByMemberId(member.getMemberId()).stream()
-          .filter(r -> r.getPost().getModifiedAt() != null && r.getPost().getModifiedAt().isAfter(LocalDateTime.now().minusHours(1)))
-          .collect(Collectors.toList());
+      List<Recommend> modifiedPostRecommends
+          = recommendRepository.findAllByMemberIdAndPostModifiedAtIsAfter(member.getMemberId(), LocalDateTime.now().minusHours(1));
       recommendRepository.deleteAll(modifiedPostRecommends);
 
       // 1시간 전 이후부터 수정된 관심 태그가 있는 포스트들을 전부 가져옴 (삭제된 포스트 포함)
-      List<Post> modifiedPosts = postTagRepository.findDistinctByTagIn(interestTags)
-          .stream().map(PostTag::getPost).distinct()
-          .filter(p -> p.getModifiedAt() != null && p.getModifiedAt().isAfter(LocalDateTime.now().minusHours(1))).collect(Collectors.toList());
+      List<Post> modifiedPosts
+          = postTagRepository.findDistinctByTagInAndPostModifiedAtIsAfter(interestTags, LocalDateTime.now().minusHours(1))
+          .stream().map(PostTag::getPost).distinct().collect(Collectors.toList());
 
 
       // 1시간 전 이후부터 작성된 관심 태그가 하나라도 있는 포스트들을 전부 가져옴
-      List<Post> newPosts = postTagRepository.findDistinctByTagIn(interestTags)
-          .stream().map(PostTag::getPost).distinct()
-          .filter(p -> p.getCreatedAt().isAfter(LocalDateTime.now().minusHours(1))).collect(Collectors.toList());
+      List<Post> newPosts
+          = postTagRepository.findDistinctByTagInAndPostCreatedAtIsAfter(interestTags, LocalDateTime.now().minusHours(1))
+          .stream().map(PostTag::getPost).distinct().collect(Collectors.toList());
 
 
       // 각 포스트에 대하여 코사인 유사도 계산
@@ -94,12 +93,13 @@ public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend
     }
   }
 
-  private List<Recommend> getCosineSimilarityOfPosts(List<Post> possiblePosts, Long memberId, List<Tag> interestTags, int n) {
+  private List<Recommend> getCosineSimilarityOfPosts(
+      List<Post> possiblePosts, Long memberId, List<Tag> interestTags, int interestTagsSize) {
     // 모든 관심 주제 태그를 가지고 있는 가상의 게시글의 벡터
-    double[] targetVector = new double[n];
+    double[] targetVector = new double[interestTagsSize];
     Arrays.fill(targetVector, 1);
     // 게시글의 벡터 -> 똑같은 배열 계속 사용하려고 밖으로 뺌
-    double[] tagVector = new double[n];
+    double[] tagVector = new double[interestTagsSize];
 
     List<Recommend> result = new ArrayList<>();
 
@@ -108,7 +108,7 @@ public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend
       // 해당 게시글의 태그 목록을 가져옴
       List<Tag> postTags =
           postTagRepository.findAllByPost_PostId(post.getPostId()).stream().map(PostTag::getTag).collect(Collectors.toList());
-      for(int i = 0; i < n; i++) {
+      for(int i = 0; i < interestTagsSize; i++) {
         // 각 관심 주제에 대해 해당 게시글의 태그 목록에 그 관심 주제가 포함되어 있으면 1, 없으면 0
         Tag interestTag = interestTags.get(i);
         tagVector[i] = postTags.contains(interestTag) ? 1 : 0;
