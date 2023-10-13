@@ -48,7 +48,10 @@ public class ChatService {
       Member member = memberRepository.findById(chatMemberInfo.getMemberId())
           .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
-      channelMemberRepository.save(ChannelMember.builder().post(post).member(member).build());
+      channelMemberRepository.save(ChannelMember.builder()
+          .post(post)
+          .member(member)
+          .build());
 
       post.setChatCount(post.getChatCount() + 1); // 이 부분도 동시성문제?
       postRepository.save(post);

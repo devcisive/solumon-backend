@@ -14,7 +14,6 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.model.MemberInterestDto;
 import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.TestMyParticipatePostData;
 import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
@@ -30,7 +29,9 @@ import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,6 @@ class MemberControllerTest_MyInfo {
   private MockMvc mockMvc;
   @Autowired
   private ObjectMapper objectMapper;
-
   @Autowired
   private MemberRepository memberRepository;
   @Autowired
@@ -71,17 +71,12 @@ class MemberControllerTest_MyInfo {
   private VoteRepository voteRepository;
   @Autowired
   private ChannelMemberRepository channelMemberRepository;
-
-
   @Autowired
   private PasswordEncoder passwordEncoder;
-
-
   private Member fakeMember;
   private Member otherMember;
   private Tag fakeTag;
   private MemberTag fakeMemberTag;
-
 
   List<Post> myWritePosts;
   Pair<List<Post>, List<Vote>> postsAndMyVotes;
@@ -102,7 +97,6 @@ class MemberControllerTest_MyInfo {
         .isFirstLogIn(true)
         .build();
 
-
     otherMember = Member.builder()
         .email("fakeMember2@naver.com")
         .nickname("새로운닉네임")
@@ -114,20 +108,193 @@ class MemberControllerTest_MyInfo {
         .isFirstLogIn(true)
         .build();
 
-
     // 태그, 멤버태그
     fakeTag = Tag.builder().name("태그1").build();
     fakeMemberTag = MemberTag.builder().member(fakeMember).tag(fakeTag).build();
 
-
     // 내가 작성한 글
-    myWritePosts = TestMyParticipatePostData.myWritePosts(fakeMember);
+    myWritePosts = new ArrayList<>();
+    myWritePosts.add(
+        Post.builder()
+            .member(fakeMember)
+            .title("myWritePost1")
+            .contents("최신5,마감,투표5,채팅1")
+            .createdAt(LocalDateTime.now().minusDays(5))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(10)
+            .chatCount(50)
+            .build());
+
+    myWritePosts.add(
+        Post.builder()
+            .member(fakeMember)
+            .title("myWritePost2")
+            .contents("최신4,마감,투표4,채팅2")
+            .createdAt(LocalDateTime.now().minusDays(4))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(20)
+            .chatCount(40)
+            .build());
+
+    myWritePosts.add(
+        Post.builder()
+            .member(fakeMember)
+            .title("myWritePost3")
+            .contents("최신3,마감,투표3,채팅3")
+            .createdAt(LocalDateTime.now().minusDays(3))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(30)
+            .chatCount(30)
+            .build());
+
+    myWritePosts.add(
+        Post.builder().member(fakeMember)
+            .title("myWritePost4")
+            .contents("최신2,진행,투표2,채팅4")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(40)
+            .chatCount(20)
+            .build());
+
+    myWritePosts.add(
+        Post.builder()
+            .member(fakeMember)
+            .title("myWritePost5")
+            .contents("최신1,진행,투표1,채팅5")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(50)
+            .chatCount(10)
+            .build());
 
     // 내가 투표참여한 글, 내 투표
-    postsAndMyVotes = TestMyParticipatePostData.myVotePosts(fakeMember, otherMember);
+    List<Post> myVotePosts = new ArrayList<>();
+    List<Vote> myVotes;
+
+    myVotePosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myVotePost1")
+            .contents("최신5,마감,투표5,채팅1")
+            .createdAt(LocalDateTime.now().minusDays(5))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(10)
+            .chatCount(50)
+            .build());
+
+    myVotePosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myVotePost2")
+            .contents("최신4,마감,투표4,채팅2")
+            .createdAt(LocalDateTime.now().minusDays(4))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(20)
+            .chatCount(40)
+            .build());
+
+    myVotePosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myVotePost3")
+            .contents("최신3,마감,투표3,채팅3")
+            .createdAt(LocalDateTime.now().minusDays(3))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(30)
+            .chatCount(30)
+            .build());
+
+    myVotePosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myVotePost4")
+            .contents("최신2,진행,투표2,채팅4")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(40)
+            .chatCount(20)
+            .build());
+
+    myVotePosts.add(
+        Post.builder().member(otherMember)
+            .title("myVotePost5")
+            .contents("최신1,진행,투표1,채팅5")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(50)
+            .chatCount(10)
+            .build());
+
+    myVotes = myVotePosts.stream()
+        .map(post -> Vote.builder().post(post).member(fakeMember).build())
+        .collect(Collectors.toList());
+
+    postsAndMyVotes = Pair.of(myVotePosts, myVotes);
 
     // 내가 채팅참여한 글, 내 채팅
-    postsAndMyChats = TestMyParticipatePostData.myChatPosts(fakeMember, otherMember);
+    List<Post> myChatPosts = new ArrayList<>();
+    List<ChannelMember> myChats;
+
+    myChatPosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myChatPost1")
+            .contents("최신5,마감,투표5,채팅1")
+            .createdAt(LocalDateTime.now().minusDays(5))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(10)
+            .chatCount(50)
+            .build());
+
+    myChatPosts.add(
+        Post.builder()
+            .member(otherMember).
+            title("myChatPost2").contents("최신4,마감,투표4,채팅2")
+            .createdAt(LocalDateTime.now().minusDays(4))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(20)
+            .chatCount(40)
+            .build());
+
+    myChatPosts.add(
+        Post.builder().member(otherMember)
+            .title("myChatPost3")
+            .contents("최신3,마감,투표3,채팅3")
+            .createdAt(LocalDateTime.now().minusDays(3))
+            .endAt(LocalDateTime.now().plusDays(1))
+            .voteCount(30)
+            .chatCount(30)
+            .build());
+
+    myChatPosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myChatPost4")
+            .contents("최신2,진행,투표2,채팅4")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(40)
+            .chatCount(20)
+            .build());
+
+    myChatPosts.add(
+        Post.builder()
+            .member(otherMember)
+            .title("myChatPost5")
+            .contents("최신1,진행,투표1,채팅5")
+            .createdAt(LocalDateTime.now().minusDays(1))
+            .endAt(LocalDateTime.now().minusDays(1))
+            .voteCount(50)
+            .chatCount(10)
+            .build());
+
+    myChats = myChatPosts.stream()
+        .map(post -> ChannelMember.builder().post(post).member(fakeMember).build())
+        .collect(Collectors.toList());
+
+    postsAndMyChats = Pair.of(myChatPosts, myChats);
+
 
 
     // 저장 순서 중요
@@ -135,7 +302,7 @@ class MemberControllerTest_MyInfo {
     memberRepository.save(otherMember);
     tagRepository.save(fakeTag);
     memberTagRepository.save(fakeMemberTag);
-    
+
     postRepository.saveAll(myWritePosts);
     postRepository.saveAll(postsAndMyVotes.getFirst());
     postRepository.saveAll(postsAndMyChats.getFirst());
@@ -154,9 +321,9 @@ class MemberControllerTest_MyInfo {
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
-        .andExpect(jsonPath("$.nickname").value("닉네임"))
-        .andExpect(jsonPath("$.email").value("fakeMember@naver.com"))
-        .andExpect(jsonPath("$.interests[0]").value("태그1"));
+        .andExpect(jsonPath("$.nickname").value(fakeMember.getNickname()))
+        .andExpect(jsonPath("$.email").value(fakeMember.getEmail()))
+        .andExpect(jsonPath("$.interests[0]").value(fakeMemberTag.getTag().getName()));
 
   }
 
@@ -181,7 +348,7 @@ class MemberControllerTest_MyInfo {
         .andExpect(status().isOk()) //400
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
         .andExpect(jsonPath("$.nickname").value(request.getNickname()))
-        .andExpect(jsonPath("$.interests[0]").value("태그1"));
+        .andExpect(jsonPath("$.interests[0]").value(fakeMemberTag.getTag().getName()));
   }
 
 
@@ -277,7 +444,7 @@ class MemberControllerTest_MyInfo {
             .content(json))
         .andExpect(MockMvcResultMatchers.status().isOk())
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
-        .andExpect(jsonPath("$.interests[0]").value("태그1"));
+        .andExpect(jsonPath("$.interests[0]").value(fakeMemberTag.getTag().getName()));
     ;
   }
 
@@ -310,18 +477,18 @@ class MemberControllerTest_MyInfo {
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].title").value("myWritePost3"))
-        .andExpect(jsonPath("$.content[0].contents").value("최신3,마감,투표3,채팅3"))
-        .andExpect(jsonPath("$.content[0].voteCount").value(30))
-        .andExpect(jsonPath("$.content[0].chatCount").value(30))
-        .andExpect(jsonPath("$.content[1].title").value("myWritePost2"))
-        .andExpect(jsonPath("$.content[1].contents").value("최신4,마감,투표4,채팅2"))
+        .andExpect(jsonPath("$.content[0].title").value(myWritePosts.get(2).getTitle()))
+        .andExpect(jsonPath("$.content[0].contents").value(myWritePosts.get(2).getContents()))
+        .andExpect(jsonPath("$.content[0].voteCount").value(myWritePosts.get(2).getVoteCount()))
+        .andExpect(jsonPath("$.content[0].chatCount").value(myWritePosts.get(2).getChatCount()))
+        .andExpect(jsonPath("$.content[1].title").value(myWritePosts.get(1).getTitle()))
+        .andExpect(jsonPath("$.content[1].contents").value(myWritePosts.get(1).getContents()))
         .andExpect(jsonPath("$.content[1].voteCount").value(20))
         .andExpect(jsonPath("$.content[1].chatCount").value(40))
-        .andExpect(jsonPath("$.content[2].title").value("myWritePost1"))
-        .andExpect(jsonPath("$.content[2].contents").value("최신5,마감,투표5,채팅1"))
-        .andExpect(jsonPath("$.content[2].voteCount").value(10))
-        .andExpect(jsonPath("$.content[2].chatCount").value(50))
+        .andExpect(jsonPath("$.content[2].title").value(myWritePosts.get(0).getTitle()))
+        .andExpect(jsonPath("$.content[2].contents").value(myWritePosts.get(0).getContents()))
+        .andExpect(jsonPath("$.content[2].voteCount").value(myWritePosts.get(0).getVoteCount()))
+        .andExpect(jsonPath("$.content[2].chatCount").value(myWritePosts.get(0).getChatCount()))
     ;
   }
 
@@ -337,18 +504,18 @@ class MemberControllerTest_MyInfo {
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].title").value("myVotePost3"))
-        .andExpect(jsonPath("$.content[0].contents").value("최신3,마감,투표3,채팅3"))
-        .andExpect(jsonPath("$.content[0].voteCount").value(30))
-        .andExpect(jsonPath("$.content[0].chatCount").value(30))
-        .andExpect(jsonPath("$.content[1].title").value("myVotePost2"))
-        .andExpect(jsonPath("$.content[1].contents").value("최신4,마감,투표4,채팅2"))
-        .andExpect(jsonPath("$.content[1].voteCount").value(20))
-        .andExpect(jsonPath("$.content[1].chatCount").value(40))
-        .andExpect(jsonPath("$.content[2].title").value("myVotePost1"))
-        .andExpect(jsonPath("$.content[2].contents").value("최신5,마감,투표5,채팅1"))
-        .andExpect(jsonPath("$.content[2].voteCount").value(10))
-        .andExpect(jsonPath("$.content[2].chatCount").value(50))
+        .andExpect(jsonPath("$.content[0].title").value(postsAndMyVotes.getFirst().get(2).getTitle()))
+        .andExpect(jsonPath("$.content[0].contents").value(postsAndMyVotes.getFirst().get(2).getContents()))
+        .andExpect(jsonPath("$.content[0].voteCount").value(postsAndMyVotes.getFirst().get(2).getVoteCount()))
+        .andExpect(jsonPath("$.content[0].chatCount").value(postsAndMyVotes.getFirst().get(2).getChatCount()))
+        .andExpect(jsonPath("$.content[1].title").value(postsAndMyVotes.getFirst().get(1).getTitle()))
+        .andExpect(jsonPath("$.content[1].contents").value(postsAndMyVotes.getFirst().get(1).getContents()))
+        .andExpect(jsonPath("$.content[1].voteCount").value(postsAndMyVotes.getFirst().get(1).getVoteCount()))
+        .andExpect(jsonPath("$.content[1].chatCount").value(postsAndMyVotes.getFirst().get(1).getChatCount()))
+        .andExpect(jsonPath("$.content[2].title").value(postsAndMyVotes.getFirst().get(0).getTitle()))
+        .andExpect(jsonPath("$.content[2].contents").value(postsAndMyVotes.getFirst().get(0).getContents()))
+        .andExpect(jsonPath("$.content[2].voteCount").value(postsAndMyVotes.getFirst().get(0).getVoteCount()))
+        .andExpect(jsonPath("$.content[2].chatCount").value(postsAndMyVotes.getFirst().get(0).getChatCount()))
     ;
   }
 
@@ -363,20 +530,20 @@ class MemberControllerTest_MyInfo {
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0].title").value("myChatPost4"))
-        .andExpect(jsonPath("$.content[0].contents").value("최신2,진행,투표2,채팅4"))
-        .andExpect(jsonPath("$.content[0].voteCount").value(40))
-        .andExpect(jsonPath("$.content[0].chatCount").value(20))
-        .andExpect(jsonPath("$.content[1].title").value("myChatPost5"))
-        .andExpect(jsonPath("$.content[1].contents").value("최신1,진행,투표1,채팅5"))
-        .andExpect(jsonPath("$.content[1].voteCount").value(50))
-        .andExpect(jsonPath("$.content[1].chatCount").value(10))
+        .andExpect(jsonPath("$.content[0].title").value(postsAndMyChats.getFirst().get(3).getTitle()))
+        .andExpect(jsonPath("$.content[0].contents").value(postsAndMyChats.getFirst().get(3).getContents()))
+        .andExpect(jsonPath("$.content[0].voteCount").value(postsAndMyChats.getFirst().get(3).getVoteCount()))
+        .andExpect(jsonPath("$.content[0].chatCount").value(postsAndMyChats.getFirst().get(3).getChatCount()))
+        .andExpect(jsonPath("$.content[1].title").value(postsAndMyChats.getFirst().get(4).getTitle()))
+        .andExpect(jsonPath("$.content[1].contents").value(postsAndMyChats.getFirst().get(4).getContents()))
+        .andExpect(jsonPath("$.content[1].voteCount").value(postsAndMyChats.getFirst().get(4).getVoteCount()))
+        .andExpect(jsonPath("$.content[1].chatCount").value(postsAndMyChats.getFirst().get(4).getChatCount()))
     ;
   }
 
   @DisplayName("내가 참여한 글 가져오기(실패) - <없는 페이지>")
   @Test
-  void getMyParticipatePosts_fail_nonePage() throws Exception{
+  void getMyParticipatePosts_fail_nonePage() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
             .param("postStatus", String.valueOf(PostStatus.COMPLETED))

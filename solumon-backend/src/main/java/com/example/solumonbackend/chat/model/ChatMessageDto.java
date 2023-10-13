@@ -1,6 +1,9 @@
 package com.example.solumonbackend.chat.model;
 
 import com.example.solumonbackend.chat.entity.ChatMessage;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,10 +30,17 @@ public class ChatMessageDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Response{
+
     private Long postId;
+
     private Long memberId;
+
     private String nickname;
+
     private String contents;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using= LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
 
 
