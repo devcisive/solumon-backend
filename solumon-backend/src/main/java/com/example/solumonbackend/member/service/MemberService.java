@@ -1,8 +1,8 @@
 package com.example.solumonbackend.member.service;
 
+import com.amazonaws.services.kms.model.TagException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
-import com.example.solumonbackend.global.exception.TagException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
@@ -137,13 +137,12 @@ public class MemberService {
   }
 
 
-  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member, PostState postState,
+  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member, PostStatus postStatus,
                                                           PostParticipateType postParticipateType, PostOrder postOrder,
                                                           Pageable pageable) {
-
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getMyParticipatePostPages(member.getMemberId(),
-        postParticipateType, postState, postOrder, pageable);
+        postParticipateType, postStatus, postOrder, pageable);
 
   }
 

@@ -33,7 +33,7 @@ import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -425,7 +425,7 @@ class MemberServiceTest_MyInfo {
   void getMyParticipatePosts() {
     //Given
 
-    PostState postState = PostState.ONGOING;
+    PostStatus postStatus = PostStatus.ONGOING;
     PostParticipateType postParticipateType = PostParticipateType.CHAT;
     PostOrder postOrder = PostOrder.LATEST;
     Pageable pageable = Pageable.ofSize(10);
@@ -435,14 +435,14 @@ class MemberServiceTest_MyInfo {
     when(postRepository.getMyParticipatePostPages(
         eq(fakeMember.getMemberId()),
         eq(postParticipateType),
-        eq(postState),
+        eq(postStatus),
         eq(postOrder),
         eq(pageable)
     )).thenReturn(new PageImpl<>(fakeMyParticipatePosts, pageable, fakeMyParticipatePosts.size()));
 
     // When
     Page<MyParticipatePostDto> result = memberService.getMyParticipatePosts(
-        fakeMember, postState, postParticipateType, postOrder, pageable);
+        fakeMember, postStatus, postParticipateType, postOrder, pageable);
 
     // Then
     assertEquals(fakeMyParticipatePosts.size(), result.getContent().size());

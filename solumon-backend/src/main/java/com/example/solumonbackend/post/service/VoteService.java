@@ -1,5 +1,6 @@
 package com.example.solumonbackend.post.service;
 
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
@@ -8,12 +9,11 @@ import com.example.solumonbackend.post.entity.Vote;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
+import java.time.LocalDateTime;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +21,7 @@ public class VoteService {
 
   private final VoteRepository voteRepository;
   private final PostRepository postRepository;
+  private final PostSearchService postSearchService;
 
   @Transactional
   public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
@@ -44,6 +45,7 @@ public class VoteService {
     // 게시글 투표수 업데이트
     post.setVoteCount(voteRepository.countByPost_PostId(postId));
     postRepository.save(post);
+    postSearchService.updateVoteCount(post.getVoteCount(), post.getPostId());
 
     return VoteAddDto.Response.builder()
         .choices(voteRepository.getChoiceResults(postId))
@@ -64,6 +66,7 @@ public class VoteService {
     // 게시글 투표수 업데이트
     post.setVoteCount(voteRepository.countByPost_PostId(postId));
     postRepository.save(post);
+    postSearchService.updateVoteCount(post.getVoteCount(), post.getPostId());
   }
 
   private Post getPost(long postId) {
