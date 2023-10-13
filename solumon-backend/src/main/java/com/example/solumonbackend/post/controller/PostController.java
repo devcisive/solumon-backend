@@ -1,30 +1,39 @@
 package com.example.solumonbackend.post.controller;
+
 import com.example.solumonbackend.global.elasticsearch.PostDocument;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
-import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.model.MemberDetail;
+import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.model.PostAddDto;
+import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostListDto;
 import com.example.solumonbackend.post.model.PostListDto.Response;
-import com.example.solumonbackend.post.model.PostDetailDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
 import com.example.solumonbackend.post.service.PostService;
+import com.example.solumonbackend.post.service.RecommendationService;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
 import com.example.solumonbackend.post.type.PostType;
 import com.example.solumonbackend.post.type.SearchQueryType;
 import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/posts")
@@ -33,6 +42,7 @@ public class PostController {
 
   private final PostService postService;
   private final PostSearchService postSearchService;
+  private final RecommendationService recommendationService;
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<PostAddDto.Response> createPost(@AuthenticationPrincipal MemberDetail memberDetail,
@@ -77,8 +87,9 @@ public class PostController {
     if (postType == PostType.GENERAL) {
       return ResponseEntity.ok(postService.getGeneralPostList(postStatus, postOrder, pageNum));
     } else {
-      // 관심목록 조회
-      return null;
+      return ResponseEntity.ok(
+          recommendationService.recommendBasedOnInterest(
+              memberDetail.getMember(), postStatus, postOrder, PageRequestCustom.of(pageNum)));
     }
   }
 

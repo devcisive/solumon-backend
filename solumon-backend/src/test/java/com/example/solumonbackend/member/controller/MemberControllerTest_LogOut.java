@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-public class MemberControllerTest2 {
+public class MemberControllerTest_LogOut {
   @Autowired
   private MockMvc mockMvc;
   @Autowired

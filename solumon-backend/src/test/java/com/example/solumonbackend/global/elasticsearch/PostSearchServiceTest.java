@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
-import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;

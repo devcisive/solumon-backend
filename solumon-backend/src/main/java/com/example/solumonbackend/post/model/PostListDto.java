@@ -72,6 +72,6 @@ public class PostListDto {
           .tags(postDocument.getTags())
           .build();
     }
-
   }
 }
+
