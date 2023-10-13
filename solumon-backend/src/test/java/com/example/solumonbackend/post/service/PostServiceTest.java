@@ -1,5 +1,13 @@
 package com.example.solumonbackend.post.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
@@ -11,8 +19,23 @@ import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Tag;
-import com.example.solumonbackend.post.model.*;
-import com.example.solumonbackend.post.repository.*;
+import com.example.solumonbackend.post.model.AwsS3;
+import com.example.solumonbackend.post.model.PostAddDto;
+import com.example.solumonbackend.post.model.PostDetailDto;
+import com.example.solumonbackend.post.model.PostDto;
+import com.example.solumonbackend.post.model.PostUpdateDto;
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.VoteRepository;
+import com.example.solumonbackend.post.repository.VoteRepositoryCustomImpl;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,26 +46,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static junit.framework.TestCase.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
 
+  Member postMember;
+  Post mockPost;
   @Mock
   private PostRepository postRepository;
   @Mock
@@ -61,9 +72,30 @@ class PostServiceTest {
   private VoteRepositoryCustomImpl voteCustomRepository;
   @Mock
   private PostSearchService postSearchService;
-
   @InjectMocks
   private PostService postService;
+
+  private static PostAddDto.Request getAddRequest() {
+    return PostAddDto.Request.builder()
+        .title("제목")
+        .contents("내용")
+        .tags(List.of(new PostDto.TagDto("태그1"), new PostDto.TagDto("태그2")))
+        .vote(PostDto.VoteDto.builder()
+            .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
+                , new PostDto.ChoiceDto(2, "선택2")))
+            .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
+                .plusDays(2))
+            .build())
+        .build();
+  }
+
+  private static PostUpdateDto.Request getUpdateRequest() {
+    return PostUpdateDto.Request.builder()
+        .title("제목2")
+        .contents("내용2")
+        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .build();
+  }
 
   @BeforeEach
   public void setUp() {
@@ -83,9 +115,6 @@ class PostServiceTest {
             .plusDays(2))
         .build();
   }
-
-  Member postMember;
-  Post mockPost;
 
   @Test
   @DisplayName("게시글 작성 성공")
@@ -449,28 +478,6 @@ class PostServiceTest {
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
-  }
-
-  private static PostAddDto.Request getAddRequest() {
-    return PostAddDto.Request.builder()
-        .title("제목")
-        .contents("내용")
-        .tags(List.of(new PostDto.TagDto("태그1"), new PostDto.TagDto("태그2")))
-        .vote(PostDto.VoteDto.builder()
-            .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
-                , new PostDto.ChoiceDto(2, "선택2")))
-            .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
-                .plusDays(2))
-            .build())
-        .build();
-  }
-
-  private static PostUpdateDto.Request getUpdateRequest() {
-    return PostUpdateDto.Request.builder()
-        .title("제목2")
-        .contents("내용2")
-        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
-        .build();
   }
 
 

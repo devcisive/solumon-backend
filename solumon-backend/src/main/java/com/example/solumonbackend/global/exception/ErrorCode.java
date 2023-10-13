@@ -46,7 +46,11 @@ public enum ErrorCode {
 
   // SearchException
   NOT_FOUND_POST_DOCUMENT("해당 게시물을 찾을 수 없습니다."),
-  CLOSED_DOCUMENT_FETCH_DISALLOWED("이미 종료된 문서는 마감 임박순으로 가져올 수 없습니다.");
+  CLOSED_DOCUMENT_FETCH_DISALLOWED("이미 종료된 문서는 마감 임박순으로 가져올 수 없습니다."),
+
+  // NotifyException
+  NOT_FOUND_NOTIFY("해당 알림을 찾을 수 없습니다."),
+  FAIL_SEND_NOTIFY("알림 전송에 실패하였습니다.");
 
   private final String description;
 
