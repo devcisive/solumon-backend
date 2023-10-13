@@ -9,11 +9,12 @@ import com.example.solumonbackend.post.entity.Vote;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
-import java.time.LocalDateTime;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class VoteService {
   private final PostSearchService postSearchService;
 
   @Transactional
-  public VoteAddDto.Response createVote(Member member, long postId, VoteAddDto.Request request) {
+  public VoteAddDto.Response createVote(Member member, long postId, int selectedNum) {
     Post post = getPost(postId);
     validateIsPostClosed(post);
 
@@ -37,7 +38,7 @@ public class VoteService {
     }
 
     voteRepository.save(Vote.builder()
-        .selectedNum(request.getSelectedNum())
+        .selectedNum(selectedNum)
         .member(member)
         .post(post)
         .build());
