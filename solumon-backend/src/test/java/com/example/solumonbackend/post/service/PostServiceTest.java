@@ -1,13 +1,5 @@
 package com.example.solumonbackend.post.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
@@ -17,29 +9,6 @@ import com.example.solumonbackend.post.common.AwsS3Component;
 import com.example.solumonbackend.post.entity.*;
 import com.example.solumonbackend.post.model.*;
 import com.example.solumonbackend.post.repository.*;
-import com.example.solumonbackend.post.entity.Choice;
-import com.example.solumonbackend.post.entity.Image;
-import com.example.solumonbackend.post.entity.Post;
-import com.example.solumonbackend.post.entity.PostTag;
-import com.example.solumonbackend.post.entity.Tag;
-import com.example.solumonbackend.post.model.AwsS3;
-import com.example.solumonbackend.post.model.PostAddDto;
-import com.example.solumonbackend.post.model.PostDetailDto;
-import com.example.solumonbackend.post.model.PostDto;
-import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.ChoiceRepository;
-import com.example.solumonbackend.post.repository.ImageRepository;
-import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.PostTagRepository;
-import com.example.solumonbackend.post.repository.TagRepository;
-import com.example.solumonbackend.post.repository.VoteRepository;
-import com.example.solumonbackend.post.repository.VoteRepositoryCustomImpl;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -81,9 +51,6 @@ class PostServiceTest {
   private ChoiceRepository choiceRepository;
   @Mock
   private VoteRepository voteRepository;
-
-  @Mock
-  private VoteRepositoryCustomImpl voteCustomRepository;
   @Mock
   private PostSearchService postSearchService;
   @InjectMocks
@@ -124,28 +91,23 @@ class PostServiceTest {
     images.add(new MockMultipartFile("images", "image1.jpg",
         "jpg", "image data".getBytes()));
 
-//    List<String> tags = request.getTags()
-//        .stream().map(tag -> tag.getTag())
-//        .collect(Collectors.toList());
-//
-//    List<AwsS3> awsS3List = List.of(AwsS3.builder()
-//        .key("dirName/image1.jpg")
-//        .path("imageUrl")
-//        .build());
-//
-//    List<Choice> choices = List.of(
-//        Choice.builder()
-//            .choiceId(1L)
-//            .post(mockPost)
-//            .choiceNum(1)
-//            .choiceText("선택1")
-//            .build(),
-//        Choice.builder()
-//            .choiceId(2L)
-//            .post(mockPost)
-//            .choiceNum(2)
-//            .choiceText("선택2")
-//            .build());
+    List<String> tags = request.getTags()
+        .stream().map(tag -> tag.getTag())
+        .collect(Collectors.toList());
+
+    List<Choice> choices = List.of(
+        Choice.builder()
+            .choiceId(1L)
+            .post(mockPost)
+            .choiceNum(1)
+            .choiceText("선택1")
+            .build(),
+        Choice.builder()
+            .choiceId(2L)
+            .post(mockPost)
+            .choiceNum(2)
+            .choiceText("선택2")
+            .build());
 
     when(postRepository.save(any(Post.class)))
         .thenReturn(mockPost);
@@ -163,19 +125,7 @@ class PostServiceTest {
                 .post(mockPost)
                 .build()));
     when(choiceRepository.saveAll(anyList()))
-        .thenReturn(List.of(
-            Choice.builder()
-                .choiceId(1L)
-                .post(mockPost)
-                .choiceNum(1)
-                .choiceText("선택1")
-                .build(),
-            Choice.builder()
-                .choiceId(2L)
-                .post(mockPost)
-                .choiceNum(2)
-                .choiceText("선택2")
-                .build()));
+        .thenReturn(choices);
     when(awsS3Component.upload(images.get(0), "post"))
         .thenReturn(AwsS3.builder()
             .key("post/image1.jpg")
@@ -188,13 +138,11 @@ class PostServiceTest {
     //when
     PostAddDto.Response response = postService.createPost(postMember, request, images);
 
-    ArgumentCaptor<List> elasticTags = ArgumentCaptor.forClass(List.class);
-    ArgumentCaptor<Tag> tagArgumentCaptor = ArgumentCaptor.forClass(Tag.class);
-
     ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
     ArgumentCaptor<PostTag> postTagCaptor = ArgumentCaptor.forClass(PostTag.class);
     ArgumentCaptor<List<Choice>> choiceCaptor = ArgumentCaptor.forClass(List.class);
     ArgumentCaptor<List<Image>> imageCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<String>> elasticTags = ArgumentCaptor.forClass(List.class);
 
     //then
     verify(postRepository, times(2)).save(postCaptor.capture());
@@ -213,6 +161,7 @@ class PostServiceTest {
     assertEquals(imageCaptor.getValue().get(0).getImageUrl(), response.getImages().get(0).getImage());
     assertEquals(1, response.getImages().get(0).getIndex());
     assertTrue(response.getImages().get(0).isRepresentative());
+    assertEquals(tags.get(0), elasticTags.getValue().get(0));
   }
 
   @Test

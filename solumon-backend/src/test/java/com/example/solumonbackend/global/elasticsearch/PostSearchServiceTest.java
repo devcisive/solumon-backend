@@ -1,23 +1,10 @@
 package com.example.solumonbackend.global.elasticsearch;
 
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Post;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +15,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostSearchServiceTest {
@@ -47,7 +45,7 @@ class PostSearchServiceTest {
         .id(200L)
         .title("제목200")
         .content("내용200")
-        .writer("테스트유저")
+        .nickname("테스트유저")
         .tags(List.of("생일", "선물", "생일선물"))
         .voteCount(0)
         .chatCount(0)
@@ -97,7 +95,7 @@ class PostSearchServiceTest {
     verify(postSearchRepository, times(1)).save(captor.capture());
 
     assertEquals("제목200", captor.getValue().getTitle());
-    assertEquals(testMember.getNickname(), captor.getValue().getWriter());
+    assertEquals(testMember.getNickname(), captor.getValue().getNickname());
     assertEquals("내용200", captor.getValue().getContent());
     assertEquals(mockTags.toString(), captor.getValue().getTags());
 
@@ -127,7 +125,7 @@ class PostSearchServiceTest {
         .id(200L)
         .title("테스트 제목입니다2.")
         .content("테스트 본문 입니다.")
-        .writer("테스트유저")
+        .nickname("테스트유저")
         .tags(List.of("생일", "선물", "생일선물"))
         .voteCount(0)
         .chatCount(0)
