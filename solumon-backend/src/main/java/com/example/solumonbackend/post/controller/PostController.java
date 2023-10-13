@@ -6,35 +6,20 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.service.MemberService;
-import com.example.solumonbackend.post.model.HasInterestTagsDto;
-import com.example.solumonbackend.post.model.PageRequestCustom;
-import com.example.solumonbackend.post.model.PostAddDto;
-import com.example.solumonbackend.post.model.PostDetailDto;
-import com.example.solumonbackend.post.model.PostListDto;
+import com.example.solumonbackend.post.model.*;
 import com.example.solumonbackend.post.model.PostListDto.Response;
-import com.example.solumonbackend.post.model.PostUpdateDto;
 import com.example.solumonbackend.post.service.PostService;
 import com.example.solumonbackend.post.service.RecommendationService;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
 import com.example.solumonbackend.post.type.PostType;
-import com.example.solumonbackend.post.type.SearchQueryType;
-import java.util.List;
-import javax.validation.Valid;
+import com.example.solumonbackend.post.type.SearchType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
@@ -72,12 +57,13 @@ public class PostController {
   }
 
   @DeleteMapping("/{postId}")
-  public ResponseEntity<String> deletePost(@AuthenticationPrincipal MemberDetail memberDetail,
-                                           @PathVariable long postId) {
+  public ResponseEntity<Void> deletePost(@AuthenticationPrincipal MemberDetail memberDetail,
+                                         @PathVariable long postId) {
     postService.deletePost(memberDetail.getMember(), postId);
-    return ResponseEntity.ok("게시글이 삭제되었습니다.");
+    return ResponseEntity.ok().build();
   }
 
+  // TODO: response 객체를 만들지 않고 boolean 값만 리턴해도 되는지?
   @GetMapping("/post-list")
   public ResponseEntity<HasInterestTagsDto.Response> hasInterestTags(
       @AuthenticationPrincipal MemberDetail memberDetail) {
@@ -87,15 +73,15 @@ public class PostController {
         .build());
   }
 
-  // 일반 조회
+  // 일반 조회 및 관심태그 기반 조회
   @GetMapping
   public ResponseEntity<Page<PostListDto.Response>> getPostList(@AuthenticationPrincipal MemberDetail memberDetail,
-      @RequestParam PostType postType,
-      @RequestParam PostStatus postStatus,
-      @RequestParam PostOrder postOrder,
-      @RequestParam(defaultValue = "1") Integer pageNum) {
+                                                                @RequestParam PostType postType,
+                                                                @RequestParam PostStatus postStatus,
+                                                                @RequestParam PostOrder postOrder,
+                                                                @RequestParam(defaultValue = "1") Integer pageNum) {
 
-    if (postStatus == PostStatus.COMPLETED && postOrder == PostOrder.IMMINENT_CLOSE ) {
+    if (postStatus == PostStatus.COMPLETED && postOrder == PostOrder.IMMINENT_CLOSE) {
       throw new SearchException(ErrorCode.CLOSED_DOCUMENT_FETCH_DISALLOWED);
     }
 
@@ -113,11 +99,11 @@ public class PostController {
       @RequestParam String keyWord,
       @RequestParam PostStatus postStatus, //진행, 마감
       @RequestParam PostOrder postOrder, // 최신순, 투표 참여 인원순, 채팅 참여 인원순, 마감임박순
-      @RequestParam SearchQueryType searchQueryType, // 제목 및 본문, 태그
+      @RequestParam SearchType searchType, // 제목 및 본문, 태그
       @RequestParam(defaultValue = "1") int pageNum) {
 
     // 제목 및 본문 검색
-    if (searchQueryType == SearchQueryType.CONTENT) {
+    if (searchType == SearchType.CONTENT) {
       if (postStatus == PostStatus.ONGOING) {
         // 진행 중인 고민
         return ResponseEntity.ok(postSearchService.searchOngoingPostsByContent(keyWord, pageNum, postOrder));
@@ -128,7 +114,7 @@ public class PostController {
         }
         return ResponseEntity.ok(postSearchService.searchCompletedPostsByContent(keyWord, pageNum, postOrder));
       }
-    // 태그 검색
+      // 태그 검색
     } else {
       if (postStatus == PostStatus.ONGOING) {
         // 진행 중인 고민

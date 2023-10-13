@@ -1,7 +1,5 @@
 package com.example.solumonbackend.notify.service;
 
-import static com.example.solumonbackend.notify.model.NotifyDto.Response.notifyListToResponse;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.NotifyException;
 import com.example.solumonbackend.member.entity.Member;
@@ -12,13 +10,16 @@ import com.example.solumonbackend.notify.repository.EmitterRepository;
 import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.type.NotifyType;
 import com.example.solumonbackend.post.entity.Post;
-import java.io.IOException;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static com.example.solumonbackend.notify.model.NotifyDto.Response.notifyListToResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +84,7 @@ public class NotifyService {
     notifyRepository.deleteAllByMember_MemberId(member.getMemberId());
   }
 
-  public void changeReadStatus(long notiId) {
+  public void changeToRead(long notiId) {
     Notify notify = notifyRepository.findById(notiId)
         .orElseThrow(() -> new NotifyException(ErrorCode.NOT_FOUND_NOTIFY));
     notify.setRead(true);
@@ -134,7 +135,7 @@ public class NotifyService {
   }
 
   private void sendLostData(String lastEventId, String userEmail, String emitterId,
-      SseEmitter emitter) {
+                            SseEmitter emitter) {
     Map<String, Notify> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(
         userEmail);
 
