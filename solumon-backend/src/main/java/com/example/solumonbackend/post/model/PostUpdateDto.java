@@ -2,6 +2,7 @@ package com.example.solumonbackend.post.model;
 
 import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,7 +43,7 @@ public class PostUpdateDto {
     @JsonProperty("post_id")
     private long postId;
     private String title;
-    private String writer;
+    private String nickname;
     private String contents;
     private List<TagDto> tags;
     private List<ImageDto> images;
@@ -53,13 +54,18 @@ public class PostUpdateDto {
     @JsonProperty("chat_count")
     private int chatCount;
 
-    public static Response postToResponse(Post post, List<TagDto> tags, List<Image> images) {
+    public static Response postToResponse(Post post, List<PostTag> tags, List<Image> images) {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
-          .writer(post.getMember().getNickname())
+          .nickname(post.getMember().getNickname())
           .contents(post.getContents())
-          .tags(tags)
+          .tags(tags.stream()
+              .filter(Objects::nonNull)
+              .map(tag -> TagDto.builder()
+                  .tag(tag.getTag().getName())
+                  .build())
+              .collect(Collectors.toList()))
           .images(images.stream()
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()

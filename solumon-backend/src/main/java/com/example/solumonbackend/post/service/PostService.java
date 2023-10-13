@@ -76,7 +76,7 @@ public class PostService {
     int representIdx = 0;
     for (ImageDto dto : imageDtoList) {
       if (dto.isRepresentative()) {
-        representIdx = dto.getIndex();
+        representIdx = dto.getIndex() - 1;
         break;
       }
     }
@@ -189,11 +189,11 @@ public class PostService {
     postRepository.save(post);
 
     postTagRepository.deleteAllByPost_PostId(postId);
-    savePostTag(request.getTags(), post);
+    List<PostTag> postTagList = savePostTag(request.getTags(), post);
 
     try {
       List<Image> imageList = updateImages(post, images, request.getImages());
-      return PostUpdateDto.Response.postToResponse(post, request.getTags(), imageList);
+      return PostUpdateDto.Response.postToResponse(post, postTagList, imageList);
 
     } catch (IOException e) {
       throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);

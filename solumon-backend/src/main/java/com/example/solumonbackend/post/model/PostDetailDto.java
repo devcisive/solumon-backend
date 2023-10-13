@@ -28,7 +28,7 @@ public class PostDetailDto {
     @JsonProperty("post_id")
     private long postId;
     private String title;
-    private String writer;
+    private String nickname;
     private String contents;
     private List<TagDto> tags;
     private List<ImageDto> images;
@@ -46,7 +46,7 @@ public class PostDetailDto {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
-          .writer(post.getMember().getNickname())
+          .nickname(post.getMember().getNickname())
           .contents(post.getContents())
           .createdAt(post.getCreatedAt())
 
