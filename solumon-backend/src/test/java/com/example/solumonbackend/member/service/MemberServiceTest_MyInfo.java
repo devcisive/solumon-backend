@@ -1,18 +1,5 @@
 package com.example.solumonbackend.member.service;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertIterableEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
@@ -34,13 +21,6 @@ import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,6 +33,21 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -455,7 +450,7 @@ class MemberServiceTest_MyInfo {
 
     MyParticipatePostDto post1 = MyParticipatePostDto.builder()
         .postId(1L)
-        .writerNickname("작성자1")
+        .nickname("작성자1")
         .title("제목1")
         .contents("내용1")
         .createdAt(LocalDateTime.now())
@@ -466,7 +461,7 @@ class MemberServiceTest_MyInfo {
 
     MyParticipatePostDto post2 = MyParticipatePostDto.builder()
         .postId(2L)
-        .writerNickname("작성자2")
+        .nickname("작성자2")
         .title("제목2")
         .contents("내용2")
         .createdAt(LocalDateTime.now().plusDays(1))

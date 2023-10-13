@@ -1,12 +1,15 @@
 package com.example.solumonbackend.member.model;
 
 import com.example.solumonbackend.member.entity.Member;
-import java.util.List;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MemberLogDto {
 
   @Builder
@@ -28,6 +31,5 @@ public class MemberLogDto {
           .build();
     }
   }
-
 
 }

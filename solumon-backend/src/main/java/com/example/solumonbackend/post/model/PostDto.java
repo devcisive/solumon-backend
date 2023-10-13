@@ -1,6 +1,10 @@
 package com.example.solumonbackend.post.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +14,7 @@ import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostDto {
 
   @Getter
@@ -36,7 +41,8 @@ public class PostDto {
   @NoArgsConstructor
   public static class VoteDto {
     private List<ChoiceDto> choices;
-    @JsonProperty("end_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endAt;
   }
 
@@ -45,7 +51,6 @@ public class PostDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class VoteResultDto {
-    @JsonProperty("result_access_status")
     private boolean resultAccessStatus;
     private List<ChoiceResultDto> choices;
   }
@@ -55,10 +60,8 @@ public class PostDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class ChoiceDto {
-    @JsonProperty("choice_num")
     @NotBlank(message = "선택지 번호를 입력해주세요")
     private int choiceNum;
-    @JsonProperty("choice_text")
     @NotBlank(message = "선택지 내용을 입력해주세요")
     private String choiceText;
   }
@@ -68,13 +71,9 @@ public class PostDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class ChoiceResultDto {
-    @JsonProperty("choice_num")
     private Integer choiceNum;
-    @JsonProperty("choice_text")
     private String choiceText;
-    @JsonProperty("choice_count")
     private Long choiceCount;
-    @JsonProperty("choice_percent")
     private Long choicePercent;
 
     public ChoiceResultDto setChoicePercent(Long choicePercent) {

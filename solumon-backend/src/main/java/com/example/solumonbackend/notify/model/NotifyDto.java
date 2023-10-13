@@ -1,19 +1,23 @@
 package com.example.solumonbackend.notify.model;
 
-import static com.example.solumonbackend.notify.model.NotifyDto.Notification.notifyToNotification;
-
 import com.example.solumonbackend.notify.entity.Notify;
 import com.example.solumonbackend.notify.type.NotifyType;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class NotifyDto {
 
   @Getter
@@ -40,16 +44,13 @@ public class NotifyDto {
   @AllArgsConstructor
   @Builder
   public static class Notification {
-    @JsonProperty("noti_id")
     private Long notiId;
-    @JsonProperty("post_id")
     private Long postId;
-    @JsonProperty("post_title")
     private String postTitle;
-    @JsonProperty("is_read")
     private boolean isRead;
     private NotifyType type;
-    @JsonProperty("sent_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime sentAt;
 
 

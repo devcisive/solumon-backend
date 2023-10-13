@@ -5,7 +5,6 @@ import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
@@ -19,13 +18,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostUpdateDto {
 
   @Getter
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
-  @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
     @NotBlank(message = "제목을 입력해주세요")
     private String title;
@@ -40,18 +39,14 @@ public class PostUpdateDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Response {
-    @JsonProperty("post_id")
     private long postId;
     private String title;
     private String nickname;
     private String contents;
     private List<TagDto> tags;
     private List<ImageDto> images;
-    @JsonProperty("created_at")
     private LocalDateTime createdAt;
-    @JsonProperty("vote_count")
     private int voteCount;
-    @JsonProperty("chat_count")
     private int chatCount;
 
     public static Response postToResponse(Post post, List<PostTag> tags, List<Image> images) {
@@ -60,12 +55,14 @@ public class PostUpdateDto {
           .title(post.getTitle())
           .nickname(post.getMember().getNickname())
           .contents(post.getContents())
+
           .tags(tags.stream()
               .filter(Objects::nonNull)
               .map(tag -> TagDto.builder()
                   .tag(tag.getTag().getName())
                   .build())
               .collect(Collectors.toList()))
+
           .images(images.stream()
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
@@ -74,6 +71,7 @@ public class PostUpdateDto {
                   .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
+
           .createdAt(post.getCreatedAt())
           .voteCount(post.getVoteCount())
           .chatCount(post.getChatCount())

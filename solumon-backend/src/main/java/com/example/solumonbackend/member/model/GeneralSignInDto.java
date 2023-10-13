@@ -1,13 +1,16 @@
 package com.example.solumonbackend.member.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GeneralSignInDto {
 
   @Getter
@@ -27,17 +30,9 @@ public class GeneralSignInDto {
   @Getter
   @Builder
   public static class Response {
-
-    @JsonProperty("member_id")
     private Long memberId;
-
-    @JsonProperty("access_token")
     private String accessToken;
-
-    @JsonProperty("refresh_token")
     private String refreshToken;
-
-    @JsonProperty("is_first_login")
     private boolean isFirstLogIn;
   }
 
