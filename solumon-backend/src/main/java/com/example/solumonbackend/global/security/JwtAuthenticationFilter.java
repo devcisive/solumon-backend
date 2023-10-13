@@ -54,7 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       }
 
       // 얘네가 정상이라면? 다시 AccessToken만들어서 기존 RefreshToken이랑 저장한 후 accessToken만 가져오기
-      accessToken = jwtTokenProvider.reIssue(byAccessToken.getRefreshToken());
+      accessToken = jwtTokenProvider.reIssue(byAccessToken.getAccessToken());
+      response.setHeader("X-AUTH-TOKEN", accessToken);
       Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
       SecurityContextHolder.getContext().setAuthentication(authentication);
     }

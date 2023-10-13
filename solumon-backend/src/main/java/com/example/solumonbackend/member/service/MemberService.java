@@ -34,7 +34,7 @@ import com.example.solumonbackend.post.repository.PostRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -149,12 +149,12 @@ public class MemberService {
 
 
   public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
-      PostState postState, PostParticipateType postParticipateType, PostOrder postOrder,
+      PostStatus postStatus, PostParticipateType postParticipateType, PostOrder postOrder,
       Pageable pageable) {
 
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getMyParticipatePostPages(member.getMemberId(),
-        postParticipateType, postState, postOrder, pageable);
+        postParticipateType, postStatus, postOrder, pageable);
 
   }
 

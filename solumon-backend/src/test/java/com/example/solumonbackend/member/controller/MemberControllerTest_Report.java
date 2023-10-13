@@ -74,17 +74,16 @@ class MemberControllerTest_Report {
     LocalDateTime of = LocalDateTime.of(2023, 04, 01, 0, 0);
 
 //    fakeMembers = new HashMap<>();
-    reporterMember = Member.builder().memberId(1L).email("reporter@gmail.com").isFirstLogIn(false).build();
-    withdrawnMember = Member.builder().memberId(2L).email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build();
-    bannedMember = Member.builder().memberId(3L).email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build();
-    nonReportingMember = Member.builder().memberId(4L).email("nonReporting@gmail.com").isFirstLogIn(false).build();
+    reporterMember = Member.builder().nickname("신고자").email("reporter@gmail.com").isFirstLogIn(false).build();
+    withdrawnMember = Member.builder().nickname("탈퇴멤버").email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build();
+    bannedMember = Member.builder().nickname("정지멤버").email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build();
+    nonReportingMember = Member.builder().nickname("내가신고한적없는멤버").email("nonReporting@gmail.com").isFirstLogIn(false).build();
 
-    reportedPossibleDaysMember = Member.builder().email("DaysAgo@gmail.com").isFirstLogIn(false).build();
-    reportedCoolTimeMember = Member.builder().email("WithInDays@gmail.com").isFirstLogIn(false).build();
+    reportedPossibleDaysMember = Member.builder().nickname("신고가능기간멤버").email("DaysAgo@gmail.com").isFirstLogIn(false).build();
+    reportedCoolTimeMember = Member.builder().nickname("신고아직못하는멤버").email("WithInDays@gmail.com").isFirstLogIn(false).build();
 
     memberRepository.saveAll(List.of(reporterMember,withdrawnMember,bannedMember,nonReportingMember,reportedPossibleDaysMember,reportedCoolTimeMember));
-    // 왜인진 몰라도 5,6번째 데이터만 pk 값이 증가하는 문제가 있어서 pk값 할당을 제거함 (1,2,3,4번은 증가하지않고 그대로인 상태)
-    
+
 
 
     // 내가 신고한지 3일이 지난 신고데이터
@@ -112,7 +111,6 @@ class MemberControllerTest_Report {
     request = new ReportDto.Request(ReportType.OTHER,"신고합니다");
 
 
-
   }
 
 
@@ -124,7 +122,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + nonReportingMember.getMemberId() +"/report")
+    mockMvc.perform(post("/user/report")
+            .param("nickname", nonReportingMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -140,7 +139,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + reportedPossibleDaysMember.getMemberId() +"/report")
+    mockMvc.perform(post("/user/report")
+            .param("nickname", reportedPossibleDaysMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -156,7 +156,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/100/report")
+    mockMvc.perform(post("/user/report")
+            .param("nickname","없는 멤버")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -173,7 +174,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + withdrawnMember.getMemberId()+"/report")
+    mockMvc.perform(post("/user/report")
+            .param("nickname",withdrawnMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -191,7 +193,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + bannedMember.getMemberId() +"/report") //bannedMember
+    mockMvc.perform(post("/user/report")
+            .param("nickname",bannedMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -208,7 +211,8 @@ class MemberControllerTest_Report {
 
     String jsonRequest = objectMapper.writeValueAsString(request);
 
-    mockMvc.perform(post("/user/" + reportedCoolTimeMember.getMemberId() +"/report")
+    mockMvc.perform(post("/user/report")
+            .param("nickname",reportedCoolTimeMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))

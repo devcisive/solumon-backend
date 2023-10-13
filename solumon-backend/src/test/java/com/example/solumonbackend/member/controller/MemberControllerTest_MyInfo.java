@@ -27,7 +27,7 @@ import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -298,12 +298,13 @@ class MemberControllerTest_MyInfo {
   }
 
 
+  // 따로 실행하면 통과
   @DisplayName("내가 참여한 글 가져오기(성공) - <작성 - 마감 - 최신순>") // 3,2,1번
   @Test
   void getMyParticipatePosts_success_WRITE_COMPLETED_POST_ORDER() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.WRITE))
-            .param("postState", String.valueOf(PostState.COMPLETED))
+            .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.LATEST))
             .param("page", "1")
             .contentType(MediaType.APPLICATION_JSON)
@@ -330,7 +331,7 @@ class MemberControllerTest_MyInfo {
   void getMyParticipatePosts_success_VOTE_ONGOING_MOST_VOTES() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.VOTE))
-            .param("postState", String.valueOf(PostState.ONGOING))
+            .param("postStatus", String.valueOf(PostStatus.ONGOING))
             .param("postOrder", String.valueOf(PostOrder.MOST_VOTES))
             .param("page", "1")
             .contentType(MediaType.APPLICATION_JSON)
@@ -356,7 +357,7 @@ class MemberControllerTest_MyInfo {
   void getMyParticipatePosts_success_VOTE_COMPLETED_MOST_MOST_CHAT_PARTICIPANTS() throws Exception {
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
-            .param("postState", String.valueOf(PostState.COMPLETED))
+            .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
             .param("page", "1")
             .contentType(MediaType.APPLICATION_JSON)
@@ -378,7 +379,7 @@ class MemberControllerTest_MyInfo {
   void getMyParticipatePosts_fail_nonePage() throws Exception{
     mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
             .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
-            .param("postState", String.valueOf(PostState.COMPLETED))
+            .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
             .param("page", "3")
             .contentType(MediaType.APPLICATION_JSON)

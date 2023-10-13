@@ -43,8 +43,7 @@ public class RedisChatService {
       nickname = chatMemberInfoMap.get("nickname").toString();
 
     } catch (NullPointerException e) {
-      // 처리를 어떻게 하는게 좋을지
-      log.info("ChatMemberInfo is null" + e.getMessage());
+      log.error("ChatMemberInfo is null" + e.getMessage());
     }
 
     return new ChatMemberInfo(memberId, nickname);

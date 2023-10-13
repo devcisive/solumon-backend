@@ -37,7 +37,7 @@ public class ChatController {
         = redisChatService.getChatMemberInfo(
         StompHeaderAccessor.wrap(message).getSessionId()); //처음 커넥했을 당시에 세션아이디를 키로 저장했던 유저 정보를 가져옴
 
-    chatService.sendAndSaveChatMessage(postId, request, chatMemberInfo);
+    chatService.sendChatMessage(postId, request, chatMemberInfo);
     return ResponseEntity.ok().build();
   }
 

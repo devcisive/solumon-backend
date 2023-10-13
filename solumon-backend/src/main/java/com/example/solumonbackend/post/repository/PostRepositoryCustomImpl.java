@@ -1,14 +1,12 @@
 package com.example.solumonbackend.post.repository;
 
 import com.example.solumonbackend.chat.entity.QChannelMember;
-import com.example.solumonbackend.global.exception.ErrorCode;
-import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.post.entity.QPost;
 import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -47,7 +45,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   @Override
   public Page<MyParticipatePostDto> getMyParticipatePostPages(Long memberId,
-      PostParticipateType postParticipateType, PostState postState, PostOrder postOrder,
+      PostParticipateType postParticipateType, PostStatus postStatus, PostOrder postOrder,
       Pageable pageable) {
 
     QPost qpost = QPost.post;
@@ -56,7 +54,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     BooleanExpression participateTypeCondition
         = createParticipateTypeCondition(memberId, postParticipateType, qpost);
     // 조건2 (상태)
-    BooleanExpression stateCondition = createStateCondition(postState, qpost);
+    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
 
     // 정렬기준
     OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qpost);
@@ -97,21 +95,21 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
-  private BooleanExpression createStateCondition(PostState state, QPost qpost) {
-  // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
-    if (qpost == null || state == null) {
-      throw new PostException(ErrorCode.NullPointerException);
+  private BooleanExpression createStateCondition(PostStatus status, QPost qpost) {
+
+    if (qpost == null || status == null) {
+      throw new NullPointerException("Qpost or PostStatus is null");
     }
 
-    if (state == PostState.ONGOING) {
+    if (status == PostStatus.ONGOING) {
       return qpost.endAt.after(LocalDateTime.now());
     }
 
-    if (state == PostState.COMPLETED) {
+    if (status == PostStatus.COMPLETED) {
       return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
     }
 
-    throw new PostException(ErrorCode.IllegalArgumentException);
+    throw new IllegalArgumentException();
   }
 
 
@@ -119,9 +117,8 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
   private BooleanExpression createParticipateTypeCondition(
       Long memberId, PostParticipateType participateType, QPost qPost) {
 
-    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
-    if (memberId == null || participateType == null) {
-      throw new PostException(ErrorCode.NullPointerException);
+    if (qPost == null || memberId == null || participateType == null) {
+      throw new NullPointerException("Qpost or memberId or PostParticipateType is null");
     }
 
     // 채팅
@@ -151,15 +148,15 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       return qPost.member.memberId.eq(memberId);
     }
 
-    throw new PostException(ErrorCode.IllegalArgumentException);
+    throw new IllegalArgumentException();
   }
 
 
   // Order By 값 구하기
   private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
-    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
+
       if (qpost == null || order == null) {
-        throw new PostException(ErrorCode.NullPointerException);
+        throw new NullPointerException("Qpost or PostOrder is null");
       }
 
       // 최신순)  post.createdAt.desc()
@@ -177,7 +174,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         return qpost.chatCount.desc();  // OrderSpecifier<Integer>
       }
 
-    throw new PostException(ErrorCode.IllegalArgumentException);
+    throw new IllegalArgumentException();
 
   }
 

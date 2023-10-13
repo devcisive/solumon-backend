@@ -25,6 +25,7 @@ public class ChatMessageDto {
   @Setter
   @Builder
   @AllArgsConstructor
+  @NoArgsConstructor
   public static class Response{
     private Long postId;
     private Long memberId;
@@ -56,12 +57,6 @@ public class ChatMessageDto {
           .isSent(false)
           .build();
     }
-
-
-
-    public Response(){
-     // 에러 뜨기 때문에 따로 만든 기본생성자
-   }
 
   }
 

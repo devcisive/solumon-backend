@@ -25,6 +25,12 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
   }
 
+  @ExceptionHandler(TagException.class)
+  public ErrorResponse handleTagException(TagException e) {
+    log.error("{} is occurred", e.getErrorCode());
+    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+  }
+
   @ExceptionHandler(CustomSecurityException.class)
   public ErrorResponse handleAccountException(CustomSecurityException e) {
     log.error("{} is occurred", e.getErrorCode());
@@ -43,6 +49,12 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage());
   }
 
+  @ExceptionHandler(NullPointerException.class)
+  public ErrorResponse handleNullPointerException(NullPointerException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.NullPointerException, e.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ErrorResponse MethodArgumentNotValidException(MethodArgumentNotValidException e) {
     BindingResult bindingResult = e.getBindingResult();
@@ -55,11 +67,6 @@ public class GlobalExceptionHandler {
     return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString());
   }
 
-  @ExceptionHandler(TagException.class)
-  public ErrorResponse handleTagException(TagException e) {
-    log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
-  }
 
 
 }

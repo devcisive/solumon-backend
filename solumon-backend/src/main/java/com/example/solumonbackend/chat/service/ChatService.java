@@ -31,7 +31,7 @@ public class ChatService {
 
 
   @Transactional
-  public void sendAndSaveChatMessage(long postId,
+  public void sendChatMessage(long postId,
       ChatMessageDto.Request request, ChatMemberInfo chatMemberInfo) {
 
     Post post = postRepository.findById(postId)

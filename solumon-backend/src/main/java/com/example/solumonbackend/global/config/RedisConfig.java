@@ -45,13 +45,7 @@ public class RedisConfig {
   // 토큰 저장하는 저장소와 분리
   @Bean
   public RedisConnectionFactory redisChatMemberConnectionFactory() {
-
-    final RedisStandaloneConfiguration redisStandaloneConfiguration = new RedisStandaloneConfiguration();
-    redisStandaloneConfiguration.setHostName(redisHost);
-    redisStandaloneConfiguration.setPort(redisPort);
-    redisStandaloneConfiguration.setDatabase(1);
-
-    return new LettuceConnectionFactory(redisStandaloneConfiguration);
+    return createLettuceConnectionFactory(1);
   }
 
 

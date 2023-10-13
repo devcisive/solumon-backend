@@ -33,9 +33,8 @@ public class SecurityConfig {
 
         // 회원가입, 로그인은 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/sign-in/**", "/exception")
+        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/sign-in/**", "/exception","/ws-stomp/**")
         .permitAll()
-        .antMatchers("/ws-stomp/**").permitAll()
         .antMatchers().authenticated() // 인증받은 사람이면 모두 가능
         .anyRequest().authenticated(); // 그 외의 요청들은 인증받은 사람이면 모두 가능
 

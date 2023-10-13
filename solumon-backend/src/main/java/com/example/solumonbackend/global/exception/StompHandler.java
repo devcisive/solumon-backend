@@ -34,7 +34,6 @@ public class StompHandler implements ChannelInterceptor {
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
     log.info("Stomp handler 실행");
-
     // StompHeaderAccessor.wrap 으로 message 를 감싸면 STOMP 의 헤더에 직접 접근가능
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
     String accessToken = "";
@@ -69,7 +68,7 @@ public class StompHandler implements ChannelInterceptor {
         }
 
         // 얘네가 정상이라면? 다시 AccessToken만들어서 기존 RefreshToken이랑 저장한 후 accessToken만 가져오기
-        accessToken = jwtTokenProvider.reIssue(byAccessToken.getRefreshToken());
+        accessToken = jwtTokenProvider.reIssue(byAccessToken.getAccessToken());
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
       }

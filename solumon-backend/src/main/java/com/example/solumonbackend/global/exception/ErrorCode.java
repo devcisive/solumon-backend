@@ -7,8 +7,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum ErrorCode {
   MethodArgumentNotValidException("valid exception"),
-
-  // 임시
   NullPointerException("null 값"),
   IllegalArgumentException("잘못된 인자값"),
   AmazonS3Exception("amazonS3 exception"),
