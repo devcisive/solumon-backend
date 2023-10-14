@@ -51,7 +51,10 @@ public enum ErrorCode {
 
   // NotifyException
   NOT_FOUND_NOTIFY("해당 알림을 찾을 수 없습니다."),
-  FAIL_SEND_NOTIFY("알림 전송에 실패하였습니다.");
+  FAIL_SEND_NOTIFY("알림 전송에 실패하였습니다."),
+
+  // MailException
+  FAIL_TO_SEND_MAIL("이메일 전송을 실패했습니다. 다시 시도해주세요.");
 
   private final String description;
 
