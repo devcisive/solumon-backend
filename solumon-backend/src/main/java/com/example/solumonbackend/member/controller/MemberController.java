@@ -53,8 +53,16 @@ public class MemberController {
 
   @GetMapping("/log-out")
   public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
-                                                    @RequestHeader("X-AUTH-TOKEN") String accessToken) {
+                                                   @RequestHeader("X-AUTH-TOKEN") String accessToken) {
     return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
+  }
+
+  @GetMapping(value = "/find-password")
+  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request) throws Exception {
+    emailAuthService.sendTempPasswordMessage(request.getEmail());
+    log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
+
+    return ResponseEntity.ok("임시 비밀번호가 " + request.getEmail() + "으로 발송되었습니다.");
   }
 
   @GetMapping("/exception")
@@ -67,13 +75,11 @@ public class MemberController {
     System.out.println(memberDetail.getMember().getEmail());
   }
 
-
   @GetMapping
   public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
 
     return ResponseEntity.ok().body(memberService.getMyInfo(memberDetail.getMember()));
   }
-
 
   @GetMapping("/mylog")
   public ResponseEntity<Page<MyParticipatePostDto>> getMyParticipatePosts(
@@ -90,7 +96,6 @@ public class MemberController {
             PageRequestCustom.of(page, postOrder)));
   }
 
-
   @PutMapping
   public ResponseEntity<MemberUpdateDto.Response> updateMyInfo(
       @AuthenticationPrincipal MemberDetail memberDetail,
@@ -99,7 +104,6 @@ public class MemberController {
         .body(memberService.updateMyInfo(memberDetail.getMember(), update));
   }
 
-
   @DeleteMapping("/withdraw")
   public ResponseEntity<WithdrawDto.Response> withdrawMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
@@ -107,7 +111,6 @@ public class MemberController {
     return ResponseEntity.ok()
         .body(memberService.withdrawMember(memberDetail.getMember(), request));
   }
-
 
   @PostMapping("/{memberId}/report")
   public ResponseEntity<Void> reportMember(
@@ -119,7 +122,6 @@ public class MemberController {
     return ResponseEntity.ok().build();
 
   }
-
 
   @PostMapping("/interests")
   public ResponseEntity<MemberInterestDto.Response> registerInterest(
