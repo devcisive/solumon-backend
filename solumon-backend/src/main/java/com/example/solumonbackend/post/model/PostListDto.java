@@ -2,15 +2,21 @@ package com.example.solumonbackend.post.model;
 
 import com.example.solumonbackend.global.elasticsearch.PostDocument;
 import com.example.solumonbackend.post.entity.Post;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostListDto {
 
   @Getter
@@ -18,27 +24,23 @@ public class PostListDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Response {
-
-    @JsonProperty("post_id")
     private long postId;
     private String title;
-    private String writer;
+    private String nickname;
     private String contents;
-    @JsonProperty("image_url")
     private String imageUrl;
-    @JsonProperty("vote_count")
     private int voteCount;
-    @JsonProperty("chat_count")
     private int chatCount;
-    @JsonProperty("created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
     private List<String> tags;
 
-    public Response(long postId, String title, String writer, String contents,
-        String imageUrl, int voteCount, int chatCount, LocalDateTime createdAt) {
+    public Response(long postId, String title, String nickname, String contents,
+                    String imageUrl, int voteCount, int chatCount, LocalDateTime createdAt) {
       this.postId = postId;
       this.title = title;
-      this.writer = writer;
+      this.nickname = nickname;
       this.contents = contents;
       this.imageUrl = imageUrl;
       this.voteCount = voteCount;
@@ -50,7 +52,7 @@ public class PostListDto {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
-          .writer(post.getMember().getNickname())
+          .nickname(post.getMember().getNickname())
           .contents(post.getContents())
           .imageUrl(post.getThumbnailUrl())
           .voteCount(post.getVoteCount())
@@ -63,7 +65,7 @@ public class PostListDto {
       return Response.builder()
           .postId(postDocument.getId())
           .title(postDocument.getTitle())
-          .writer(postDocument.getWriter())
+          .nickname(postDocument.getNickname())
           .contents(postDocument.getContent())
           .imageUrl(postDocument.getImageUrl())
           .voteCount(postDocument.getVoteCount())

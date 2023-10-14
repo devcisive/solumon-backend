@@ -6,7 +6,11 @@ import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +21,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostDetailDto {
 
   @Getter
@@ -25,19 +30,20 @@ public class PostDetailDto {
   @NoArgsConstructor
   public static class Response {
     // TODO : 채팅 추가
-    @JsonProperty("post_id")
     private long postId;
     private String title;
-    private String writer;
+    private String nickname;
     private String contents;
     private List<TagDto> tags;
     private List<ImageDto> images;
-    @JsonProperty("created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    private LocalDateTime endAt;
     private VoteResultDto vote;
-    @JsonProperty("vote_count")
     private int voteCount;
-    @JsonProperty("chat_count")
     private int chatCount;
 
     // TODO : 채팅, chatCount 추가
@@ -46,9 +52,10 @@ public class PostDetailDto {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
-          .writer(post.getMember().getNickname())
+          .nickname(post.getMember().getNickname())
           .contents(post.getContents())
           .createdAt(post.getCreatedAt())
+          .endAt(post.getEndAt())
 
           .tags(tags.stream()
               .filter(Objects::nonNull)
@@ -61,6 +68,8 @@ public class PostDetailDto {
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
                   .image(image.getImageUrl())
+                  .index(images.indexOf(image) + 1)
+                  .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
 

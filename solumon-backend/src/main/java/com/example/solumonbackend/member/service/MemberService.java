@@ -1,11 +1,5 @@
 package com.example.solumonbackend.member.service;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
-import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
-import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED_MEMBER;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
@@ -14,15 +8,7 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.entity.Report;
-import com.example.solumonbackend.member.model.CreateTokenDto;
-import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.MemberInterestDto;
-import com.example.solumonbackend.member.model.MemberLogDto;
-import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.WithdrawDto;
-import com.example.solumonbackend.member.model.LogOutDto;
-import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
@@ -35,10 +21,6 @@ import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,6 +28,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.example.solumonbackend.global.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -148,10 +137,9 @@ public class MemberService {
   }
 
 
-  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
-      PostStatus postStatus, PostParticipateType postParticipateType, PostOrder postOrder,
-      Pageable pageable) {
-
+  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member, PostStatus postStatus,
+                                                          PostParticipateType postParticipateType, PostOrder postOrder,
+                                                          Pageable pageable) {
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getMyParticipatePostPages(member.getMemberId(),
         postParticipateType, postStatus, postOrder, pageable);
@@ -213,7 +201,7 @@ public class MemberService {
 
   @Transactional
   public MemberInterestDto.Response registerInterest(Member member,
-      MemberInterestDto.Request request) {
+                                                     MemberInterestDto.Request request) {
 
     // 설정 전 기존의 관심주제(MemberTag) 초기화
     memberTagRepository.deleteAllByMember_MemberId(member.getMemberId());
@@ -248,8 +236,6 @@ public class MemberService {
   }
 
 
-
-
   @Transactional
   public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
 
@@ -270,7 +256,7 @@ public class MemberService {
     // 내가 3일안에 신고한 유저인지 확인 (가장 최근의 신고날짜를 확인)
     Optional<Report> latestReportByMe
         = reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc
-            (reportedMember.getMemberId(),member.getMemberId());
+        (reportedMember.getMemberId(), member.getMemberId());
 
     if (latestReportByMe.isPresent()
         && latestReportByMe.get().getReportedAt().plusDays(3).isAfter(LocalDateTime.now())) {
@@ -324,4 +310,9 @@ public class MemberService {
       member.setRole(MemberRole.GENERAL);
     }
   }
+
+  public boolean hasInterestTags(Member member) {
+    return memberTagRepository.existsByMember_MemberId(member.getMemberId());
+  }
+
 }

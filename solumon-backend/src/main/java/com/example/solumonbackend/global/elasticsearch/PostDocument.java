@@ -1,7 +1,6 @@
 package com.example.solumonbackend.global.elasticsearch;
 
 import com.example.solumonbackend.post.entity.Post;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +9,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
+
+import java.util.List;
 
 @Getter
 @Builder
@@ -24,7 +25,7 @@ public class PostDocument {
   private Long id;
   private String title;
   private String content;
-  private String writer;
+  private String nickname;
   private String imageUrl;
   private int voteCount;
   private int chatCount;
@@ -41,7 +42,7 @@ public class PostDocument {
         .id(post.getPostId())
         .title(post.getTitle())
         .content(post.getContents())
-        .writer(post.getMember().getNickname())
+        .nickname(post.getMember().getNickname())
         .imageUrl(post.getThumbnailUrl())
         .voteCount(post.getVoteCount())
         .chatCount(post.getChatCount())

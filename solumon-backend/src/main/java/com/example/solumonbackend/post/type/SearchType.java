@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum SearchQueryType {
+public enum SearchType {
   CONTENT("content"),
   TAG("tags");
 

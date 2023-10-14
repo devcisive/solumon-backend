@@ -3,6 +3,7 @@ package com.example.solumonbackend.post.controller;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.service.VoteService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,15 +19,15 @@ public class VoteController {
   @PostMapping
   public ResponseEntity<VoteAddDto.Response> createVote(@AuthenticationPrincipal MemberDetail memberDetail,
                                                         @PathVariable long postId,
-                                                        @RequestBody VoteAddDto.Request dto) {
-    return ResponseEntity.ok(voteService.createVote(memberDetail.getMember(), postId, dto));
+                                                        @RequestBody @JsonProperty("selected_num") int selectedNum) {
+    return ResponseEntity.ok(voteService.createVote(memberDetail.getMember(), postId, selectedNum));
   }
 
   @DeleteMapping
-  public ResponseEntity<String> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
+  public ResponseEntity<Void> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
                                            @PathVariable long postId) {
     voteService.deleteVote(memberDetail.getMember(), postId);
-    return ResponseEntity.ok("투표가 취소되었습니다.");
+    return ResponseEntity.ok().build();
   }
 
 }

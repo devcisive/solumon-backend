@@ -1,16 +1,5 @@
 package com.example.solumonbackend.notify.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.NotifyException;
 import com.example.solumonbackend.member.entity.Member;
@@ -20,11 +9,6 @@ import com.example.solumonbackend.notify.repository.EmitterRepository;
 import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.type.NotifyType;
 import com.example.solumonbackend.post.entity.Post;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,10 +16,19 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class NotifyServiceTest {
@@ -136,7 +129,7 @@ class NotifyServiceTest {
             .notiId(1L)
             .build()));
     // when
-    notifyService.changeReadStatus(1L);
+    notifyService.changeToRead(1L);
 
     ArgumentCaptor<Notify> notifyCaptor = ArgumentCaptor.forClass(Notify.class);
 
@@ -156,7 +149,7 @@ class NotifyServiceTest {
 
     // when
     NotifyException notifyException = assertThrows(NotifyException.class,
-        () -> notifyService.changeReadStatus(notiId));
+        () -> notifyService.changeToRead(notiId));
 
     // then
     verify(notifyRepository, times(1)).findById(notiId);
@@ -183,7 +176,7 @@ class NotifyServiceTest {
                 .postTitle("남자친구 선물")
                 .sentAt(LocalDateTime.now())
                 .isRead(false)
-            .build(),
+                .build(),
             Notify.builder()
                 .notiId(2L)
                 .postTitle("여자친구 선물")

@@ -113,7 +113,7 @@ public class MemberController {
   }
 
   @PostMapping("/{memberId}/report")
-  public ResponseEntity<?> reportMember(
+  public ResponseEntity<Void> reportMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody ReportDto.Request reportRequest,
       @PathVariable Long memberId) {

@@ -3,6 +3,7 @@ package com.example.solumonbackend.notify.controller;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.notify.model.NotifyDto;
 import com.example.solumonbackend.notify.service.NotifyService;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,14 +36,14 @@ public class NotifyController {
   }
 
   @DeleteMapping
-  public ResponseEntity<String> deleteAllNotify(@AuthenticationPrincipal MemberDetail memberDetail) {
+  public ResponseEntity<Void> deleteAllNotify(@AuthenticationPrincipal MemberDetail memberDetail) {
     notifyService.deleteAllNotify(memberDetail.getMember());
-    return ResponseEntity.ok("알림이 모두 삭제되었습니다.");
+    return ResponseEntity.ok().build();
   }
 
-  @GetMapping("/{noti_id}")
-  public void changeReadStatus(@PathVariable long noti_id) {
-    notifyService.changeReadStatus(noti_id);
+  @GetMapping("/{notiId}")
+  public void changeToRead(@PathVariable @JsonProperty("noti_id") long notiId) {
+    notifyService.changeToRead(notiId);
   }
 
 }
