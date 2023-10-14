@@ -1,14 +1,15 @@
 package com.example.solumonbackend.global.config;
 
 import com.example.solumonbackend.global.recommend.CustomItemProcessor;
-import com.example.solumonbackend.global.recommend.JpaItemListWriter;
+import com.example.solumonbackend.global.recommend.RepositoryItemListWriter;
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.repository.PostTagRepository;
 import com.example.solumonbackend.post.repository.RecommendRepository;
+import java.util.Collections;
 import java.util.List;
-import javax.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -16,11 +17,12 @@ import org.springframework.batch.core.configuration.annotation.EnableBatchProces
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.item.ItemProcessor;
-import org.springframework.batch.item.database.JpaItemWriter;
-import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
+import org.springframework.batch.item.data.RepositoryItemReader;
+import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
+import org.springframework.batch.item.data.builder.RepositoryItemWriterBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.domain.Sort.Direction;
 
 @Configuration
 @EnableBatchProcessing
@@ -28,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
 public class RecommendBatchConfig {
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
-  private final EntityManagerFactory entityManagerFactory;
+  private final MemberRepository memberRepository;
   private final MemberTagRepository memberTagRepository;
   private final PostTagRepository postTagRepository;
   private final RecommendRepository recommendRepository;
@@ -55,12 +57,14 @@ public class RecommendBatchConfig {
   }
 
   // ItemReader의 구현체, 데이터를 읽어들이는 역할을 함
-  private JpaPagingItemReader<Member> updateRecommendReader() {
-    return new JpaPagingItemReaderBuilder<Member>()
+  private RepositoryItemReader<Member> updateRecommendReader() {
+    return new RepositoryItemReaderBuilder<Member>()
         .name("updateRecommendReader")
-        .entityManagerFactory(entityManagerFactory)
+        .repository(memberRepository)
+        .methodName("findAll")
+        .sorts(Collections.singletonMap("memberId", Direction.ASC))
         .pageSize(CHUNK_SIZE)
-        .queryString("select m from Member m")
+        .maxItemCount(CHUNK_SIZE)
         .build();
   }
 
@@ -70,11 +74,11 @@ public class RecommendBatchConfig {
     return new CustomItemProcessor(memberTagRepository, postTagRepository, recommendRepository);
   }
 
-  // JpaItemListWriter은 JpaItemWriter의 구현체, 데이터를 쓰는 역할을 함 (기본적으로 save)
+  // RepositoryItemListWriter은 RepositoryItemWriter의 구현체, 데이터를 쓰는 역할을 함 (기본적으로 save)
   // List를 저장할 수 있게끔 override하여 구현함
-  private JpaItemListWriter<Recommend> updateRecommendWriterList() {
-    JpaItemWriter<Recommend> jpaItemWriter = new JpaItemWriter<>();
-    jpaItemWriter.setEntityManagerFactory(entityManagerFactory);
-    return new JpaItemListWriter<>(jpaItemWriter);
+  private RepositoryItemListWriter<Recommend> updateRecommendWriterList() {
+    return new RepositoryItemListWriter<>(new RepositoryItemWriterBuilder<Recommend>()
+        .repository(recommendRepository)
+        .build());
   }
 }
