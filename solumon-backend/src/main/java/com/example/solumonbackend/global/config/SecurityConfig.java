@@ -31,10 +31,12 @@ public class SecurityConfig {
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and() // JWT Token 인증방식으로 세션은 필요 없으므로 비활성화
 
-        // 회원가입, 로그인은 모두에게 허용
+        // 회원가입, 로그인, 비밀번호 찾기는 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/sign-in/**", "/exception","/ws-stomp/**")
+        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/sign-in/**",
+            "/user/find-password","/ws-stomp/**","/exception")
         .permitAll()
+
         .antMatchers().authenticated() // 인증받은 사람이면 모두 가능
         .anyRequest().authenticated(); // 그 외의 요청들은 인증받은 사람이면 모두 가능
 

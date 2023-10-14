@@ -7,7 +7,11 @@ import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteDto;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static com.example.solumonbackend.post.model.PostDto.ChoiceDto;
 
+@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostAddDto {
 
   @Getter
@@ -34,6 +39,7 @@ public class PostAddDto {
     @NotBlank(message = "상세 내용을 입력해주세요")
     private String contents;
     private List<TagDto> tags;
+    private List<ImageDto> images;
     @Valid
     private VoteDto vote;
   }
@@ -43,14 +49,14 @@ public class PostAddDto {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Response {
-    @JsonProperty("post_id")
     private long postId;
     private String title;
-    private String writer;
+    private String nickname;
     private String contents;
     private List<TagDto> tags;
     private List<ImageDto> images;
-    @JsonProperty("created_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
     private VoteDto vote;
 
@@ -59,7 +65,7 @@ public class PostAddDto {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())
-          .writer(post.getMember().getNickname())
+          .nickname(post.getMember().getNickname())
           .contents(post.getContents())
           .createdAt(post.getCreatedAt())
 
@@ -74,6 +80,8 @@ public class PostAddDto {
               .filter(Objects::nonNull)
               .map(image -> ImageDto.builder()
                   .image(image.getImageUrl())
+                  .index(images.indexOf(image) + 1)
+                  .representative(Objects.equals(image.getImageUrl(), post.getThumbnailUrl()))
                   .build())
               .collect(Collectors.toList()))
 

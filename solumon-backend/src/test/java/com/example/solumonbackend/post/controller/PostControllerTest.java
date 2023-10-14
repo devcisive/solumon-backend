@@ -180,6 +180,7 @@ class PostControllerTest {
         .title("제목2")
         .contents("내용")
         .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .images(List.of(new PostDto.ImageDto("testImage1.jpg", 1, true)))
         .build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -219,6 +220,7 @@ class PostControllerTest {
         .title("제목2")
         .contents("내용")
         .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .images(List.of())
         .build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -258,6 +260,7 @@ class PostControllerTest {
         .title("제목2")
         .contents("내용")
         .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .images(List.of(new PostDto.ImageDto("testImage1.jpg", 1, true)))
         .build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -295,6 +298,7 @@ class PostControllerTest {
         .title("제목2")
         .contents("내용")
         .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .images(List.of(new PostDto.ImageDto("testImage1.jpg", 1, true)))
         .build();
     String jsonRequest = objectMapper.writeValueAsString(request);
 
@@ -387,11 +391,11 @@ class PostControllerTest {
         .title("제목")
         .contents("내용")
         .tags(List.of(new PostDto.TagDto("태그1"), new PostDto.TagDto("태그2")))
+        .images(List.of(new PostDto.ImageDto("testImage1.jpg", 1, true)))
         .vote(PostDto.VoteDto.builder()
             .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
                 , new PostDto.ChoiceDto(2, "선택2")))
-            .endAt(LocalDateTime.of(2023, 9, 28, 14, 0, 0)
-                .plusDays(10))
+            .endAt(LocalDateTime.of(2023, 10, 28, 14, 0, 0))
             .build())
         .build();
   }

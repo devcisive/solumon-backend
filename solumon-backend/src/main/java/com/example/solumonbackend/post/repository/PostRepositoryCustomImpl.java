@@ -4,6 +4,7 @@ import com.example.solumonbackend.chat.entity.QChannelMember;
 import com.example.solumonbackend.post.entity.QPost;
 import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
+import com.example.solumonbackend.post.model.PostListDto;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
@@ -174,8 +175,48 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         return qpost.chatCount.desc();  // OrderSpecifier<Integer>
       }
 
+    // 마감 임박 순)  post.endAt.desc()
+    if (order == PostOrder.IMMINENT_CLOSE) {
+      return qpost.endAt.desc();  // OrderSpecifier<LocalDateTime>
+    }
+
     throw new IllegalArgumentException();
 
+  }
+
+
+
+  @Override
+  public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder,
+      Pageable pageable) {
+    QPost qpost = QPost.post;
+
+    // 조건1 (상태)
+    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
+
+    // 가져올 데이터
+    List<PostListDto.Response> resultContents
+        = jpaQueryFactory.select(Projections.constructor(PostListDto.Response.class,
+            qpost.postId,
+            qpost.title,
+            qpost.member.nickname.as("writer"),
+            qpost.contents,
+            qpost.thumbnailUrl.as("imageUrl"),
+            qpost.voteCount,
+            qpost.chatCount,
+            qpost.createdAt
+        ))
+        .from(qpost)
+        .where(stateCondition)
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
+    JPAQuery<Long> totalCount = jpaQueryFactory.select(qpost.count()).from(qpost)
+        .where(stateCondition);
+
+    return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);
   }
 
 }

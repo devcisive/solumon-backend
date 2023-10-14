@@ -9,12 +9,12 @@ import com.example.solumonbackend.post.entity.Vote;
 import com.example.solumonbackend.post.model.PostDto;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -33,9 +34,6 @@ class VoteServiceTest {
 
   @Mock
   private VoteRepository voteRepository;
-
-  @Mock
-  private VoteCustomRepository voteCustomRepository;
 
   @Mock
   private PostRepository postRepository;
@@ -64,23 +62,17 @@ class VoteServiceTest {
         .title("제목")
         .contents("내용")
         .member(postMember)
-        .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
-            .plusDays(20))
+        .endAt(LocalDateTime.of(2023, 10, 28, 10, 0, 0))
         .build();
   }
 
-  Member postMember;
-  Member otherMember;
+  Member postMember, otherMember;
   Post post;
 
   @Test
   @DisplayName("투표하기 성공")
   void createVote_success() {
     //given
-    VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1)
-        .build();
-
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(post));
     when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
@@ -94,50 +86,49 @@ class VoteServiceTest {
             .build());
     when(voteRepository.countByPost_PostId(1L))
         .thenReturn(5);
-    when(voteCustomRepository.getChoiceResults(1L))
+    when(voteRepository.getChoiceResults(1L))
         .thenReturn(List.of(
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(1)
-                .choiceText("선택지1")
+                .choiceText("선택1")
                 .choiceCount(5L)
                 .choicePercent(100L)
                 .build(),
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(2)
-                .choiceText("선택지2")
+                .choiceText("선택2")
                 .choiceCount(0L)
                 .choicePercent(0L)
                 .build()));
 
     //when
-    VoteAddDto.Response response = voteService.createVote(otherMember, 1L, request);
+    VoteAddDto.Response response = voteService.createVote(otherMember, 1L, 1);
+
+    ArgumentCaptor<Vote> voteCaptor = ArgumentCaptor.forClass(Vote.class);
+    ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
 
     //then
-    assertThat(response.getChoices().get(0).getChoiceCount()).isEqualTo(5L);
-    assertThat(response.getChoices().get(1).getChoiceText()).isEqualTo("선택지2");
-
     verify(postRepository, times(1)).findById(1L);
     verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
-    verify(voteRepository, times(1)).save(any(Vote.class));
+    verify(voteRepository, times(1)).save(voteCaptor.capture());
     verify(voteRepository, times(1)).countByPost_PostId(1L);
-    verify(postRepository, times(1)).save(any(Post.class));
-    verify(voteCustomRepository, times(1)).getChoiceResults(1L);
+    verify(postRepository, times(1)).save(postCaptor.capture());
+    verify(voteRepository, times(1)).getChoiceResults(1L);
+
+    assertEquals(5, postCaptor.getValue().getVoteCount());
+    assertEquals(1, response.getChoices().get(0).getChoiceNum());
   }
 
   @Test
   @DisplayName("투표하기 실패 - 존재하지 않는 게시글")
   void createVote_fail_notFoundPost() {
     //given
-    VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1)
-        .build();
-
     when(postRepository.findById(2L))
         .thenReturn(Optional.empty());
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(otherMember, 2L, request));
+        () -> voteService.createVote(otherMember, 2L, 1));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);
@@ -147,10 +138,6 @@ class VoteServiceTest {
   @DisplayName("투표하기 실패 - 투표가 마감된 글")
   void createVote_fail_postIsClosed() {
     //given
-    VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1)
-        .build();
-
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(Post.builder()
             .postId(1L)
@@ -160,7 +147,7 @@ class VoteServiceTest {
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(otherMember, 1L, request));
+        () -> voteService.createVote(otherMember, 1L, 1));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.POST_IS_CLOSED);
@@ -170,16 +157,12 @@ class VoteServiceTest {
   @DisplayName("투표하기 실패 - 작성자가 투표")
   void createVote_fail_writerCanNotVote() {
     //given
-    VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1)
-        .build();
-
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(post));
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(postMember, 1L, request));
+        () -> voteService.createVote(postMember, 1L, 1));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.WRITER_CAN_NOT_VOTE);
@@ -189,10 +172,6 @@ class VoteServiceTest {
   @DisplayName("투표하기 실패 - 투표는 한 번만 가능")
   void createVote_fail_voteOnlyOnce() {
     //given
-    VoteAddDto.Request request = VoteAddDto.Request.builder()
-        .selectedNum(1)
-        .build();
-
     when(postRepository.findById(1L))
         .thenReturn(Optional.of(post));
     when(voteRepository.existsByPost_PostIdAndMember_MemberId(1L, 2L))
@@ -200,7 +179,7 @@ class VoteServiceTest {
 
     //when
     PostException exception = assertThrows(PostException.class,
-        () -> voteService.createVote(otherMember, 1L, request));
+        () -> voteService.createVote(otherMember, 1L, 1));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.VOTE_ONLY_ONCE);
@@ -220,12 +199,14 @@ class VoteServiceTest {
     //when
     voteService.deleteVote(otherMember, 1L);
 
+    ArgumentCaptor<Post> postCaptor = ArgumentCaptor.forClass(Post.class);
+
     //then
     verify(postRepository, times(1)).findById(1L);
     verify(voteRepository, times(1)).existsByPost_PostIdAndMember_MemberId(1L, 2L);
     verify(voteRepository, times(1)).deleteByPost_PostIdAndMember_MemberId(1L, 2L);
     verify(voteRepository, times(1)).countByPost_PostId(1L);
-    verify(postRepository, times(1)).save(any(Post.class));
+    verify(postRepository, times(1)).save(postCaptor.capture());
   }
 
   @Test

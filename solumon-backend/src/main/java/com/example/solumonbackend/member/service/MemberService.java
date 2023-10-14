@@ -14,15 +14,7 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.entity.Report;
-import com.example.solumonbackend.member.model.CreateTokenDto;
-import com.example.solumonbackend.member.model.GeneralSignInDto;
-import com.example.solumonbackend.member.model.GeneralSignUpDto;
-import com.example.solumonbackend.member.model.LogOutDto;
-import com.example.solumonbackend.member.model.MemberInterestDto;
-import com.example.solumonbackend.member.model.MemberLogDto;
-import com.example.solumonbackend.member.model.MemberUpdateDto;
-import com.example.solumonbackend.member.model.ReportDto;
-import com.example.solumonbackend.member.model.WithdrawDto;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
@@ -148,10 +140,9 @@ public class MemberService {
   }
 
 
-  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member,
-      PostStatus postStatus, PostParticipateType postParticipateType, PostOrder postOrder,
-      Pageable pageable) {
-
+  public Page<MyParticipatePostDto> getMyParticipatePosts(Member member, PostStatus postStatus,
+                                                          PostParticipateType postParticipateType, PostOrder postOrder,
+                                                          Pageable pageable) {
     // postRepository 와 연결된 PostRepositoryCustom 내의 메소드 호출
     return postRepository.getMyParticipatePostPages(member.getMemberId(),
         postParticipateType, postStatus, postOrder, pageable);
@@ -213,7 +204,7 @@ public class MemberService {
 
   @Transactional
   public MemberInterestDto.Response registerInterest(Member member,
-      MemberInterestDto.Request request) {
+                                                     MemberInterestDto.Request request) {
 
     // 설정 전 기존의 관심주제(MemberTag) 초기화
     memberTagRepository.deleteAllByMember_MemberId(member.getMemberId());
@@ -248,13 +239,11 @@ public class MemberService {
   }
 
 
-
-
   @Transactional
-  public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
+  public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findByNickname(reportedNickname)
+    Member reportedMember = memberRepository.findById(reportedMemberId)
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
     if (reportedMember.getUnregisteredAt() != null) {
@@ -324,4 +313,9 @@ public class MemberService {
       member.setRole(MemberRole.GENERAL);
     }
   }
+
+  public boolean hasInterestTags(Member member) {
+    return memberTagRepository.existsByMember_MemberId(member.getMemberId());
+  }
+
 }
