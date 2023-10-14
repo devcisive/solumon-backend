@@ -1,12 +1,5 @@
 package com.example.solumonbackend.global.mail;
 
-import java.security.SecureRandom;
-import java.util.Random;
-import java.util.regex.Pattern;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MailException;
 import com.example.solumonbackend.global.exception.MemberException;
@@ -18,6 +11,12 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage.RecipientType;
+import java.security.SecureRandom;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -124,12 +123,6 @@ public class EmailAuthService {
     int rndAllCharactersLength = rndAllCharacters.length;
     for (int i = 0; i < 10; i++) {
       randomPassword.append(rndAllCharacters[random.nextInt(rndAllCharactersLength)]);
-    }
-
-    // 최소 8자리에 대소문자, 숫자, 특수문자 각 1개 이상 포함
-    String pattern = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!]).{8,20}$";
-    if (!Pattern.matches(pattern, randomPassword)) {
-      return createRandomPassword();    //비밀번호 조건(패턴)에 맞지 않는 경우 메서드 재실행
     }
 
     return randomPassword.toString();
