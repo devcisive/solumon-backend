@@ -63,24 +63,47 @@ class MemberControllerTest_Report {
 
   @BeforeEach
   public void dataSetup() {
-    // 멤버(신고자)
-    // 탈퇴한 멤버
-    // 정지상태인 멤버
-
-    // 신고한 적 없는 멤버
-    // 신고한지 3일 지난 멤버
-    // 신고한지 3일 지나지 않은 멤버
 
     LocalDateTime of = LocalDateTime.of(2023, 04, 01, 0, 0);
 
-//    fakeMembers = new HashMap<>();
-    reporterMember = Member.builder().nickname("신고자").email("reporter@gmail.com").isFirstLogIn(false).build();
-    withdrawnMember = Member.builder().nickname("탈퇴멤버").email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build();
-    bannedMember = Member.builder().nickname("정지멤버").email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build();
-    nonReportingMember = Member.builder().nickname("내가신고한적없는멤버").email("nonReporting@gmail.com").isFirstLogIn(false).build();
+    reporterMember = Member.builder()
+        .nickname("신고자")
+        .email("reporter@gmail.com")
+        .isFirstLogIn(false)
+        .build();
 
-    reportedPossibleDaysMember = Member.builder().nickname("신고가능기간멤버").email("DaysAgo@gmail.com").isFirstLogIn(false).build();
-    reportedCoolTimeMember = Member.builder().nickname("신고아직못하는멤버").email("WithInDays@gmail.com").isFirstLogIn(false).build();
+    withdrawnMember = Member.builder()
+        .nickname("탈퇴멤버")
+        .email("withdraw@gmail.com")
+        .unregisteredAt(LocalDateTime.now())
+        .isFirstLogIn(false)
+        .build();
+
+    bannedMember = Member.builder()
+        .nickname("정지멤버")
+        .email("banned@gmail.com")
+        .role(MemberRole.BANNED)
+        .bannedAt(of)
+        .isFirstLogIn(false)
+        .build();
+
+    nonReportingMember = Member.builder()
+        .nickname("내가신고한적없는멤버")
+        .email("nonReporting@gmail.com")
+        .isFirstLogIn(false)
+        .build();
+
+    reportedPossibleDaysMember = Member.builder()
+        .nickname("신고가능기간멤버")
+        .email("DaysAgo@gmail.com")
+        .isFirstLogIn(false)
+        .build();
+
+    reportedCoolTimeMember = Member.builder()
+        .nickname("신고아직못하는멤버")
+        .email("WithInDays@gmail.com")
+        .isFirstLogIn(false)
+        .build();
 
     memberRepository.saveAll(List.of(reporterMember,withdrawnMember,bannedMember,nonReportingMember,reportedPossibleDaysMember,reportedCoolTimeMember));
 

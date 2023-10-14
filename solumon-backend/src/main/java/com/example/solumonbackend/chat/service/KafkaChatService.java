@@ -38,17 +38,17 @@ public class KafkaChatService {
 
     sendFuture.addCallback(
         success -> {
-      log.info("[토픽에 send 성공!]  partition: {}, offset: {}",
+      log.debug("[send to ChatTopic Success]  partition: {}, offset: {}",
           success.getRecordMetadata().offset(), success.getRecordMetadata().partition());
 
 
     }, failure -> {
-        log.error("[토픽에 send 실패!]  error msg: {}", failure.getMessage());
+        log.error("[send to ChatTopic Fail]  error msg: {}", failure.getMessage());
         chatMessageRepository.save(ChatMessageDto.Response.failChatMessageToEntity(chatMessage));
     });
     
 
-    log.info(" postId : " + chatMessage.getPostId() + "chatMessage publish by " + chatMessage.getNickname());
+    log.debug(" postId : " + chatMessage.getPostId() + "chatMessage publish by " + chatMessage.getNickname());
   }
 
 
@@ -65,7 +65,7 @@ public class KafkaChatService {
       @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timeStamp,
       ChatMessageDto.Response chatMessage) {
 
-      log.info("[Consumer] message: {}, key: {}, partition: {}, offset: {}, timeStamp: {}",
+      log.debug("[Consumer] message: {}, key: {}, partition: {}, offset: {}, timeStamp: {}",
         chatMessage, key, partition, offset, timeStamp); //테스트용
 
 //    if(true){
@@ -78,7 +78,7 @@ public class KafkaChatService {
 
       ack.acknowledge(); // 해당 메세지를 잘 처리했다고 표시 (중복 처리 방지)
       chatMessageRepository.save(ChatMessageDto.Response.successChatMessageToEntity(chatMessage));
-      log.info("브로드캐스팅 성공 + db에 저장 성공!");
+      log.debug("브로드캐스팅 성공 + db에 저장 성공!");
 
   }
 

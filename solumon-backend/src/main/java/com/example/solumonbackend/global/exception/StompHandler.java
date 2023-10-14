@@ -33,7 +33,7 @@ public class StompHandler implements ChannelInterceptor {
   // Stomp 메세지를 전송하기 전 호출되는 메소드
   @Override
   public Message<?> preSend(Message<?> message, MessageChannel channel) {
-    log.info("Stomp handler 실행");
+    log.debug("Stomp handler 실행");
     // StompHeaderAccessor.wrap 으로 message 를 감싸면 STOMP 의 헤더에 직접 접근가능
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
     String accessToken = "";
