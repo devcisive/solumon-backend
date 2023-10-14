@@ -6,9 +6,10 @@ import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.post.entity.QPost;
 import com.example.solumonbackend.post.entity.QVote;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
+import com.example.solumonbackend.post.model.PostListDto;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
-import com.example.solumonbackend.post.type.PostState;
+import com.example.solumonbackend.post.type.PostStatus;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -47,7 +48,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   @Override
   public Page<MyParticipatePostDto> getMyParticipatePostPages(Long memberId,
-      PostParticipateType postParticipateType, PostState postState, PostOrder postOrder,
+      PostParticipateType postParticipateType, PostStatus postStatus, PostOrder postOrder,
       Pageable pageable) {
 
     QPost qpost = QPost.post;
@@ -56,7 +57,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     BooleanExpression participateTypeCondition
         = createParticipateTypeCondition(memberId, postParticipateType, qpost);
     // 조건2 (상태)
-    BooleanExpression stateCondition = createStateCondition(postState, qpost);
+    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
 
     // 정렬기준
     OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qpost);
@@ -97,18 +98,18 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
-  private BooleanExpression createStateCondition(PostState state, QPost qpost) {
-  // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
+  private BooleanExpression createStateCondition(PostStatus state, QPost qpost) {
+    // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
     if (qpost == null || state == null) {
       throw new PostException(ErrorCode.NullPointerException);
     }
 
-    if (state == PostState.ONGOING) {
+    if (state == PostStatus.ONGOING) {
       return qpost.endAt.after(LocalDateTime.now());
     }
 
-    if (state == PostState.COMPLETED) {
-      return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
+    if (state == PostStatus.COMPLETED) {
+      return qpost.endAt.before(LocalDateTime.now());
     }
 
     throw new PostException(ErrorCode.IllegalArgumentException);
@@ -158,27 +159,65 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
   // Order By 값 구하기
   private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
     // 예외처리에 대해서는 확정X (커스텀 or 표준 &처리방법)
-      if (qpost == null || order == null) {
-        throw new PostException(ErrorCode.NullPointerException);
-      }
+    if (qpost == null || order == null) {
+      throw new PostException(ErrorCode.NullPointerException);
+    }
 
-      // 최신순)  post.createdAt.desc()
-      if (order == PostOrder.LATEST) {
-        return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
-      }
+    // 최신순)  post.createdAt.desc()
+    if (order == PostOrder.LATEST) {
+      return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
+    }
 
-      // 투표참여인원)  post.voteCount.desc()
-      if (order == PostOrder.MOST_VOTES) {
-        return qpost.voteCount.desc(); // OrderSpecifier<Integer>
-      }
+    // 투표참여인원)  post.voteCount.desc()
+    if (order == PostOrder.MOST_VOTES) {
+      return qpost.voteCount.desc(); // OrderSpecifier<Integer>
+    }
 
-      // 채팅참여인원)  post.chatCount.desc()
-      if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
-        return qpost.chatCount.desc();  // OrderSpecifier<Integer>
-      }
+    // 채팅참여인원)  post.chatCount.desc()
+    if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
+      return qpost.chatCount.desc();  // OrderSpecifier<Integer>
+    }
+
+    // 마감 임박 순)  post.endAt.desc()
+    if (order == PostOrder.IMMINENT_CLOSE) {
+      return qpost.endAt.desc();  // OrderSpecifier<LocalDateTime>
+    }
 
     throw new PostException(ErrorCode.IllegalArgumentException);
 
+  }
+
+  @Override
+  public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder,
+      Pageable pageable) {
+    QPost qpost = QPost.post;
+
+    // 조건1 (상태)
+    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
+
+    // 가져올 데이터
+    List<PostListDto.Response> resultContents
+        = jpaQueryFactory.select(Projections.constructor(PostListDto.Response.class,
+            qpost.postId,
+            qpost.title,
+            qpost.member.nickname.as("writer"),
+            qpost.contents,
+            qpost.thumbnailUrl.as("imageUrl"),
+            qpost.voteCount,
+            qpost.chatCount,
+            qpost.createdAt
+        ))
+        .from(qpost)
+        .where(stateCondition)
+        .offset(pageable.getOffset())
+        .limit(pageable.getPageSize())
+        .fetch();
+
+    // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
+    JPAQuery<Long> totalCount = jpaQueryFactory.select(qpost.count()).from(qpost)
+        .where(stateCondition);
+
+    return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);
   }
 
 }

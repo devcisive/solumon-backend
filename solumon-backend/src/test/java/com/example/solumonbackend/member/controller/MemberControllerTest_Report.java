@@ -74,15 +74,41 @@ class MemberControllerTest_Report {
     LocalDateTime of = LocalDateTime.of(2023, 04, 01, 0, 0);
 
 //    fakeMembers = new HashMap<>();
-    reporterMember = Member.builder().memberId(1L).email("reporter@gmail.com").isFirstLogIn(false).build();
-    withdrawnMember = Member.builder().memberId(2L).email("withdraw@gmail.com").unregisteredAt(LocalDateTime.now()).isFirstLogIn(false).build();
-    bannedMember = Member.builder().memberId(3L).email("banned@gmail.com").role(MemberRole.BANNED).bannedAt(of).isFirstLogIn(false).build();
-    nonReportingMember = Member.builder().memberId(4L).email("nonReporting@gmail.com").isFirstLogIn(false).build();
+    reporterMember = Member.builder()
+//        .memberId(1L)
+        .email("reporter@gmail.com")
+        .isFirstLogIn(false)
+        .build();
+    withdrawnMember = Member.builder()
+//        .memberId(2L)
+        .email("withdraw@gmail.com")
+        .unregisteredAt(LocalDateTime.now())
+        .isFirstLogIn(false)
+        .build();
+    bannedMember = Member.builder()
+//        .memberId(3L)
+        .email("banned@gmail.com")
+        .role(MemberRole.BANNED)
+        .bannedAt(of)
+        .isFirstLogIn(false)
+        .build();
+    nonReportingMember = Member.builder()
+//        .memberId(4L)
+        .email("nonReporting@gmail.com")
+        .isFirstLogIn(false)
+        .build();
 
-    reportedPossibleDaysMember = Member.builder().email("DaysAgo@gmail.com").isFirstLogIn(false).build();
-    reportedCoolTimeMember = Member.builder().email("WithInDays@gmail.com").isFirstLogIn(false).build();
+    reportedPossibleDaysMember = Member.builder()
+        .email("DaysAgo@gmail.com")
+        .isFirstLogIn(false)
+        .build();
+    reportedCoolTimeMember = Member.builder()
+        .email("WithInDays@gmail.com")
+        .isFirstLogIn(false)
+        .build();
 
-    memberRepository.saveAll(List.of(reporterMember,withdrawnMember,bannedMember,nonReportingMember,reportedPossibleDaysMember,reportedCoolTimeMember));
+    memberRepository.saveAll(List.of(reporterMember,withdrawnMember,bannedMember,nonReportingMember
+        ,reportedPossibleDaysMember,reportedCoolTimeMember));
     // 왜인진 몰라도 5,6번째 데이터만 pk 값이 증가하는 문제가 있어서 pk값 할당을 제거함 (1,2,3,4번은 증가하지않고 그대로인 상태)
     
 

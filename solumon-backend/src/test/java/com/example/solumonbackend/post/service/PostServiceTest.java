@@ -1,43 +1,59 @@
 package com.example.solumonbackend.post.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.common.AwsS3Component;
+import com.example.solumonbackend.post.entity.Choice;
 import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
 import com.example.solumonbackend.post.entity.Tag;
-import com.example.solumonbackend.post.model.*;
-import com.example.solumonbackend.post.repository.*;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.example.solumonbackend.post.model.AwsS3;
+import com.example.solumonbackend.post.model.PostAddDto;
+import com.example.solumonbackend.post.model.PostDetailDto;
+import com.example.solumonbackend.post.model.PostDto;
+import com.example.solumonbackend.post.model.PostUpdateDto;
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.VoteRepository;
+import com.example.solumonbackend.post.repository.VoteRepositoryCustomImpl;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
-@MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
 
+  Member postMember;
+  Post mockPost;
   @Mock
   private PostRepository postRepository;
   @Mock
@@ -53,10 +69,33 @@ class PostServiceTest {
   @Mock
   private VoteRepository voteRepository;
   @Mock
-  private VoteCustomRepository voteCustomRepository;
-
+  private VoteRepositoryCustomImpl voteCustomRepository;
+  @Mock
+  private PostSearchService postSearchService;
   @InjectMocks
   private PostService postService;
+
+  private static PostAddDto.Request getAddRequest() {
+    return PostAddDto.Request.builder()
+        .title("제목")
+        .contents("내용")
+        .tags(List.of(new PostDto.TagDto("태그1"), new PostDto.TagDto("태그2")))
+        .vote(PostDto.VoteDto.builder()
+            .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
+                , new PostDto.ChoiceDto(2, "선택2")))
+            .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
+                .plusDays(2))
+            .build())
+        .build();
+  }
+
+  private static PostUpdateDto.Request getUpdateRequest() {
+    return PostUpdateDto.Request.builder()
+        .title("제목2")
+        .contents("내용2")
+        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
+        .build();
+  }
 
   @BeforeEach
   public void setUp() {
@@ -77,9 +116,6 @@ class PostServiceTest {
         .build();
   }
 
-  Member postMember;
-  Post mockPost;
-
   @Test
   @DisplayName("게시글 작성 성공")
   void createPost_success() throws IOException {
@@ -88,6 +124,29 @@ class PostServiceTest {
     List<MultipartFile> images = new ArrayList<>();
     images.add(new MockMultipartFile("images", "image1.jpg",
         "image/jpeg", "image data".getBytes()));
+
+    List<String> tags = request.getTags()
+        .stream().map(tag -> tag.getTag())
+        .collect(Collectors.toList());
+
+    List<AwsS3> awsS3List = List.of(AwsS3.builder()
+        .key("dirName/image1.jpg")
+        .path("imageUrl")
+        .build());
+
+    List<Choice> choices = List.of(
+        Choice.builder()
+            .choiceId(1L)
+            .post(mockPost)
+            .choiceNum(1)
+            .choiceText("선택1")
+            .build(),
+        Choice.builder()
+            .choiceId(2L)
+            .post(mockPost)
+            .choiceNum(2)
+            .choiceText("선택2")
+            .build());
 
     when(postRepository.save(any(Post.class)))
         .thenReturn(mockPost);
@@ -103,17 +162,25 @@ class PostServiceTest {
                 .tag(Tag.builder().tagId(2L).name("태그2").build())
                 .post(mockPost)
                 .build()));
+    when(choiceRepository.saveAll(anyList()))
+        .thenReturn(choices);
     when(awsS3Component.upload(images.get(0), "post"))
         .thenReturn(AwsS3.builder()
             .key("dirName/image1.jpg")
             .path("imageUrl")
             .build());
-    when(imageRepository.saveAll(any()))
+    when(imageRepository.saveAll(anyList()))
         .thenReturn(List.of(new Image(1L, mockPost,
             "dirName/image1.jpg", "imageUrl")));
 
     //when
     PostAddDto.Response response = postService.createPost(postMember, request, images);
+    System.out.println(images);
+
+    ArgumentCaptor<Post> postArgumentCaptor = ArgumentCaptor.forClass(Post.class);
+    ArgumentCaptor<List> elasticTags = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<PostTag> postTagArgumentCaptor = ArgumentCaptor.forClass(PostTag.class);
+    ArgumentCaptor<Tag> tagArgumentCaptor = ArgumentCaptor.forClass(Tag.class);
 
     //then
     assertThat(response.getPostId()).isEqualTo(1L);
@@ -121,9 +188,10 @@ class PostServiceTest {
     assertThat(response.getWriter()).isEqualTo(postMember.getNickname());
     assertThat(response.getImages().size()).isEqualTo(1);
 
-    verify(postRepository, times(1)).save(any(Post.class));
-    verify(postTagRepository, times(2)).save(any(PostTag.class));
-    verify(tagRepository, times(2)).save(any(Tag.class));
+    verify(postSearchService, times(1)).save(postArgumentCaptor.capture(), elasticTags.capture());
+    verify(postRepository, times(1)).save(postArgumentCaptor.capture());
+    verify(postTagRepository, times(2)).save(postTagArgumentCaptor.capture());
+    verify(tagRepository, times(2)).save(tagArgumentCaptor.capture());
     verify(choiceRepository, times(1)).saveAll(anyList());
     verify(awsS3Component, times(1)).upload(images.get(0), "post");
     verify(imageRepository, times(1)).saveAll(anyList());
@@ -412,26 +480,5 @@ class PostServiceTest {
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER);
   }
 
-  private static PostAddDto.Request getAddRequest() {
-    return PostAddDto.Request.builder()
-        .title("제목")
-        .contents("내용")
-        .tags(List.of(new PostDto.TagDto("태그1"), new PostDto.TagDto("태그2")))
-        .vote(PostDto.VoteDto.builder()
-            .choices(List.of(new PostDto.ChoiceDto(1, "선택1")
-                , new PostDto.ChoiceDto(2, "선택2")))
-            .endAt(LocalDateTime.of(2023, 9, 28, 10, 0, 0)
-                .plusDays(2))
-            .build())
-        .build();
-  }
-
-  private static PostUpdateDto.Request getUpdateRequest() {
-    return PostUpdateDto.Request.builder()
-        .title("제목2")
-        .contents("내용2")
-        .tags(List.of(new PostDto.TagDto("태그2"), new PostDto.TagDto("태그3")))
-        .build();
-  }
 
 }

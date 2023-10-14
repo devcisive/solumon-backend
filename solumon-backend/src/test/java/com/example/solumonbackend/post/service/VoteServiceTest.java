@@ -1,5 +1,12 @@
 package com.example.solumonbackend.post.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
@@ -9,8 +16,10 @@ import com.example.solumonbackend.post.entity.Vote;
 import com.example.solumonbackend.post.model.PostDto;
 import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.VoteCustomRepository;
 import com.example.solumonbackend.post.repository.VoteRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,23 +28,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-
 @ExtendWith(MockitoExtension.class)
 class VoteServiceTest {
 
   @Mock
   private VoteRepository voteRepository;
-
-  @Mock
-  private VoteCustomRepository voteCustomRepository;
 
   @Mock
   private PostRepository postRepository;
@@ -94,7 +91,7 @@ class VoteServiceTest {
             .build());
     when(voteRepository.countByPost_PostId(1L))
         .thenReturn(5);
-    when(voteCustomRepository.getChoiceResults(1L))
+    when(voteRepository.getChoiceResults(1L))
         .thenReturn(List.of(
             PostDto.ChoiceResultDto.builder()
                 .choiceNum(1)
@@ -121,7 +118,7 @@ class VoteServiceTest {
     verify(voteRepository, times(1)).save(any(Vote.class));
     verify(voteRepository, times(1)).countByPost_PostId(1L);
     verify(postRepository, times(1)).save(any(Post.class));
-    verify(voteCustomRepository, times(1)).getChoiceResults(1L);
+    verify(voteRepository, times(1)).getChoiceResults(1L);
   }
 
   @Test

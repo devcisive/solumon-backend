@@ -1,0 +1,37 @@
+{
+  "properties": {
+    "id": {
+      "type": "keyword"
+    },
+    "title": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "content": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "writer": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "imageUrl": {
+      "type": "text"
+    },
+    "voteCount": {
+      "type": "integer"
+    },
+    "chatCount": {
+      "type": "integer"
+    },
+    "endAt": {
+      "type": "date"
+    },
+    "createdAt": {
+      "type": "date"
+    },
+    "tags": {
+      "type": "keyword"
+    }
+  }
+}
