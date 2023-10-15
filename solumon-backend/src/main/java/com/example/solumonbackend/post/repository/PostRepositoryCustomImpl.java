@@ -64,7 +64,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     List<MyParticipatePostDto> resultContents
         = jpaQueryFactory.select(Projections.bean(MyParticipatePostDto.class,
             qpost.postId,
-            qpost.member.nickname.as("writerNickname"), // MyParticipatePostDto 의 필드이름과 일치하지않다면 as()사용
+            qpost.member.nickname,
             qpost.title,
             qpost.contents,
             qpost.chatCount,

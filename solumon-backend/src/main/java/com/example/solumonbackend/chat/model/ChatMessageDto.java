@@ -33,6 +33,8 @@ public class ChatMessageDto {
 
     private Long postId;
 
+    private Long messageId;
+
     private Long memberId;
 
     private String nickname;

@@ -1,9 +1,17 @@
 package com.example.solumonbackend.post.controller;
 
+import com.example.solumonbackend.global.elasticsearch.PostDocument;
+import com.example.solumonbackend.global.elasticsearch.PostSearchService;
+import com.example.solumonbackend.global.exception.ErrorCode;
+import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.service.MemberService;
+import com.example.solumonbackend.post.model.HasInterestTagsDto;
+import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
+import com.example.solumonbackend.post.model.PostListDto;
+import com.example.solumonbackend.post.model.PostListDto.Response;
 import com.example.solumonbackend.post.model.PostUpdateDto;
 import com.example.solumonbackend.post.service.PostService;
 import com.example.solumonbackend.post.service.RecommendationService;
@@ -11,6 +19,8 @@ import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
 import com.example.solumonbackend.post.type.PostType;
 import com.example.solumonbackend.post.type.SearchType;
+import java.util.List;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
@@ -26,9 +36,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import javax.validation.Valid;
-import java.util.List;
 
 @RestController
 @RequestMapping("/posts")

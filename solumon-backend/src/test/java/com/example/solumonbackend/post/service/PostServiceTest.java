@@ -1,14 +1,46 @@
 package com.example.solumonbackend.post.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.anyList;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.example.solumonbackend.chat.entity.ChatMessage;
+import com.example.solumonbackend.chat.model.ChatMessageDto;
+import com.example.solumonbackend.chat.repository.ChatMessageRepository;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.common.AwsS3Component;
-import com.example.solumonbackend.post.entity.*;
-import com.example.solumonbackend.post.model.*;
-import com.example.solumonbackend.post.repository.*;
+import com.example.solumonbackend.post.entity.Choice;
+import com.example.solumonbackend.post.entity.Image;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Tag;
+import com.example.solumonbackend.post.model.AwsS3;
+import com.example.solumonbackend.post.model.PostAddDto;
+import com.example.solumonbackend.post.model.PostDetailDto;
+import com.example.solumonbackend.post.model.PostDto;
+import com.example.solumonbackend.post.model.PostUpdateDto;
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
+import com.example.solumonbackend.post.repository.VoteRepository;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -18,21 +50,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceTest {
@@ -51,6 +72,8 @@ class PostServiceTest {
   private ChoiceRepository choiceRepository;
   @Mock
   private VoteRepository voteRepository;
+  @Mock
+  private ChatMessageRepository chatMessageRepository;
   @Mock
   private PostSearchService postSearchService;
   @InjectMocks
@@ -76,11 +99,90 @@ class PostServiceTest {
         .build();
 
     mockTag = new Tag(1L, "태그1");
+
+
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(1L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임1")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(2L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임2")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(3L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임3")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(4L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임4")
+        .contents("보낸다")
+        .isSent(false)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(5L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임5")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(6L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임6")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .messageId(7L)
+        .postId(mockPost.getPostId())
+        .nickname("닉네임7")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+
+    lastChatMessages = chatMessages.stream().map(
+        chatMessage -> ChatMessageDto.Response.builder()
+            .postId(chatMessage.getPostId())
+            .nickname(chatMessage.getNickname())
+            .memberId(chatMessage.getMemberId())
+            .contents(chatMessage.getContents())
+            .createdAt(chatMessage.getCreatedAt())
+            .build())
+        .collect(Collectors.toList());
   }
 
   Member postMember;
   Post mockPost;
   Tag mockTag;
+  List<ChatMessage> chatMessages = new ArrayList<>();
+  List<ChatMessageDto.Response> lastChatMessages = new ArrayList<>();
+
 
   @Test
   @DisplayName("게시글 작성 성공")
@@ -271,14 +373,21 @@ class PostServiceTest {
                 .choicePercent(50L)
                 .build()));
 
+
+    when(chatMessageRepository.getLastChatMessagesScroll(mockPost.getPostId(),null, Pageable.ofSize(10)))
+        .thenReturn(new SliceImpl<>(lastChatMessages, Pageable.ofSize(10), false));
+
+
+
     //when
-    PostDetailDto.Response response = postService.getPostDetail(postMember, 1);
+    PostDetailDto.Response response = postService.getPostDetail(postMember, 1L,null);
 
     //then
     verify(postRepository, times(1)).findById(1L);
     verify(postTagRepository, times(1)).findAllByPost_PostId(1L);
     verify(imageRepository, times(1)).findAllByPost_PostId(1L);
     verify(voteRepository, times(1)).getChoiceResults(1L);
+    verify(chatMessageRepository,times(1)).getLastChatMessagesScroll(mockPost.getPostId(),null, Pageable.ofSize(10));
 
     assertEquals("태그1", response.getTags().get(0).getTag());
     assertEquals(postMember.getNickname(), response.getNickname());
@@ -286,6 +395,8 @@ class PostServiceTest {
     assertTrue(response.getImages().get(0).isRepresentative());
     assertTrue(response.getVote().isResultAccessStatus());
     assertEquals(10, response.getVoteCount());
+    assertEquals("닉네임1", lastChatMessages.get(0).getNickname());
+    assertEquals(7,lastChatMessages.size());
   }
 
   @Test
@@ -297,7 +408,7 @@ class PostServiceTest {
 
     //when
     PostException exception = Assertions.assertThrows(PostException.class,
-        () -> postService.getPostDetail(postMember, 2));
+        () -> postService.getPostDetail(postMember, 2,null));
 
     //then
     assertThat(exception.getErrorCode()).isEqualTo(ErrorCode.NOT_FOUND_POST);

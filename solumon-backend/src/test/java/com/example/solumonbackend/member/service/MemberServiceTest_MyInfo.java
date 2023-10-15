@@ -455,7 +455,7 @@ class MemberServiceTest_MyInfo {
 
     MyParticipatePostDto post1 = MyParticipatePostDto.builder()
         .postId(1L)
-        .writerNickname("작성자1")
+        .nickname("작성자1")
         .title("제목1")
         .contents("내용1")
         .createdAt(LocalDateTime.now())
@@ -466,7 +466,7 @@ class MemberServiceTest_MyInfo {
 
     MyParticipatePostDto post2 = MyParticipatePostDto.builder()
         .postId(2L)
-        .writerNickname("작성자2")
+        .nickname("작성자2")
         .title("제목2")
         .contents("내용2")
         .createdAt(LocalDateTime.now().plusDays(1))

@@ -4,12 +4,9 @@ import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.example.solumonbackend.post.entity.Image;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.PostTag;
-import com.example.solumonbackend.post.model.PostDto.ChoiceResultDto;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
-import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -37,15 +34,15 @@ public class PostDetailDto {
     private String title;
     private String nickname;
     private String contents;
-    private List<TagDto> tags;
-    private List<ImageDto> images;
+    private List<PostDto.TagDto> tags;
+    private List<PostDto.ImageDto> images;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime createdAt;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endAt;
-    private VoteResultDto vote;
+    private PostDto.VoteResultDto vote;
     private int voteCount;
     private int chatCount;
 
@@ -53,7 +50,7 @@ public class PostDetailDto {
 
 
     public static PostDetailDto.Response postToResponse(Post post, List<PostTag> tags,
-                                                        List<Image> images, VoteResultDto voteResultDto,
+                                                        List<Image> images, PostDto.VoteResultDto voteResultDto,
                                                          Slice<ChatMessageDto.Response> lastChatMessages) {
       return Response.builder()
           .postId(post.getPostId())

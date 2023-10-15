@@ -1,15 +1,38 @@
 package com.example.solumonbackend.post.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.example.solumonbackend.chat.entity.ChatMessage;
+import com.example.solumonbackend.chat.repository.ChatMessageRepository;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.type.MemberRole;
-import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.entity.Choice;
+import com.example.solumonbackend.post.entity.Image;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDto;
 import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.*;
+import com.example.solumonbackend.post.repository.ChoiceRepository;
+import com.example.solumonbackend.post.repository.ImageRepository;
+import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.TagRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,15 +47,6 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.FileInputStream;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @Transactional
 @SpringBootTest
@@ -55,10 +69,15 @@ class PostControllerTest {
   private PostTagRepository postTagRepository;
   @Autowired
   private ChoiceRepository choiceRepository;
+  @Autowired
+  private ChatMessageRepository chatMessageRepository;
 
   Member member;
   Member otherMember;
   Post savePost;
+
+  List<ChatMessage> chatMessages = new ArrayList<>();
+  Long lastReadChatMessageId; // 가장 마지막에 읽은 메세지
 
   @BeforeEach
   public void setUp() {
@@ -95,6 +114,67 @@ class PostControllerTest {
             .choiceText("나가기")
             .post(savePost)
             .build()));
+
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임1")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임2")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임3")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임4")
+        .contents("보낸다")
+        .isSent(false)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임5")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임6")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessages.add(ChatMessage.builder()
+        .postId(savePost.getPostId())
+        .nickname("닉네임7")
+        .contents("보낸다")
+        .isSent(true)
+        .createdAt(LocalDateTime.now())
+        .build());
+
+    chatMessageRepository.saveAll(chatMessages);
+    lastReadChatMessageId =  chatMessageRepository.findAll().get(chatMessageRepository.findAll().size()-1).getMessageId();
+
   }
 
   @Test
@@ -140,15 +220,21 @@ class PostControllerTest {
     //when
     //then
     // GenerationType이 identity라 테스트할 때마다 저장되는 postId가 달라짐 -> savePost.getPostId()를 사용
-    mockMvc.perform(get("/posts/" + savePost.getPostId()))
+    mockMvc.perform(get("/posts/" + savePost.getPostId())
+            .param("lastChatMessageId", String.valueOf(lastReadChatMessageId)))
+
         .andDo(print())
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.post_id").value(savePost.getPostId()))
+        .andExpect(jsonPath("$.postId").value(savePost.getPostId()))
         .andExpect(jsonPath("$.title").value("제목"))
         .andExpect(jsonPath("$.contents").value("내용"))
         .andExpect(jsonPath("$.tags[0].tag").value("태그1"))
-        .andExpect(jsonPath("$.vote.choices[0].choice_num").value(1))
-        .andExpect(jsonPath("$.vote.choices[0].choice_percent").value(0));
+        .andExpect(jsonPath("$.vote.choices[0].choiceNum").value(1))
+        .andExpect(jsonPath("$.vote.choices[0].choicePercent").value(0))
+
+        .andExpect(jsonPath("$.lastChatMessages.content[0].postId").value(savePost.getPostId()))
+        .andExpect(jsonPath("$.lastChatMessages.content[0].contents").value("보낸다"));
+
   }
 
   @Test
