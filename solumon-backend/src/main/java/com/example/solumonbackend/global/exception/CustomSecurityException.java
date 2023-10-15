@@ -16,6 +16,7 @@ public class CustomSecurityException extends RuntimeException{
   private String errorMessage;
 
   public CustomSecurityException(ErrorCode errorCode) {
+    super(errorCode.getDescription()); // 소켓연결하면서 인증 에러 터질 때 필요해서 추가
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }

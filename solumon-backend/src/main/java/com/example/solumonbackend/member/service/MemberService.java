@@ -1,5 +1,11 @@
 package com.example.solumonbackend.member.service;
 
+import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_CORRECT_PASSWORD;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_MEMBER;
+import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
+import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED_MEMBER;
+
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
@@ -21,6 +27,10 @@ import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,13 +38,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static com.example.solumonbackend.global.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -237,10 +240,10 @@ public class MemberService {
 
 
   @Transactional
-  public void reportMember(Member member, Long reportedMemberId, ReportDto.Request request) {
+  public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findById(reportedMemberId)
+    Member reportedMember = memberRepository.findByNickname(reportedNickname)
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
     if (reportedMember.getUnregisteredAt() != null) {
@@ -256,7 +259,7 @@ public class MemberService {
     // 내가 3일안에 신고한 유저인지 확인 (가장 최근의 신고날짜를 확인)
     Optional<Report> latestReportByMe
         = reportRepository.findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc
-        (reportedMember.getMemberId(), member.getMemberId());
+            (reportedMember.getMemberId(),member.getMemberId());
 
     if (latestReportByMe.isPresent()
         && latestReportByMe.get().getReportedAt().plusDays(3).isAfter(LocalDateTime.now())) {
@@ -288,7 +291,7 @@ public class MemberService {
       member.setRole(MemberRole.PERMANENT_BAN);
       member.setBannedAt(LocalDateTime.now());
 
-    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
+    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)  여기서 동시성문제
       member.setRole(MemberRole.BANNED);
       member.setBannedAt(LocalDateTime.now());
     }

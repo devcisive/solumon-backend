@@ -112,13 +112,13 @@ public class MemberController {
         .body(memberService.withdrawMember(memberDetail.getMember(), request));
   }
 
-  @PostMapping("/{memberId}/report")
+  @PostMapping("/report")
   public ResponseEntity<Void> reportMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
       @RequestBody ReportDto.Request reportRequest,
-      @PathVariable Long memberId) {
+      @RequestParam(name = "nickname") String nickname) {
 
-    memberService.reportMember(memberDetail.getMember(), memberId, reportRequest);
+    memberService.reportMember(memberDetail.getMember(), nickname, reportRequest);
     return ResponseEntity.ok().build();
 
   }

@@ -2,6 +2,7 @@ package com.example.solumonbackend.global.exception;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
   @ExceptionHandler(MemberException.class)
+  @MessageExceptionHandler(MemberException.class)
   public ErrorResponse handleAccountException(MemberException e) {
     log.error("{} is occurred", e.getErrorCode());
     return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
@@ -64,6 +66,12 @@ public class GlobalExceptionHandler {
   public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
     log.error("{} is occurred", e.getMessage());
     return new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage());
+  }
+
+  @ExceptionHandler(NullPointerException.class)
+  public ErrorResponse handleNullPointerException(NullPointerException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ErrorResponse("Failed", ErrorCode.NullPointerException, e.getMessage());
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
