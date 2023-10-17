@@ -6,7 +6,6 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.member.service.MemberService;
-import com.example.solumonbackend.post.model.HasInterestTagsDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.model.PostAddDto;
 import com.example.solumonbackend.post.model.PostDetailDto;
