@@ -74,6 +74,30 @@ public class NotifyService {
     );
   }
 
+  // 배치 코드에서 객체 하나만 인자로 받을 수 있는 이슈가 있어서 코드를 따로 분리했습니다.
+  // 겹치는 코드 등 리팩토링하고 싶으시면 리뷰 주세요!
+  public void sendForBatch(Post post) {
+    Member receiver = post.getMember();
+    NotifyType notifyType = NotifyType.CLOSE_POST;
+
+    // notify 객체를 만들면서 sentAt을 일단 null 설정을 해줌
+    Notify notification = notifyRepository.save(new Notify(receiver, post, notifyType));
+
+    String receiverEmail = receiver.getEmail();
+    String eventId = makeTimeIncludeEmail(receiverEmail);
+
+    // MemberId로 emitter를 찾음
+    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
+        receiverEmail);
+
+    emitters.forEach(
+        (key, emitter) -> {
+          emitterRepository.saveEventCache(key, notification);
+          sendNotification(emitter, eventId, key, notification);
+        }
+    );
+  }
+
   public NotifyDto.Response getNotifyList(Member member, int pageNum) {
     Page<Notify> allNotifyList = notifyRepository.findAllByMember_MemberIdAndSentAtIsNotNull(
         member.getMemberId(), PageRequest.of(pageNum - 1, 10));
