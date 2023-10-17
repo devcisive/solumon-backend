@@ -62,7 +62,7 @@ public class MemberController {
     emailAuthService.sendTempPasswordMessage(request.getEmail());
     log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
 
-    return ResponseEntity.ok("임시 비밀번호가 " + request.getEmail() + "으로 발송되었습니다.");
+    return ResponseEntity.ok(request.getEmail());
   }
 
   @GetMapping("/exception")

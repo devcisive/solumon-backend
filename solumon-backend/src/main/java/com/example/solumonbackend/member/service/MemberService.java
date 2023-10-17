@@ -235,7 +235,7 @@ public class MemberService {
     }
 
 
-    return MemberInterestDto.Response.memberToResponse(member, resultInterests);
+    return MemberInterestDto.Response.memberToResponse(member, memberTags);
   }
 
 

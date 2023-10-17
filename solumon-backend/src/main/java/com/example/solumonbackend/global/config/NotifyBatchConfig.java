@@ -67,7 +67,7 @@ public class NotifyBatchConfig {
   // 기존 서비스에서 코드를 가져오는 형태의 ItemWriter. 위에서 넘겨받은 Post만 인자값으로 받을 수 있습니다.
   private ItemWriter<Post> voteCloseNotifyWriter() {
     ItemWriterAdapter<Post> writer = new ItemWriterAdapter<>();
-    writer.setTargetObject(new NotifyService(emitterRepository, notifyRepository));
+    writer.setTargetObject(new NotifyService(emitterRepository, notifyRepository, postRepository));
     writer.setTargetMethod("sendForBatch");
     return writer;
   }

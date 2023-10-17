@@ -79,7 +79,7 @@ public class GlobalExceptionHandler {
     BindingResult bindingResult = e.getBindingResult();
 
     StringBuilder sb = new StringBuilder();
-    for (FieldError fieldError: bindingResult.getFieldErrors()) {
+    for (FieldError fieldError : bindingResult.getFieldErrors()) {
       sb.append(fieldError.getDefaultMessage()).append(" ");
     }
     // 테스트를 원할하게 하기 위해 바꾼 코드입니다. 나중에 수정 예정

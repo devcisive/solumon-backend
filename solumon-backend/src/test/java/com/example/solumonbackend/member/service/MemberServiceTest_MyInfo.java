@@ -194,7 +194,7 @@ class MemberServiceTest_MyInfo {
 
     // Then
     verify(passwordEncoder, times(1)).matches(request.getPassword(), fakeMember.getPassword());
-    verify(passwordEncoder, times(1)).encode(request.getNewPassword1());
+    verify(passwordEncoder, times(1)).encode(request.getNewPassword());
 
     verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
 
@@ -229,14 +229,14 @@ class MemberServiceTest_MyInfo {
 
     // Then
     verify(passwordEncoder, times(1)).matches(request.getPassword(), fakeMember.getPassword());
-    verify(passwordEncoder, times(1)).encode(request.getNewPassword1());
+    verify(passwordEncoder, times(1)).encode(request.getNewPassword());
 
     verify(memberRepository, times(1)).existsByNickname(request.getNickname());
     verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
     Member captorValue = memberArgumentCaptor.getValue();
 
     assertEquals(request.getNickname(), response.getNickname());
-    assertEquals(passwordEncoder.encode(request.getNewPassword1()), captorValue.getPassword());
+    assertEquals(passwordEncoder.encode(request.getNewPassword()), captorValue.getPassword());
     assertIterableEquals(List.of("태그1", "태그2"), response.getInterests());
   }
 

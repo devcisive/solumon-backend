@@ -4,6 +4,7 @@ import static com.example.solumonbackend.notify.model.NotifyDto.Response.notifyL
 
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.NotifyException;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.notify.entity.Notify;
 import com.example.solumonbackend.notify.model.NotifyDto;
@@ -28,8 +29,8 @@ public class NotifyService {
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
   private final EmitterRepository emitterRepository;
-
   private final NotifyRepository notifyRepository;
+  private final PostRepository postRepository;
 
   public SseEmitter subscribe(Member member, String lastEventId) {
     String email = member.getEmail();
