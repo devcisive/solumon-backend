@@ -42,8 +42,9 @@ public class NotifyController {
   }
 
   @GetMapping("/{notiId}")
-  public void changeToRead(@PathVariable @JsonProperty("noti_id") long notiId) {
+  public ResponseEntity<Long> changeToRead(@PathVariable @JsonProperty("noti_id") long notiId) {
     notifyService.changeToRead(notiId);
+    return ResponseEntity.ok(notiId);
   }
 
 }

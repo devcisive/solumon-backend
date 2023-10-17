@@ -34,9 +34,6 @@ public class KafkaProducerConfig { // 데이터를 카프카의 토픽에 보내
 
   }
 
-
-
-
   // 카프카로 메세지를 보내려면 KafkaOperations 인터페이스를 구현한 객체가 필요 (KafkaTemplate)
   // KafkaTemplate을 생성하는 Bean 메서드 (Key, Value) 위의 설정과 관련있음
   // 정의된 설정을 바탕으로 실질적인 동작을 하게 해줌

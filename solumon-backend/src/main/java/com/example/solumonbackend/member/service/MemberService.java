@@ -216,15 +216,10 @@ public class MemberService {
             .orElseThrow(() -> new TagException(NOT_FOUND_TAG, interest)))
         .collect(Collectors.toList());
 
-    memberTagRepository.saveAll(
+    List<String> memberTags = memberTagRepository.saveAll(
         tags.stream()
             .map(tag -> MemberTag.builder().member(member).tag(tag).build())
-            .collect(Collectors.toList())
-    );
-
-    // MemberTag에 제대로 저장됐는지 확인하기 위해 다시 꺼내서 응답으로 보내기위함
-    List<String> resultInterests = memberTagRepository.findAllByMember_MemberId(
-            member.getMemberId())
+            .collect(Collectors.toList()))
         .stream().map(memberTag -> memberTag.getTag().getName())
         .collect(Collectors.toList());
 
@@ -234,10 +229,8 @@ public class MemberService {
       memberRepository.save(member);
     }
 
-
     return MemberInterestDto.Response.memberToResponse(member, memberTags);
   }
-
 
   @Transactional
   public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
@@ -291,19 +284,17 @@ public class MemberService {
       member.setRole(MemberRole.PERMANENT_BAN);
       member.setBannedAt(LocalDateTime.now());
 
-    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)  여기서 동시성문제
+    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
       member.setRole(MemberRole.BANNED);
       member.setBannedAt(LocalDateTime.now());
     }
 
     memberRepository.save(member);
-
   }
 
-
+  // TODO : 젠킨스 적용
   @Transactional
   public void releaseBan() {
-
     // 정지상태를 해제할 조건이 되는 멤버들을 뽑아온다.
     List<Member> membersToReleaseBan = memberRepository.findMembersToReleaseBannedStatus();
 

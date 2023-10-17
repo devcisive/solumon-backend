@@ -57,10 +57,36 @@ public class NotifyService {
   }
 
   public void send(Member receiver, Post post, NotifyType notifyType) {
-    // notify 객체를 만들면서 sentAt을 일단 null 설정을 해줌
     Notify notification = notifyRepository.save(new Notify(receiver, post, notifyType));
 
     String receiverEmail = receiver.getEmail();
+    String eventId = makeTimeIncludeEmail(receiverEmail);
+
+    // MemberId로 emitter를 찾음
+    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
+        receiverEmail);
+
+    emitters.forEach(
+        (key, emitter) -> {
+          emitterRepository.saveEventCache(key, notification);
+          sendNotification(emitter, eventId, key, notification);
+        }
+    );
+  }
+
+  public void sendForChat(long memberId, long postId, NotifyType notifyType) {
+    Post post = postRepository.findById(postId)
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+
+    Member member = post.getMember();
+
+    if (member.getMemberId().equals(memberId)) {
+      return;
+    }
+
+    Notify notification = notifyRepository.save(new Notify(member, post, notifyType));
+
+    String receiverEmail = member.getEmail();
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음

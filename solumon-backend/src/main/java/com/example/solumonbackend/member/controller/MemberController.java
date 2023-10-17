@@ -36,9 +36,9 @@ public class MemberController {
   @ResponseBody
   public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email) throws Exception {
     String code = emailAuthService.sendSimpleMessage(email);
-    log.info("[sendEmailAuth] 인증코드 발송완료");
-    log.info("받는 이메일 : {}", email);
-    log.info("받는 코드 : {}", code);
+    log.debug("[sendEmailAuth] 인증코드 발송완료");
+    log.debug("받는 이메일 : {}", email);
+    log.debug("받는 코드 : {}", code);
 
     return ResponseEntity.ok(EmailAuthResponseDto.builder()
         .email(email)
@@ -63,16 +63,6 @@ public class MemberController {
     log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
 
     return ResponseEntity.ok(request.getEmail());
-  }
-
-  @GetMapping("/exception")
-  public void exception() throws RuntimeException {
-    throw new RuntimeException("접근이 금지되었습니다.");
-  }
-
-  @GetMapping("/test")
-  public void test(@AuthenticationPrincipal MemberDetail memberDetail) {
-    System.out.println(memberDetail.getMember().getEmail());
   }
 
   @GetMapping

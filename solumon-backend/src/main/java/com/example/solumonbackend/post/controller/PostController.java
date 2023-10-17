@@ -80,14 +80,11 @@ public class PostController {
     return ResponseEntity.ok().build();
   }
 
-  // TODO: response 객체를 만들지 않고 boolean 값만 리턴해도 되는지?
   @GetMapping("/post-list")
   public ResponseEntity<Boolean> hasInterestTags(
       @AuthenticationPrincipal MemberDetail memberDetail) {
 
-    return ResponseEntity.ok(HasInterestTagsDto.Response.builder()
-        .hasInterestTags(memberService.hasInterestTags(memberDetail.getMember()))
-        .build());
+    return ResponseEntity.ok(memberService.hasInterestTags(memberDetail.getMember()));
   }
 
   // 일반 조회 및 관심태그 기반 조회

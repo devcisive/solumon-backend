@@ -3,6 +3,8 @@ package com.example.solumonbackend.chat.service;
 
 import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.example.solumonbackend.chat.repository.ChatMessageRepository;
+import com.example.solumonbackend.notify.service.NotifyService;
+import com.example.solumonbackend.notify.type.NotifyType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -27,6 +29,8 @@ public class KafkaChatService {
   private final String CHAT_TOPIC = "chat";
 
   private final ChatMessageRepository chatMessageRepository;
+
+  private final NotifyService notifyService;
 
 
 
@@ -80,6 +84,8 @@ public class KafkaChatService {
       chatMessageRepository.save(ChatMessageDto.Response.successChatMessageToEntity(chatMessage));
       log.debug("브로드캐스팅 성공 + db에 저장 성공!");
 
+      // 알림 보내기
+      notifyService.sendForChat(chatMessage.getMemberId(), chatMessage.getPostId(), NotifyType.ADD_CHAT);
   }
 
 
