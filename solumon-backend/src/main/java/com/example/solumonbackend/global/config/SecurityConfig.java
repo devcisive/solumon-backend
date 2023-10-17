@@ -4,14 +4,19 @@ import com.example.solumonbackend.global.security.CustomAccessDeniedHandler;
 import com.example.solumonbackend.global.security.CustomAuthenticationEntryPoint;
 import com.example.solumonbackend.global.security.JwtAuthenticationFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @RequiredArgsConstructor
@@ -27,6 +32,8 @@ public class SecurityConfig {
     httpSecurity.
         httpBasic().disable() // REST API 는 UI를 사용하지 않으므로 기본설정을 비활성화
         .csrf().disable()  // REST API 는 csrf 보안이 필요 없으므로 비활성화
+        .cors(Customizer.withDefaults())    // 1. 여기에 집중해주세요!
+
 
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and() // JWT Token 인증방식으로 세션은 필요 없으므로 비활성화
@@ -50,5 +57,16 @@ public class SecurityConfig {
         UsernamePasswordAuthenticationFilter.class);
 
     return httpSecurity.build();
+  }
+
+  @Bean
+  CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+    configuration.setAllowedOrigins(Arrays.asList("*"));
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+    return source;
   }
 }
