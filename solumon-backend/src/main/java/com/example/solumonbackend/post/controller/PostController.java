@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -57,7 +58,7 @@ public class PostController {
   @GetMapping("/{postId}")
   public ResponseEntity<PostDetailDto.Response> getPostDetail(@AuthenticationPrincipal MemberDetail memberDetail,
                                                               @PathVariable long postId,
-                                                              @RequestParam(name = "lastChatMessageId", required = false) // 처음 가져올때는 null 로 보내야만함
+                                                              @RequestHeader(name = "lastChatMessageId", required = false) // 처음 가져올때는 null 로 보내야만함
                                                               Long lastChatMessageId){
 
 

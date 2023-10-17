@@ -334,8 +334,7 @@ class MemberControllerTest_MyInfo {
     MemberUpdateDto.Request request = MemberUpdateDto.Request.builder()
         .nickname("pass새로운닉네임")
         .password("password")
-        .newPassword1("1newPassword!")
-        .newPassword2("1newPassword!")
+        .newPassword("1newPassword!")
         .build();
 
     String json = objectMapper.writeValueAsString(request);
@@ -358,8 +357,7 @@ class MemberControllerTest_MyInfo {
     MemberUpdateDto.Request request = MemberUpdateDto.Request.builder()
         .nickname("새로운닉네임")
         .password("wrongPassword")
-        .newPassword1("1newPassword!")
-        .newPassword2("1newPassword!")
+        .newPassword("1newPassword!")
         .build();
 
     String json = objectMapper.writeValueAsString(request);
@@ -473,7 +471,7 @@ class MemberControllerTest_MyInfo {
             .param("postParticipateType", String.valueOf(PostParticipateType.WRITE))
             .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.LATEST))
-            .param("page", "1")
+            .param("pageNum", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
@@ -500,7 +498,7 @@ class MemberControllerTest_MyInfo {
             .param("postParticipateType", String.valueOf(PostParticipateType.VOTE))
             .param("postStatus", String.valueOf(PostStatus.ONGOING))
             .param("postOrder", String.valueOf(PostOrder.MOST_VOTES))
-            .param("page", "1")
+            .param("pageNum", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
@@ -526,7 +524,7 @@ class MemberControllerTest_MyInfo {
             .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
             .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
-            .param("page", "1")
+            .param("pageNum", "1")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())
@@ -548,7 +546,7 @@ class MemberControllerTest_MyInfo {
             .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
             .param("postStatus", String.valueOf(PostStatus.COMPLETED))
             .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
-            .param("page", "3")
+            .param("pageNum", "3")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8"))
         .andExpect(status().isOk())

@@ -77,13 +77,13 @@ public class MemberController {
       @RequestParam(name = "postParticipateType") PostParticipateType postParticipateType,
       @RequestParam(name = "postStatus") PostStatus postStatus,
       @RequestParam(name = "postOrder") PostOrder postOrder,
-      @RequestParam(name = "page", defaultValue = "1") int page
+      @RequestParam(name = "pageNum", defaultValue = "1") int pageNum
   ) {
 
     return ResponseEntity.ok()
         .body(memberService.getMyParticipatePosts(memberDetail.getMember(),
             postStatus, postParticipateType, postOrder,
-            PageRequestCustom.of(page, postOrder)));
+            PageRequestCustom.of(pageNum, postOrder)));
   }
 
   @PutMapping

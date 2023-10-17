@@ -70,7 +70,7 @@ public class KafkaChatService {
       ChatMessageDto.Response chatMessage) {
 
       log.debug("[Consumer] message: {}, key: {}, partition: {}, offset: {}, timeStamp: {}",
-        chatMessage, key, partition, offset, timeStamp); //테스트용
+        chatMessage, key, partition, offset, timeStamp);
 
 //    if(true){
 //      throw new RuntimeException("테스트용 예외던지기");

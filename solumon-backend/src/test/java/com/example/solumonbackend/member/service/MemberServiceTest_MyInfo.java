@@ -145,8 +145,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
         .password("password")
-        .newPassword1(null)
-        .newPassword2(null)
+        .newPassword(null)
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -178,8 +177,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname")
         .password("password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -213,8 +211,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
         .password("password")
-        .newPassword1("newPassword")
-        .newPassword2("newPassword")
+        .newPassword("newPassword")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -249,8 +246,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
         .password("incorrect_password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(
@@ -278,8 +274,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
         .password("incorrect_password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(
@@ -295,29 +290,6 @@ class MemberServiceTest_MyInfo {
 
   }
 
-
-  @DisplayName("내 정보 수정 실패 - 새 비밀번호1,2 불일치 ")
-  @Test
-  void updateMyInfo_fail_PasswordMatching_Password1And2NotMatching() {
-    // Given
-
-    MemberUpdateDto.Request request = Request.builder()
-        .nickname("nickname1")
-        .password("password")
-        .newPassword1("new_password")
-        .newPassword2("new_password2")
-        .build();
-
-    when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
-
-    // When
-    MemberException memberException = assertThrows(MemberException.class,
-        () -> memberService.updateMyInfo(fakeMember, request));
-
-    // Then
-    assertEquals(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH, memberException.getErrorCode());
-
-  }
 
 
   @DisplayName("회원탈퇴")

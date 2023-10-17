@@ -51,7 +51,7 @@ public class KafkaConsumerConfig {
 
 
     Map<String, Object> consumerProps = new HashMap<>();
-    consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress); // 카프카브로커 설정 여러개 설정하는것 권장
+    consumerProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress); // 카프카브로커 설정 여러개 설정하는것 권장(현재는 하나만 설정)
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "chat-group"); // 그룹 아이디는 컨슈머 그룹이라고도 함(다른 컨슈머 그룹에 속한 컨슈머들은 서로 영향 X)
 
 
@@ -76,7 +76,7 @@ public class KafkaConsumerConfig {
     factory.setConsumerFactory(consumerFactory());
 
     factory.setCommonErrorHandler(customErrorHandler());
-    factory.setConcurrency(1);  // 임시 (사용할 스레드의 개수)
+    factory.setConcurrency(1);  // 사용할 스레드의 개수 (상황에 맞게 변경하면 됨)
     factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL); // ack.acknowledge(); 까지 돼야 다음 데이터를 처리 (수신에 성공했다고 명시적으로 호출해줘야함)
 
     return factory;
@@ -94,7 +94,7 @@ public class KafkaConsumerConfig {
           = Response.failChatMessageToEntity((ChatMessageDto.Response) consumerRecord.value());
       chatMessageRepository.save(chatMessage);
 
-      }, new FixedBackOff(2, 3)); // 재시도 간격 2초, 재시도 횟수 3번 (임시)
+      }, new FixedBackOff(2, 3)); // 재시도 간격 2초, 재시도 횟수 3번 (상황에 맞게 변경하면 됨)
 
 
     return errorHandler;

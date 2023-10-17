@@ -14,12 +14,21 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.entity.Report;
-import com.example.solumonbackend.member.model.*;
+import com.example.solumonbackend.member.model.CreateTokenDto;
+import com.example.solumonbackend.member.model.GeneralSignInDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.LogOutDto;
+import com.example.solumonbackend.member.model.MemberInterestDto;
+import com.example.solumonbackend.member.model.MemberLogDto;
+import com.example.solumonbackend.member.model.MemberUpdateDto;
+import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
+import com.example.solumonbackend.member.type.ReportType;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
@@ -167,12 +176,9 @@ public class MemberService {
       member.setNickname(request.getNickname());
     }
 
-    // 비밀번호 수정 시 새 비밀번호1 == 새 비밀번호2 인지 확인
-    if (request.getNewPassword1() != null) {
-      if (!request.getNewPassword1().equals(request.getNewPassword2())) {
-        throw new MemberException(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH);
-      }
-      member.setPassword(passwordEncoder.encode(request.getNewPassword1()));
+
+    if(request.getNewPassword() != null){
+      member.setPassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
     memberRepository.save(member);
@@ -243,6 +249,10 @@ public class MemberService {
       throw new MemberException(UNREGISTERED_MEMBER);
     }
 
+    // 신고유형이 OTHER인 경우 신고내용을 적어야함
+    if(request.getReportType() == ReportType.OTHER && request.getReportContent() == null){
+      throw new NullPointerException("신고 상세사유를 입력해주세요.");
+    }
 
     // 이미 정지상태면 신고불가
     if (reportedMember.getBannedAt() != null) {
