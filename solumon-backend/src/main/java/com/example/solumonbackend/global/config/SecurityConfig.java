@@ -34,7 +34,7 @@ public class SecurityConfig {
 
         // 회원가입, 로그인, 비밀번호 찾기는 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/send-email-auth", "/user/sign-in/**",
+        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/send-email-auth", "/user/sign-in/**",
             "/user/find-password","/ws-stomp/**","/exception")
         .permitAll()
 
