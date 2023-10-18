@@ -14,13 +14,14 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
@@ -45,34 +46,34 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   @Override
-  public Page<MyParticipatePostDto> getMyParticipatePostPages(Long memberId,
-      PostParticipateType postParticipateType, PostStatus postStatus, PostOrder postOrder,
-      Pageable pageable) {
+  public Page<MyParticipatePostDto> getMyParticipatePostPages(
+      Long memberId, PostParticipateType postParticipateType, PostStatus postStatus,
+      PostOrder postOrder, Pageable pageable) {
 
-    QPost qpost = QPost.post;
+    QPost qPost = QPost.post;
 
     // 조건1 (참여타입)
     BooleanExpression participateTypeCondition
-        = createParticipateTypeCondition(memberId, postParticipateType, qpost);
+        = createParticipateTypeCondition(memberId, postParticipateType, qPost);
     // 조건2 (상태)
-    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
+    BooleanExpression stateCondition = createStateCondition(postStatus, qPost);
 
     // 정렬기준
-    OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qpost);
+    OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qPost);
 
     // 가져올 데이터
     List<MyParticipatePostDto> resultContents
         = jpaQueryFactory.select(Projections.bean(MyParticipatePostDto.class,
-            qpost.postId,
-            qpost.member.nickname,
-            qpost.title,
-            qpost.contents,
-            qpost.chatCount,
-            qpost.voteCount,
-            qpost.thumbnailUrl,
-            qpost.createdAt
+            qPost.postId,
+            qPost.member.nickname,
+            qPost.title,
+            qPost.contents,
+            qPost.chatCount,
+            qPost.voteCount,
+            qPost.thumbnailUrl,
+            qPost.createdAt
         ))
-        .from(qpost)
+        .from(qPost)
         .where(stateCondition)
         .where(participateTypeCondition)
         .orderBy(orderSpecifier)
@@ -81,9 +82,10 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         .fetch();
 
     // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
-    JPAQuery<Long> totalCount = jpaQueryFactory.select(qpost.count()).from(qpost)
-        .where(stateCondition)
-        .where(participateTypeCondition);
+    JPAQuery<Long> totalCount =
+        jpaQueryFactory.select(qPost.count()).from(qPost)
+            .where(stateCondition)
+            .where(participateTypeCondition);
 
     return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);
      /*
@@ -96,30 +98,41 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   // 게시물 상태에 따른 조건 (ONGOING: 진행중 , COMPLETED: 마감 )
-  private BooleanExpression createStateCondition(PostStatus status, QPost qpost) {
+  private BooleanExpression createStateCondition(PostStatus status, QPost qPost) {
 
-    if (qpost == null || status == null) {
-      throw new NullPointerException("Qpost or PostStatus is null");
+    if (qPost == null) {
+      throw new NullPointerException("Qpost is null");
+    }
+
+    if (status == null) {
+      throw new NullPointerException("PostStatus is null");
     }
 
     if (status == PostStatus.ONGOING) {
-      return qpost.endAt.after(LocalDateTime.now());
+      return qPost.endAt.after(LocalDateTime.now());
     }
 
     if (status == PostStatus.COMPLETED) {
-      return qpost.endAt.isNull().or(qpost.endAt.before(LocalDateTime.now()));
+      return qPost.endAt.before(LocalDateTime.now());
     }
 
-    throw new IllegalArgumentException();
+    throw new IllegalArgumentException("PostStatus의 값이 잘못되었습니다.");
   }
-
 
   // 내가 게시글에 참여한 타입에 따른 조건 (CHAT: 채팅 , VOTE: 투표 , WRITE: 작성)
   private BooleanExpression createParticipateTypeCondition(
       Long memberId, PostParticipateType participateType, QPost qPost) {
 
-    if (qPost == null || memberId == null || participateType == null) {
-      throw new NullPointerException("Qpost or memberId or PostParticipateType is null");
+    if (qPost == null) {
+      throw new NullPointerException("Qpost is null");
+    }
+
+    if (memberId == null) {
+      throw new NullPointerException("memberId is null");
+    }
+
+    if (participateType == null) {
+      throw new NullPointerException("PostParticipateType is null");
     }
 
     // 채팅
@@ -135,12 +148,12 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
     // 투표
     if (participateType == PostParticipateType.VOTE) {
-      QVote vote = QVote.vote;
+      QVote qVote = QVote.vote;
       return qPost.postId.in(
           JPAExpressions
-              .select(vote.post.postId)
-              .from(vote)
-              .where(vote.member.memberId.eq(memberId))
+              .select(qVote.post.postId)
+              .from(qVote)
+              .where(qVote.member.memberId.eq(memberId))
       );
     }
 
@@ -149,71 +162,74 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       return qPost.member.memberId.eq(memberId);
     }
 
-    throw new IllegalArgumentException();
+    throw new IllegalArgumentException("PostParticipateType의 값이 잘못되었습니다.");
   }
 
 
   // Order By 값 구하기
-  private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qpost) {
+  private OrderSpecifier<?> createOrderSpecifier(PostOrder order, QPost qPost) {
 
-      if (qpost == null || order == null) {
-        throw new NullPointerException("Qpost or PostOrder is null");
-      }
+    if (qPost == null) {
+      throw new NullPointerException("Qpost is null");
+    }
 
-      // 최신순)  post.createdAt.desc()
-      if (order == PostOrder.LATEST) {
-        return qpost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
-      }
+    if (order == null) {
+      throw new NullPointerException("PostOrder is null");
+    }
 
-      // 투표참여인원)  post.voteCount.desc()
-      if (order == PostOrder.MOST_VOTES) {
-        return qpost.voteCount.desc(); // OrderSpecifier<Integer>
-      }
+    // 최신순)  post.createdAt.desc()
+    if (order == PostOrder.LATEST) {
+      return qPost.createdAt.desc(); // OrderSpecifier<LocalDateTime>
+    }
 
-      // 채팅참여인원)  post.chatCount.desc()
-      if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
-        return qpost.chatCount.desc();  // OrderSpecifier<Integer>
-      }
+    // 투표참여인원)  post.voteCount.desc()
+    if (order == PostOrder.MOST_VOTES) {
+      return qPost.voteCount.desc(); // OrderSpecifier<Integer>
+    }
+
+    // 채팅참여인원)  post.chatCount.desc()
+    if (order == PostOrder.MOST_CHAT_PARTICIPANTS) {
+      return qPost.chatCount.desc();  // OrderSpecifier<Integer>
+    }
 
     // 마감 임박 순)  post.endAt.desc()
     if (order == PostOrder.IMMINENT_CLOSE) {
-      return qpost.endAt.desc();  // OrderSpecifier<LocalDateTime>
+      return qPost.endAt.desc();  // OrderSpecifier<LocalDateTime>
     }
 
-    throw new IllegalArgumentException();
+    throw new IllegalArgumentException("PostOrder의 값이 잘못되었습니다.");
 
   }
 
 
-
   @Override
   public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder,
-      Pageable pageable) {
-    QPost qpost = QPost.post;
+                                                       Pageable pageable) {
+    QPost qPost = QPost.post;
 
     // 조건1 (상태)
-    BooleanExpression stateCondition = createStateCondition(postStatus, qpost);
+    BooleanExpression stateCondition = createStateCondition(postStatus, qPost);
 
     // 가져올 데이터
     List<PostListDto.Response> resultContents
         = jpaQueryFactory.select(Projections.constructor(PostListDto.Response.class,
-            qpost.postId,
-            qpost.title,
-            qpost.member.nickname.as("writer"),
-            qpost.contents,
-            qpost.thumbnailUrl.as("imageUrl"),
-            qpost.voteCount,
-            qpost.chatCount,
-            qpost.createdAt
+            qPost.postId,
+            qPost.title,
+            qPost.member.nickname.as("writer"),
+            qPost.contents,
+            qPost.thumbnailUrl.as("imageUrl"),
+            qPost.voteCount,
+            qPost.chatCount,
+            qPost.createdAt
         ))
-        .from(qpost)
+        .from(qPost)
         .where(stateCondition)
         .offset(pageable.getOffset())
         .limit(pageable.getPageSize())
         .fetch();
 
     // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
-    JPAQuery<Long> totalCount = jpaQueryFactory.select(qpost.count()).from(qpost)
+    JPAQuery<Long> totalCount = jpaQueryFactory.select(qPost.count()).from(qPost)
         .where(stateCondition);
 
     return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);

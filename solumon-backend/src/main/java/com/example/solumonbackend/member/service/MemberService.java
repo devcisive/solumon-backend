@@ -6,6 +6,7 @@ import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_ME
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
 import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED_MEMBER;
 
+import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
@@ -14,12 +15,21 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.MemberTag;
 import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.entity.Report;
-import com.example.solumonbackend.member.model.*;
+import com.example.solumonbackend.member.model.CreateTokenDto;
+import com.example.solumonbackend.member.model.GeneralSignInDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.LogOutDto;
+import com.example.solumonbackend.member.model.MemberInterestDto;
+import com.example.solumonbackend.member.model.MemberLogDto;
+import com.example.solumonbackend.member.model.MemberUpdateDto;
+import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
+import com.example.solumonbackend.member.type.ReportType;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
@@ -116,7 +126,7 @@ public class MemberService {
   @Transactional
   public LogOutDto.Response logOut(Member member, String accessToken) {
     RefreshToken refreshToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
-        .orElseThrow(() -> new MemberException(ACCESS_TOKEN_NOT_FOUND));
+        .orElseThrow(() -> new CustomSecurityException(ACCESS_TOKEN_NOT_FOUND));
 
     // 해당 액서스 토큰과 연결된 리프레시 토큰을 삭제하고 그 자리에 로그아웃 기록
     refreshToken.setRefreshToken("logout");
@@ -167,12 +177,9 @@ public class MemberService {
       member.setNickname(request.getNickname());
     }
 
-    // 비밀번호 수정 시 새 비밀번호1 == 새 비밀번호2 인지 확인
-    if (request.getNewPassword1() != null) {
-      if (!request.getNewPassword1().equals(request.getNewPassword2())) {
-        throw new MemberException(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH);
-      }
-      member.setPassword(passwordEncoder.encode(request.getNewPassword1()));
+
+    if(request.getNewPassword() != null){
+      member.setPassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
     memberRepository.save(member);
@@ -198,9 +205,7 @@ public class MemberService {
     memberRepository.save(member);
 
     return WithdrawDto.Response.memberToResponse(member);
-
   }
-
 
   @Transactional
   public MemberInterestDto.Response registerInterest(Member member,
@@ -216,15 +221,10 @@ public class MemberService {
             .orElseThrow(() -> new TagException(NOT_FOUND_TAG, interest)))
         .collect(Collectors.toList());
 
-    memberTagRepository.saveAll(
+    List<String> memberTags = memberTagRepository.saveAll(
         tags.stream()
             .map(tag -> MemberTag.builder().member(member).tag(tag).build())
-            .collect(Collectors.toList())
-    );
-
-    // MemberTag에 제대로 저장됐는지 확인하기 위해 다시 꺼내서 응답으로 보내기위함
-    List<String> resultInterests = memberTagRepository.findAllByMember_MemberId(
-            member.getMemberId())
+            .collect(Collectors.toList()))
         .stream().map(memberTag -> memberTag.getTag().getName())
         .collect(Collectors.toList());
 
@@ -234,10 +234,8 @@ public class MemberService {
       memberRepository.save(member);
     }
 
-
-    return MemberInterestDto.Response.memberToResponse(member, resultInterests);
+    return MemberInterestDto.Response.memberToResponse(member, memberTags);
   }
-
 
   @Transactional
   public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
@@ -250,6 +248,10 @@ public class MemberService {
       throw new MemberException(UNREGISTERED_MEMBER);
     }
 
+    // 신고유형이 OTHER인 경우 신고내용을 적어야함
+    if(request.getReportType() == ReportType.OTHER && request.getReportContent() == null){
+      throw new NullPointerException("신고 상세사유를 입력해주세요.");
+    }
 
     // 이미 정지상태면 신고불가
     if (reportedMember.getBannedAt() != null) {
@@ -291,19 +293,17 @@ public class MemberService {
       member.setRole(MemberRole.PERMANENT_BAN);
       member.setBannedAt(LocalDateTime.now());
 
-    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)  여기서 동시성문제
+    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
       member.setRole(MemberRole.BANNED);
       member.setBannedAt(LocalDateTime.now());
     }
 
     memberRepository.save(member);
-
   }
 
-
+  // TODO : 젠킨스 적용
   @Transactional
   public void releaseBan() {
-
     // 정지상태를 해제할 조건이 되는 멤버들을 뽑아온다.
     List<Member> membersToReleaseBan = memberRepository.findMembersToReleaseBannedStatus();
 

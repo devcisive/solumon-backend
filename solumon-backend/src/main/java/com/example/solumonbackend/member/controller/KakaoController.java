@@ -20,20 +20,24 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class KakaoController {
+
   private final KakaoService kakaoService;
 
   @GetMapping("/start/kakao")
-  public ResponseEntity<Response> startWithKakao(@RequestParam(value = "code", required = false) String code) {
+  public ResponseEntity<Response> startWithKakao(
+      @RequestParam(value = "code", required = false) String code) {
     return ResponseEntity.ok(kakaoService.startWithKakao(code));
   }
 
   @PostMapping("/sign-up/kakao")
-  public ResponseEntity<KakaoSignUpDto.Response> kakaoSignUp(@Valid @RequestBody KakaoSignUpDto.Request request) {
+  public ResponseEntity<KakaoSignUpDto.Response> kakaoSignUp(
+      @Valid @RequestBody KakaoSignUpDto.Request request) {
     return ResponseEntity.ok(kakaoService.kakaoSignUp(request));
   }
 
   @PostMapping("/sign-in/kakao")
-  public ResponseEntity<KakaoSignInDto.Response> kakaoSignIn(@Valid @RequestBody KakaoSignInDto.Request request) {
+  public ResponseEntity<KakaoSignInDto.Response> kakaoSignIn(
+      @Valid @RequestBody KakaoSignInDto.Request request) {
     return ResponseEntity.ok(kakaoService.kakaoSignIn(request));
   }
 }

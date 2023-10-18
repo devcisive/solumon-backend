@@ -18,4 +18,5 @@ public class SearchException extends RuntimeException {
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }
+
 }

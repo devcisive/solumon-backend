@@ -312,7 +312,7 @@ class PostServiceTest {
     ArgumentCaptor<List<Image>> imageCaptor = ArgumentCaptor.forClass(List.class);
 
     //then
-    verify(postRepository, times(1)).save(postCaptor.capture());
+    verify(postRepository, times(2)).save(postCaptor.capture());
     verify(postTagRepository, times(1)).save(tagCaptor.capture());
     verify(choiceRepository, times(1)).saveAll(choiceCaptor.capture());
     verify(imageRepository, times(0)).saveAll(imageCaptor.capture());

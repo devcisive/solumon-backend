@@ -3,11 +3,14 @@ package com.example.solumonbackend.member.model;
 import com.example.solumonbackend.member.entity.Member;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import lombok.*;
-
+import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MemberUpdateDto {
@@ -27,9 +30,7 @@ public class MemberUpdateDto {
     private String password;
 
     @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[@#$%^&+=!]).{8,20}$", message = "비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다.")
-    private String newPassword1;
-
-    private String newPassword2;
+    private String newPassword;
 
   }
 

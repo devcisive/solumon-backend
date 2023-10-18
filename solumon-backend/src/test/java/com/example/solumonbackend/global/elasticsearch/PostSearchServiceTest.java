@@ -97,7 +97,7 @@ class PostSearchServiceTest {
     assertEquals("제목200", captor.getValue().getTitle());
     assertEquals(testMember.getNickname(), captor.getValue().getNickname());
     assertEquals("내용200", captor.getValue().getContent());
-    assertEquals(mockTags.toString(), captor.getValue().getTags());
+    assertEquals(mockTags.toString(), captor.getValue().getTags().toString());
 
   }
 
@@ -149,7 +149,7 @@ class PostSearchServiceTest {
     verify(postSearchRepository, times(1)).findById(200L);
     verify(postSearchRepository, times(1)).save(captor.capture());
     assertEquals("테스트 제목입니다.", captor.getValue().getTitle());
-    assertEquals("[감자, 고구마, 구황작물]", captor.getValue().getTags());
+    assertEquals("[감자, 고구마, 구황작물]", captor.getValue().getTags().toString());
   }
 
   @DisplayName("elastic search 수정 실패 - 존재하지 않는 post document ID")

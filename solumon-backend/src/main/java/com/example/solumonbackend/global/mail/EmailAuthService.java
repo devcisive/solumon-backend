@@ -23,10 +23,6 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class EmailAuthService {
 
-  private final JavaMailSender javaMailSender;
-  private final PasswordEncoder passwordEncoder;
-  private final MemberRepository memberRepository;
-
   private static final char[] rndAllCharacters = new char[]{
       //number
       '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -39,6 +35,9 @@ public class EmailAuthService {
       //special symbols
       '@', '$', '!', '%', '?', '&', '#', '^', '+', '='
   };
+  private final JavaMailSender javaMailSender;
+  private final PasswordEncoder passwordEncoder;
+  private final MemberRepository memberRepository;
 
   public String sendSimpleMessage(String email) throws Exception {
     String code = createRandomCode();
@@ -48,7 +47,6 @@ public class EmailAuthService {
     try {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
-      log.error("An error occurred during email sending: {}", e.getMessage(), e);
       throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
 
@@ -111,7 +109,6 @@ public class EmailAuthService {
     try {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
-      log.error("An error occurred during email sending: {}", e.getMessage(), e);
       throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
   }

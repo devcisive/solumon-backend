@@ -41,20 +41,28 @@ public class RecommendationService {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r2.getPost().getCreatedAt().compareTo(r1.getPost().getCreatedAt()) : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());
-    } else if (PostOrder.IMMINENT_CLOSE.equals(postOrder)) {
+    }
+
+    else if (PostOrder.IMMINENT_CLOSE.equals(postOrder)) {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r1.getPost().getEndAt().compareTo(r2.getPost().getEndAt()) : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());
-    } else if (PostOrder.MOST_VOTES.equals(postOrder)) {
+    }
+
+    else if (PostOrder.MOST_VOTES.equals(postOrder)) {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r2.getPost().getVoteCount() - r1.getPost().getVoteCount() : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());
-    } else if (PostOrder.MOST_CHAT_PARTICIPANTS.equals(postOrder)) {
+    }
+
+    else if (PostOrder.MOST_CHAT_PARTICIPANTS.equals(postOrder)) {
       resultContents = possiblePosts.stream().sorted((r1, r2) -> r1.getScore().equals(r2.getScore()) ?
               r2.getPost().getChatCount() - r1.getPost().getChatCount() : (r2.getScore().compareTo(r1.getScore())))
           .map(r -> PostListDto.Response.postToPostListResponse(r.getPost())).collect(Collectors.toList());
-    } else {
-      throw new PostException(ErrorCode.INVALID_SORTING_CRITERIA);
+    }
+
+    else {
+      throw new IllegalArgumentException(ErrorCode.INVALID_SORTING_CRITERIA.getDescription());
     }
 
     return PageableExecutionUtils.getPage(resultContents, pageable, () -> (long) resultContents.size());
@@ -65,10 +73,14 @@ public class RecommendationService {
     if (PostStatus.ONGOING.equals(postStatus)) {
       return recommendList.stream().filter(
           r -> r.getPost().getEndAt().isAfter(LocalDateTime.now())).distinct().collect(Collectors.toList());
+    }
+
     // '마감' 탭일 경우 투표 마감 시간이 현재 이전인 글들만 뽑아옴
-    } else {
+    if (PostStatus.COMPLETED.equals(postStatus)) {
       return recommendList.stream().filter(
           r -> r.getPost().getEndAt().isBefore(LocalDateTime.now())).distinct().collect(Collectors.toList());
     }
+
+    throw new IllegalArgumentException("Invalid PostStatus");
   }
 }

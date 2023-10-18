@@ -10,6 +10,7 @@ import lombok.Getter;
 @Builder
 @AllArgsConstructor
 public class EmailAuthResponseDto {
+
   String email;
   String code;
 

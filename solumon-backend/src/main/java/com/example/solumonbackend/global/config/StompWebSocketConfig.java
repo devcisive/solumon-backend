@@ -20,7 +20,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
   private final StompHandler stompHandler;
   private final StompExceptionHandler stompExceptionHandler;
 
-
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
 
@@ -32,7 +31,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     registry.setErrorHandler(stompExceptionHandler);
     //소켓에서 예외발생 시 해당 핸들러로 제어권이 넘어감
   }
-
 
   // 메세지브로커: 메세지를 처리하고 클라이언트 간에 전달하는데 사용됨
   // Application 내부에서 사용할 path를 지정
@@ -46,14 +44,12 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // 클라이언트가 해당 prefix가 붙은 메세지를 보낼 시 Broker로 보내짐
     // 해당 경로로 시작하는 STOMP 메세지의 "destination" 헤더는 @Controller 객체의 @MessageMapping 메서드로 라우팅된다.
 
-
     registry.enableSimpleBroker("/sub");
     // 메세지 구독 요청 prefix
     // 메세지를 받을 때의 경로를 설정
     // 해당 prefix가 붙은 경우 messageBroker가 해당 경로를 가로챈다.
     // SimpleBroker는 해당하는 경로를
     // SUBSCRIBE(구독)하는 Client에게 메세지를 전달하는 간단한 작업을 수행 (클라이언트가 메세지를 받는 상황)
-
   }
 
 
@@ -68,6 +64,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
      인증 및 권한 부여
      비동기 작업 등의 로직을 ChannelInterceptor 등의 인터셉터를 구현한 클래스를 넣어주면 된다
     * */
-
   }
+
 }

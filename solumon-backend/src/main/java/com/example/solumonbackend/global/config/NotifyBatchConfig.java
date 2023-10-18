@@ -5,9 +5,6 @@ import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.service.NotifyService;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.repository.PostRepository;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -22,16 +19,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort.Direction;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class NotifyBatchConfig {
+
+  private static final int CHUNK_SIZE = 1000;
+
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final PostRepository postRepository;
   private final EmitterRepository emitterRepository;
   private final NotifyRepository notifyRepository;
-  private static final int CHUNK_SIZE = 1000;
 
   @Bean
   public Job job() {
@@ -67,8 +70,9 @@ public class NotifyBatchConfig {
   // 기존 서비스에서 코드를 가져오는 형태의 ItemWriter. 위에서 넘겨받은 Post만 인자값으로 받을 수 있습니다.
   private ItemWriter<Post> voteCloseNotifyWriter() {
     ItemWriterAdapter<Post> writer = new ItemWriterAdapter<>();
-    writer.setTargetObject(new NotifyService(emitterRepository, notifyRepository));
+    writer.setTargetObject(new NotifyService(emitterRepository, notifyRepository, postRepository));
     writer.setTargetMethod("sendForBatch");
     return writer;
   }
+
 }

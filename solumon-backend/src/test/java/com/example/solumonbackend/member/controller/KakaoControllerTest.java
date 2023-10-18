@@ -171,7 +171,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .queryParam("code", "kakaoCode"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_KAKAO_CODE.toString()));
     this.mockServer.verify();
   }
@@ -192,7 +192,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .queryParam("code", "kakaoCode"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.EMAIL_IS_REQUIRED.toString()));
     this.mockServer.verify();
   }
@@ -213,7 +213,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .queryParam("code", "kakaoCode"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_KAKAO_TOKEN.toString()));
     this.mockServer.verify();
   }
@@ -262,7 +262,7 @@ class KakaoControllerTest {
     mockMvc.perform(post("/user/sign-up/kakao")
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
-        .andExpect(status().isOk())
+        .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_KAKAO_TOKEN.toString()));
     this.mockServer.verify();
   }
@@ -288,7 +288,7 @@ class KakaoControllerTest {
     mockMvc.perform(post("/user/sign-up/kakao")
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ALREADY_EXIST_MEMBER.toString()));
     this.mockServer.verify();
   }
@@ -357,7 +357,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.INVALID_KAKAO_TOKEN.toString()));
     this.mockServer.verify();
   }
@@ -379,7 +379,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_MEMBER.toString()));
     this.mockServer.verify();
   }
@@ -412,7 +412,7 @@ class KakaoControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.UNREGISTERED_MEMBER.toString()));
     this.mockServer.verify();
   }

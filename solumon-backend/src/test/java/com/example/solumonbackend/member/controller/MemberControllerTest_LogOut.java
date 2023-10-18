@@ -83,7 +83,7 @@ public class MemberControllerTest_LogOut {
             .contentType(MediaType.APPLICATION_JSON)
             .header("X-AUTH-TOKEN", "accessToken"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isUnauthorized())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ACCESS_TOKEN_NOT_FOUND.toString()));
   }
 }

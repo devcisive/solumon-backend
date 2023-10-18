@@ -1,7 +1,6 @@
 package com.example.solumonbackend.post.service;
 
 import com.example.solumonbackend.chat.model.ChatMessageDto;
-import com.example.solumonbackend.chat.repository.ChannelMemberRepository;
 import com.example.solumonbackend.chat.repository.ChatMessageRepository;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
@@ -9,43 +8,31 @@ import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.global.exception.TagException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.common.AwsS3Component;
-import com.example.solumonbackend.post.entity.Choice;
-import com.example.solumonbackend.post.entity.Image;
-import com.example.solumonbackend.post.entity.Post;
-import com.example.solumonbackend.post.entity.PostTag;
-import com.example.solumonbackend.post.entity.Tag;
-import com.example.solumonbackend.post.model.AwsS3;
-import com.example.solumonbackend.post.model.PageRequestCustom;
-import com.example.solumonbackend.post.model.PostAddDto;
-import com.example.solumonbackend.post.model.PostDetailDto;
+import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.model.*;
 import com.example.solumonbackend.post.model.PostDto.ChoiceDto;
 import com.example.solumonbackend.post.model.PostDto.ImageDto;
 import com.example.solumonbackend.post.model.PostDto.TagDto;
 import com.example.solumonbackend.post.model.PostDto.VoteResultDto;
-import com.example.solumonbackend.post.model.PostListDto;
-import com.example.solumonbackend.post.model.PostUpdateDto;
-import com.example.solumonbackend.post.repository.ChoiceRepository;
-import com.example.solumonbackend.post.repository.ImageRepository;
-import com.example.solumonbackend.post.repository.PostRepository;
-import com.example.solumonbackend.post.repository.PostTagRepository;
-import com.example.solumonbackend.post.repository.TagRepository;
-import com.example.solumonbackend.post.repository.VoteRepository;
+import com.example.solumonbackend.post.repository.*;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostStatus;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -60,15 +47,14 @@ public class PostService {
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
   private final PostSearchService postSearchService;
-  private final ChannelMemberRepository channelMemberRepository;
   private final ChatMessageRepository chatMessageRepository;
 
-
   private final String POST_DIR = "post";
+  @Value("${spring.basic-img}")
+  private String basicImgUrl;
 
   @Transactional
-  public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
-                                        List<MultipartFile> images) {
+  public PostAddDto.Response createPost(Member member, PostAddDto.Request request, List<MultipartFile> images) {
     Post post = postRepository.save(Post.builder()
         .member(member)
         .title(request.getTitle())
@@ -81,7 +67,7 @@ public class PostService {
     List<Image> saveImages = saveImages(images, post, request.getImages());
 
     postSearchService.save(post, request.getTags()
-        .stream().map(tag -> tag.getTag())
+        .stream().map(TagDto::getTag)
         .collect(Collectors.toList()));
 
     return PostAddDto.Response.postToResponse(post, savePostTags, saveChoices, saveImages);
@@ -89,8 +75,9 @@ public class PostService {
 
   private List<Image> saveImages(List<MultipartFile> images, Post post, List<ImageDto> imageDtoList) {
     // 이미지 파일이 없다면 빈 리스트 리턴(NullPointException 방지 차원)
-    // TODO : 이미지가 없을 때 기본이미지를 대표이미지로 설정
     if (images.isEmpty()) {
+      post.setThumbnailUrl(basicImgUrl);
+      postRepository.save(post);
       return List.of();
     }
 
@@ -125,7 +112,7 @@ public class PostService {
           postRepository.save(post);
         }
 
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
       }
     }
@@ -212,8 +199,9 @@ public class PostService {
   }
 
   @Transactional
-  public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
-                                           List<MultipartFile> images) {
+  public PostUpdateDto.Response updatePost(Member member, long postId,
+                                           PostUpdateDto.Request request, List<MultipartFile> images) {
+
     Post post = getPost(postId);
     validatePostWriter(member, post);
 
@@ -222,7 +210,7 @@ public class PostService {
     postRepository.save(post);
 
     postSearchService.update(post, request.getTags()
-        .stream().map(tag -> tag.getTag())
+        .stream().map(TagDto::getTag)
         .collect(Collectors.toList()));
 
     postTagRepository.deleteAllByPost_PostId(postId);
@@ -240,10 +228,6 @@ public class PostService {
   private List<Image> updateImages(Post post, List<MultipartFile> images,
                                    List<ImageDto> imageDtoList) throws IOException {
     deleteImage(post.getPostId());
-
-    if (images.isEmpty()) {
-      return List.of();
-    }
 
     return saveImages(images, post, imageDtoList);
   }

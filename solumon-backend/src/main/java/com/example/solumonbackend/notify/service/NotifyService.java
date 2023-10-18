@@ -2,6 +2,7 @@ package com.example.solumonbackend.notify.service;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.NotifyException;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.notify.entity.Notify;
 import com.example.solumonbackend.notify.model.NotifyDto;
@@ -10,6 +11,7 @@ import com.example.solumonbackend.notify.repository.EmitterRepository;
 import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.type.NotifyType;
 import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,8 +30,8 @@ public class NotifyService {
   private static final Long DEFAULT_TIMEOUT = 60L * 1000 * 60;
 
   private final EmitterRepository emitterRepository;
-
   private final NotifyRepository notifyRepository;
+  private final PostRepository postRepository;
 
   public SseEmitter subscribe(Member member, String lastEventId) {
     String email = member.getEmail();
@@ -56,7 +58,6 @@ public class NotifyService {
   }
 
   public void send(Member receiver, Post post, NotifyType notifyType) {
-    // notify 객체를 만들면서 sentAt을 일단 null 설정을 해줌
     Notify notification = notifyRepository.save(new Notify(receiver, post, notifyType));
 
     String receiverEmail = receiver.getEmail();
@@ -65,6 +66,33 @@ public class NotifyService {
     // MemberId로 emitter를 찾음
     Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
         receiverEmail);
+
+    emitters.forEach(
+        (key, emitter) -> {
+          emitterRepository.saveEventCache(key, notification);
+          sendNotification(emitter, eventId, key, notification);
+        }
+    );
+  }
+
+  public void sendForChat(long memberId, long postId, NotifyType notifyType) {
+    Post post = postRepository.findById(postId)
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+
+    Member member = post.getMember();
+
+    if (member.getMemberId().equals(memberId)) {
+      return;
+    }
+
+    Notify notification = notifyRepository.save(new Notify(member, post, notifyType));
+
+    String receiverEmail = member.getEmail();
+    String eventId = makeTimeIncludeEmail(receiverEmail);
+
+    // MemberId로 emitter를 찾음
+    Map<String, SseEmitter> emitters =
+        emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -87,8 +115,8 @@ public class NotifyService {
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음
-    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
-        receiverEmail);
+    Map<String, SseEmitter> emitters
+        = emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -158,15 +186,12 @@ public class NotifyService {
     return !lastEventId.isEmpty();
   }
 
-  private void sendLostData(String lastEventId, String userEmail, String emitterId,
-                            SseEmitter emitter) {
-    Map<String, Notify> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(
-        userEmail);
+  private void sendLostData(String lastEventId, String userEmail, String emitterId, SseEmitter emitter) {
+    Map<String, Notify> eventCaches
+        = emitterRepository.findAllEventCacheStartWithByEmail(userEmail);
 
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
         .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
   }
-
-
 }

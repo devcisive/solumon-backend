@@ -185,7 +185,7 @@ class MemberControllerTest_Report {
             .characterEncoding("utf-8")
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_MEMBER.toString()));
   }
 
@@ -203,7 +203,7 @@ class MemberControllerTest_Report {
             .characterEncoding("utf-8")
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.UNREGISTERED_MEMBER.toString()));
   }
 
@@ -222,7 +222,7 @@ class MemberControllerTest_Report {
             .characterEncoding("utf-8")
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ALREADY_BANNED_MEMBER.toString()));
   }
 
@@ -240,7 +240,7 @@ class MemberControllerTest_Report {
             .characterEncoding("utf-8")
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.COOL_TIME_REPORT_MEMBER.toString()));
   }
 }

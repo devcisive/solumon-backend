@@ -1,7 +1,6 @@
 package com.example.solumonbackend.global.security;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
-
+import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
@@ -9,17 +8,7 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +17,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+
+import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
 
 @Slf4j
 @Component
@@ -50,17 +48,17 @@ public class JwtTokenProvider {
   }
 
   public String createAccessToken(String email, List<String> roles) {
-    log.info("[createAccessToken]");
+    log.debug("[createAccessToken]");
     return this.createToken(email, roles, ACCESS_TOKEN_VALID_TIME);
   }
 
   public String createRefreshToken(String email, List<String> roles) {
-    log.info("[createRefreshToken]");
+    log.debug("[createRefreshToken]");
     return this.createToken(email, roles, REFRESH_TOKEN_VALID_TIME);
   }
 
   private String createToken(String email, List<String> roles, long tokenValidTime) {
-    log.info("[createToken]");
+    log.debug("[createToken]");
     Claims claims = Jwts.claims().setSubject(email);
     claims.put("roles", roles);
 
@@ -76,14 +74,14 @@ public class JwtTokenProvider {
 
   // 토큰으로 인증 객체(Authentication) 얻기
   public Authentication getAuthentication(String token) {
-    log.info("[getAuthentication] 토큰 인증 정보 조회");
+    log.debug("[getAuthentication] 토큰 인증 정보 조회");
     UserDetails userDetails = memberDetailService.loadUserByUsername(getMemberEmail(token));
     return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
   }
 
   public String getMemberEmail(String token) {
     try {
-      log.info("[getMemberEmail] token 에서 이메일 정보 추출");
+      log.debug("[getMemberEmail] token 에서 이메일 정보 추출");
       return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     } catch (ExpiredJwtException e) {
       return e.getClaims().getSubject();
@@ -106,11 +104,10 @@ public class JwtTokenProvider {
 
   public String reIssue(String accessToken) {
     RefreshToken refreshToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
-        .orElseThrow(() -> new MemberException(ACCESS_TOKEN_NOT_FOUND));
+        .orElseThrow(() -> new CustomSecurityException(ACCESS_TOKEN_NOT_FOUND));
 
     Member byEmail = memberRepository.findByEmail(getMemberEmail(refreshToken.getAccessToken()))
-        .orElseThrow(() -> new MemberException(
-            ErrorCode.NOT_FOUND_MEMBER));
+        .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
     CreateTokenDto createTokenDto = CreateTokenDto.builder()
         .memberId(byEmail.getMemberId())

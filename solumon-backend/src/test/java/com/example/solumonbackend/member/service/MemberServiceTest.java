@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
@@ -298,7 +299,8 @@ class MemberServiceTest {
     when(refreshTokenRedisRepository.findByAccessToken(accessToken))
         .thenReturn(Optional.empty());
 
-    MemberException exception = Assertions.assertThrows(MemberException.class, () -> memberService.logOut(member, accessToken));
+    CustomSecurityException exception = Assertions.assertThrows(
+        CustomSecurityException.class, () -> memberService.logOut(member, accessToken));
     //then
     verify(refreshTokenRedisRepository, times(1)).findByAccessToken(accessToken);
     Assertions.assertEquals(ErrorCode.ACCESS_TOKEN_NOT_FOUND, exception.getErrorCode());

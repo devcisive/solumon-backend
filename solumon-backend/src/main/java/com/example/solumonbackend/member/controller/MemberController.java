@@ -23,22 +23,25 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class MemberController {
+
   private final MemberService memberService;
   private final EmailAuthService emailAuthService;
 
   @PostMapping("/sign-up/general")
-  public ResponseEntity<GeneralSignUpDto.Response> signUp(@Valid @RequestBody GeneralSignUpDto.Request request) {
+  public ResponseEntity<GeneralSignUpDto.Response> signUp(
+      @Valid @RequestBody GeneralSignUpDto.Request request) {
     log.info("[sign-up/general] 회원가입 진행. userEmail : {} ", request.getEmail());
     return ResponseEntity.ok(memberService.signUp(request));
   }
 
   @GetMapping(value = "/send-email-auth", produces = "application/json")
   @ResponseBody
-  public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email) throws Exception {
+  public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email)
+      throws Exception {
     String code = emailAuthService.sendSimpleMessage(email);
-    log.info("[sendEmailAuth] 인증코드 발송완료");
-    log.info("받는 이메일 : {}", email);
-    log.info("받는 코드 : {}", code);
+    log.debug("[sendEmailAuth] 인증코드 발송완료");
+    log.debug("받는 이메일 : {}", email);
+    log.debug("받는 코드 : {}", code);
 
     return ResponseEntity.ok(EmailAuthResponseDto.builder()
         .email(email)
@@ -47,36 +50,30 @@ public class MemberController {
   }
 
   @PostMapping("/sign-in/general")
-  public ResponseEntity<GeneralSignInDto.Response> signIn(@Valid @RequestBody GeneralSignInDto.Request request) {
+  public ResponseEntity<GeneralSignInDto.Response> signIn(
+      @Valid @RequestBody GeneralSignInDto.Request request) {
     return ResponseEntity.ok(memberService.signIn(request));
   }
 
   @GetMapping("/log-out")
-  public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
-                                                   @RequestHeader("X-AUTH-TOKEN") String accessToken) {
+  public ResponseEntity<LogOutDto.Response> logOut(
+      @AuthenticationPrincipal MemberDetail memberDetail,
+      @RequestHeader("X-AUTH-TOKEN") String accessToken) {
     return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
   }
 
   @GetMapping(value = "/find-password")
-  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request) throws Exception {
+  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request)
+      throws Exception {
     emailAuthService.sendTempPasswordMessage(request.getEmail());
     log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
 
-    return ResponseEntity.ok("임시 비밀번호가 " + request.getEmail() + "으로 발송되었습니다.");
-  }
-
-  @GetMapping("/exception")
-  public void exception() throws RuntimeException {
-    throw new RuntimeException("접근이 금지되었습니다.");
-  }
-
-  @GetMapping("/test")
-  public void test(@AuthenticationPrincipal MemberDetail memberDetail) {
-    System.out.println(memberDetail.getMember().getEmail());
+    return ResponseEntity.ok(request.getEmail());
   }
 
   @GetMapping
-  public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
+  public ResponseEntity<MemberLogDto.Info> getMyInfo(
+      @AuthenticationPrincipal MemberDetail memberDetail) {
 
     return ResponseEntity.ok().body(memberService.getMyInfo(memberDetail.getMember()));
   }
@@ -87,13 +84,14 @@ public class MemberController {
       @RequestParam(name = "postParticipateType") PostParticipateType postParticipateType,
       @RequestParam(name = "postStatus") PostStatus postStatus,
       @RequestParam(name = "postOrder") PostOrder postOrder,
-      @RequestParam(name = "page", defaultValue = "1") int page
+      @RequestParam(name = "pageNum", defaultValue = "1") int pageNum
   ) {
 
     return ResponseEntity.ok()
-        .body(memberService.getMyParticipatePosts(memberDetail.getMember(),
+        .body(memberService.getMyParticipatePosts(
+            memberDetail.getMember(),
             postStatus, postParticipateType, postOrder,
-            PageRequestCustom.of(page, postOrder)));
+            PageRequestCustom.of(pageNum, postOrder)));
   }
 
   @PutMapping

@@ -6,16 +6,10 @@ import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
-import com.example.solumonbackend.member.model.CreateTokenDto;
-import com.example.solumonbackend.member.model.KakaoSignInDto;
-import com.example.solumonbackend.member.model.KakaoSignUpDto;
-import com.example.solumonbackend.member.model.KakaoTokenInfoDto;
-import com.example.solumonbackend.member.model.KakaoUserInfoDto;
-import com.example.solumonbackend.member.model.StartWithKakao;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +22,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @Service
 @RequiredArgsConstructor
@@ -68,9 +64,9 @@ public class KakaoService {
     String email = kakaoUserInfoDto.getKakaoAccount().getEmail();
 
     return StartWithKakao.Response.builder()
-            .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
-            .kakaoAccessToken(kakaoAccessToken) // 추출한 카카오 access token
-            .build();
+        .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
+        .kakaoAccessToken(kakaoAccessToken) // 추출한 카카오 access token
+        .build();
   }
 
   @Transactional
@@ -176,7 +172,7 @@ public class KakaoService {
 
   // 카카오 관련 오류는 MemberException이 아닌 CustomSecurityException을 던짐
   private void checkIfKakaoCodeWasValid(KakaoTokenInfoDto kakaoTokenInfoDto) {
-    if (kakaoTokenInfoDto ==  null) {
+    if (kakaoTokenInfoDto == null) {
       throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_CODE);
     }
   }
@@ -217,7 +213,8 @@ public class KakaoService {
         .header("Authorization", "Bearer " + accessToken)
         .build();
 
-    ResponseEntity<KakaoUserInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoUserInfoDto.class);
+    ResponseEntity<KakaoUserInfoDto> responseEntity = restTemplate.exchange(requestEntity,
+        KakaoUserInfoDto.class);
 
     checkIfKakaoTokenWasValid(responseEntity.getBody());
 
@@ -238,7 +235,7 @@ public class KakaoService {
 
   private void checkIfNotDuplicatedNickname(String nickname) {
     if (memberRepository.existsByNickname(nickname)) {
-      throw new MemberException(ErrorCode.ALREADY_EXIST_USERNAME);
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
     }
   }
 

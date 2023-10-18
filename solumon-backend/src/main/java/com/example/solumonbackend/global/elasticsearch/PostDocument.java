@@ -33,10 +33,6 @@ public class PostDocument {
   private String createdAt;
   private List<String> tags;
 
-  public void setVoteCount(int voteCount) {
-    this.voteCount = voteCount;
-  }
-
   public static PostDocument createPostDocument(Post post, List<String> tags) {
     return PostDocument.builder()
         .id(post.getPostId())
@@ -50,6 +46,10 @@ public class PostDocument {
         .createdAt(post.getCreatedAt().toString())
         .tags(tags)
         .build();
+  }
+
+  public void setVoteCount(int voteCount) {
+    this.voteCount = voteCount;
   }
 
   public PostDocument updatePostDocument(Post post, List<String> tags) {

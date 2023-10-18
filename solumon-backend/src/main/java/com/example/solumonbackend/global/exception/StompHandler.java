@@ -24,11 +24,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class StompHandler implements ChannelInterceptor {
 
-
   private final JwtTokenProvider jwtTokenProvider;
   private final RefreshTokenRedisRepository refreshTokenRedisRepository;
   private final RedisChatService redisChatService;
-
 
   // Stomp 메세지를 전송하기 전 호출되는 메소드
   @Override
@@ -47,7 +45,7 @@ public class StompHandler implements ChannelInterceptor {
 
       // 제대로 됐을 때
       if (accessToken != null & jwtTokenProvider.validateTokenExpiration(accessToken)) {
-        log.info("[websocket] 토큰 유효 검증 성공");
+        log.debug("[websocket] 토큰 유효 검증 성공");
 
         RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
             .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));
@@ -74,12 +72,9 @@ public class StompHandler implements ChannelInterceptor {
       }
 
       // 토큰 유효성 검사를 통과하면 그 안에서 유저 정보를 뽑아오고 저장한다.(연결을 끊기전까지 사용)
-      Member member
-          = ((MemberDetail) jwtTokenProvider.getAuthentication(accessToken)
-          .getPrincipal()).getMember();
+      Member member = ((MemberDetail) jwtTokenProvider.getAuthentication(accessToken).getPrincipal()).getMember();
 
-      redisChatService.saveChatMemberInfo(
-          accessor.getSessionId(),
+      redisChatService.saveChatMemberInfo(accessor.getSessionId(),
           new ChatMemberInfo(member.getMemberId(), member.getNickname()));
     }
 
@@ -91,6 +86,5 @@ public class StompHandler implements ChannelInterceptor {
 
     return message;
   }
-
 
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing
 @EnableBatchProcessing
 @SpringBootApplication
+
 public class SolumonBackendApplication {
   public static void main(String[] args) {
     SpringApplication.run(SolumonBackendApplication.class, args);

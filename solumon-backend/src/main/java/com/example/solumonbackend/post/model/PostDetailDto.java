@@ -46,7 +46,6 @@ public class PostDetailDto {
     private VoteResultDto vote;
     private int voteCount;
     private int chatCount;
-
     private Slice<ChatMessageDto.Response> lastChatMessages;
 
 

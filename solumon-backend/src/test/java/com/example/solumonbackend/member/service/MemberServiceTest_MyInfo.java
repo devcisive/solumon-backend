@@ -145,8 +145,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
         .password("password")
-        .newPassword1(null)
-        .newPassword2(null)
+        .newPassword(null)
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -178,8 +177,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname")
         .password("password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -194,7 +192,7 @@ class MemberServiceTest_MyInfo {
 
     // Then
     verify(passwordEncoder, times(1)).matches(request.getPassword(), fakeMember.getPassword());
-    verify(passwordEncoder, times(1)).encode(request.getNewPassword1());
+    verify(passwordEncoder, times(1)).encode(request.getNewPassword());
 
     verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
 
@@ -213,8 +211,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("newNickname")
         .password("password")
-        .newPassword1("newPassword")
-        .newPassword2("newPassword")
+        .newPassword("newPassword")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
@@ -229,14 +226,14 @@ class MemberServiceTest_MyInfo {
 
     // Then
     verify(passwordEncoder, times(1)).matches(request.getPassword(), fakeMember.getPassword());
-    verify(passwordEncoder, times(1)).encode(request.getNewPassword1());
+    verify(passwordEncoder, times(1)).encode(request.getNewPassword());
 
     verify(memberRepository, times(1)).existsByNickname(request.getNickname());
     verify(memberRepository, times(1)).save(memberArgumentCaptor.capture());
     Member captorValue = memberArgumentCaptor.getValue();
 
     assertEquals(request.getNickname(), response.getNickname());
-    assertEquals(passwordEncoder.encode(request.getNewPassword1()), captorValue.getPassword());
+    assertEquals(passwordEncoder.encode(request.getNewPassword()), captorValue.getPassword());
     assertIterableEquals(List.of("태그1", "태그2"), response.getInterests());
   }
 
@@ -249,8 +246,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
         .password("incorrect_password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(
@@ -278,8 +274,7 @@ class MemberServiceTest_MyInfo {
     MemberUpdateDto.Request request = Request.builder()
         .nickname("nickname1")
         .password("incorrect_password")
-        .newPassword1("new_password!")
-        .newPassword2("new_password!")
+        .newPassword("new_password!")
         .build();
 
     when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(
@@ -295,29 +290,6 @@ class MemberServiceTest_MyInfo {
 
   }
 
-
-  @DisplayName("내 정보 수정 실패 - 새 비밀번호1,2 불일치 ")
-  @Test
-  void updateMyInfo_fail_PasswordMatching_Password1And2NotMatching() {
-    // Given
-
-    MemberUpdateDto.Request request = Request.builder()
-        .nickname("nickname1")
-        .password("password")
-        .newPassword1("new_password")
-        .newPassword2("new_password2")
-        .build();
-
-    when(passwordEncoder.matches(request.getPassword(), fakeMember.getPassword())).thenReturn(true);
-
-    // When
-    MemberException memberException = assertThrows(MemberException.class,
-        () -> memberService.updateMyInfo(fakeMember, request));
-
-    // Then
-    assertEquals(ErrorCode.NEW_PASSWORDS_DO_NOT_MATCH, memberException.getErrorCode());
-
-  }
 
 
   @DisplayName("회원탈퇴")
@@ -379,8 +351,6 @@ class MemberServiceTest_MyInfo {
     when(tagRepository.findByName("태그1")).thenReturn(Optional.of(fakeTags.get(0)));
     when(tagRepository.findByName("태그2")).thenReturn(Optional.of(fakeTags.get(1)));
     when(memberTagRepository.saveAll(any())).thenReturn(fakeMemberTags);
-    when(memberTagRepository.findAllByMember_MemberId(fakeMember.getMemberId())).thenReturn(
-        fakeMemberTags);
 
     // When
     MemberInterestDto.Response response = memberService.registerInterest(fakeMember, request);
@@ -389,7 +359,6 @@ class MemberServiceTest_MyInfo {
     verify(memberTagRepository, times(1)).deleteAllByMember_MemberId(fakeMember.getMemberId());
     verify(tagRepository, times(2)).findByName(any());
     verify(memberTagRepository, times(1)).saveAll(any());
-    verify(memberTagRepository, times(1)).findAllByMember_MemberId(fakeMember.getMemberId());
 
     assertEquals(fakeMember.getMemberId(), response.getMemberId());
     assertFalse(fakeMember.isFirstLogIn());
