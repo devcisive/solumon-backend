@@ -5,9 +5,6 @@ import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.service.NotifyService;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.repository.PostRepository;
-import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -22,12 +19,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort.Direction;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class NotifyBatchConfig {
 
   private static final int CHUNK_SIZE = 1000;
+
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final PostRepository postRepository;
@@ -72,4 +74,5 @@ public class NotifyBatchConfig {
     writer.setTargetMethod("sendForBatch");
     return writer;
   }
+
 }

@@ -1,7 +1,5 @@
 package com.example.solumonbackend.global.security;
 
-import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
-
 import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
@@ -10,17 +8,7 @@ import com.example.solumonbackend.member.entity.RefreshToken;
 import com.example.solumonbackend.member.model.CreateTokenDto;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
+import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +17,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Date;
+import java.util.List;
+
+import static com.example.solumonbackend.global.exception.ErrorCode.ACCESS_TOKEN_NOT_FOUND;
 
 @Slf4j
 @Component
@@ -110,8 +107,7 @@ public class JwtTokenProvider {
         .orElseThrow(() -> new CustomSecurityException(ACCESS_TOKEN_NOT_FOUND));
 
     Member byEmail = memberRepository.findByEmail(getMemberEmail(refreshToken.getAccessToken()))
-        .orElseThrow(() -> new MemberException(
-            ErrorCode.NOT_FOUND_MEMBER));
+        .orElseThrow(() -> new MemberException(ErrorCode.NOT_FOUND_MEMBER));
 
     CreateTokenDto createTokenDto = CreateTokenDto.builder()
         .memberId(byEmail.getMemberId())

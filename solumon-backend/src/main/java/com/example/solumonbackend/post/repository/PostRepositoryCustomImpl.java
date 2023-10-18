@@ -14,13 +14,14 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
@@ -102,7 +103,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       throw new NullPointerException("Qpost is null");
     }
 
-    if (status == null){
+    if (status == null) {
       throw new NullPointerException("PostStatus is null");
     }
 
@@ -125,7 +126,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
       throw new NullPointerException("Qpost is null");
     }
 
-    if (memberId == null){
+    if (memberId == null) {
       throw new NullPointerException("memberId is null");
     }
 
@@ -202,7 +203,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
   @Override
   public Page<PostListDto.Response> getGeneralPostList(PostStatus postStatus, PostOrder postOrder,
-      Pageable pageable) {
+                                                       Pageable pageable) {
     QPost qPost = QPost.post;
 
     // 조건1 (상태)

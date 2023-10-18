@@ -5,12 +5,13 @@ import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
@@ -20,9 +21,8 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
   private final QChatMessage qChatMessage = QChatMessage.chatMessage;
 
   @Override
-  public Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId,
-      Long lastChatMessageId,
-      Pageable pageable) {
+  public Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId, Long lastChatMessageId,
+                                                                  Pageable pageable) {
 
     // lt: less than
     // gt: greater than

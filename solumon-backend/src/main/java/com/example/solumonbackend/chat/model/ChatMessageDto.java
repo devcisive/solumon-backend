@@ -4,12 +4,9 @@ import com.example.solumonbackend.chat.entity.ChatMessage;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import lombok.*;
+
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 
 @NoArgsConstructor
@@ -22,6 +19,7 @@ public class ChatMessageDto {
   public static class Request {
 
     private String content;
+
   }
 
 

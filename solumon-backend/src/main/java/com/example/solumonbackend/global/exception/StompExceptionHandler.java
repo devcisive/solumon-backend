@@ -1,6 +1,5 @@
 package com.example.solumonbackend.global.exception;
 
-import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageDeliveryException;
@@ -10,6 +9,8 @@ import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 
+import java.nio.charset.StandardCharsets;
+
 @Slf4j
 @Component
 public class StompExceptionHandler extends StompSubProtocolErrorHandler {
@@ -18,10 +19,8 @@ public class StompExceptionHandler extends StompSubProtocolErrorHandler {
     super();
   }
 
-
   @Override // 소켓에서 예외발생 시 실행됨
-  public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage,
-      Throwable ex) {
+  public Message<byte[]> handleClientMessageProcessingError(Message<byte[]> clientMessage, Throwable ex) {
 
     // Throwable 로 들어온 객체가 실제로 발생한 예외가 맞아도 instance of 로 캐치가 안됨
     // 무조건 MessageDeliveryException 로 캐치되는 상태
@@ -32,15 +31,13 @@ public class StompExceptionHandler extends StompSubProtocolErrorHandler {
     return super.handleClientMessageProcessingError(clientMessage, ex);
   }
 
-
   // handlerClientMessageProcessingError( ) 를 호출하고,
   // 처리가 끝나면 HandlerInternal( )를 마지막으로 호출해 메세지를 전송하는 흐름
   @Override
-  protected Message<byte[]> handleInternal(StompHeaderAccessor errorHeaderAccessor,
-      byte[] errorPayload, Throwable cause, StompHeaderAccessor clientHeaderAccessor) {
+  protected Message<byte[]> handleInternal(StompHeaderAccessor errorHeaderAccessor, byte[] errorPayload,
+                                           Throwable cause, StompHeaderAccessor clientHeaderAccessor) {
 
     return MessageBuilder.createMessage(errorPayload, errorHeaderAccessor.getMessageHeaders());
-
   }
 
 

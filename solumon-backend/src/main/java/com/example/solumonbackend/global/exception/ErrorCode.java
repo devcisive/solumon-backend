@@ -40,7 +40,7 @@ public enum ErrorCode {
   WRITER_CAN_NOT_VOTE("작성자는 투표를 할 수 없습니다."),
   IMAGE_CAN_NOT_SAVE("이미지를 저장하는 중 오류가 발생했습니다."),
 
-  // TAG
+  // TagException
   NOT_FOUND_TAG("해당 태그를 찾을 수 없습니다."),
 
   // SearchException
