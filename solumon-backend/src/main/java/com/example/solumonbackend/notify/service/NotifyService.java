@@ -91,8 +91,8 @@ public class NotifyService {
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음
-    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
-        receiverEmail);
+    Map<String, SseEmitter> emitters =
+        emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -115,8 +115,8 @@ public class NotifyService {
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음
-    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
-        receiverEmail);
+    Map<String, SseEmitter> emitters
+        = emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -186,15 +186,12 @@ public class NotifyService {
     return !lastEventId.isEmpty();
   }
 
-  private void sendLostData(String lastEventId, String userEmail, String emitterId,
-                            SseEmitter emitter) {
-    Map<String, Notify> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(
-        userEmail);
+  private void sendLostData(String lastEventId, String userEmail, String emitterId, SseEmitter emitter) {
+    Map<String, Notify> eventCaches
+        = emitterRepository.findAllEventCacheStartWithByEmail(userEmail);
 
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
         .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
   }
-
-
 }

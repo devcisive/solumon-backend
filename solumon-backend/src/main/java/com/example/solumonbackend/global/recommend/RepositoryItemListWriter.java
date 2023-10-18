@@ -19,4 +19,5 @@ public class RepositoryItemListWriter<R> extends RepositoryItemWriter<List<Recom
     }
     repositoryItemWriter.write(totalList);
   }
+
 }

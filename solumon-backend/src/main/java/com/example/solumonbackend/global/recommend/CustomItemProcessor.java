@@ -137,4 +137,5 @@ public class CustomItemProcessor implements ItemProcessor<Member, List<Recommend
     }
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
+
 }

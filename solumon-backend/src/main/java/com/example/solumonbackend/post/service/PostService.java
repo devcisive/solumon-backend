@@ -54,8 +54,7 @@ public class PostService {
   private String basicImgUrl;
 
   @Transactional
-  public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
-                                        List<MultipartFile> images) {
+  public PostAddDto.Response createPost(Member member, PostAddDto.Request request, List<MultipartFile> images) {
     Post post = postRepository.save(Post.builder()
         .member(member)
         .title(request.getTitle())
@@ -200,8 +199,9 @@ public class PostService {
   }
 
   @Transactional
-  public PostUpdateDto.Response updatePost(Member member, long postId, PostUpdateDto.Request request,
-                                           List<MultipartFile> images) {
+  public PostUpdateDto.Response updatePost(Member member, long postId,
+                                           PostUpdateDto.Request request, List<MultipartFile> images) {
+
     Post post = getPost(postId);
     validatePostWriter(member, post);
 
