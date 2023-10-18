@@ -246,7 +246,7 @@ class PostControllerTest {
     //then
     mockMvc.perform(get("/posts/" + (savePost.getPostId() + 1)))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
   }
 
@@ -371,7 +371,7 @@ class PostControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .characterEncoding("UTF-8"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
   }
 
@@ -409,7 +409,7 @@ class PostControllerTest {
             .accept(MediaType.APPLICATION_JSON)
             .characterEncoding("UTF-8"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER.toString()));
   }
 
@@ -468,7 +468,7 @@ class PostControllerTest {
     //then
     mockMvc.perform(delete("/posts/" + savePost.getPostId()))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ONLY_AVAILABLE_TO_THE_WRITER.toString()));
   }
 

@@ -28,12 +28,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
       FilterChain filterChain) throws ServletException, IOException {
 
-    log.info("[doFilterInternal] resolve Token");
+    log.debug("[doFilterInternal] resolve Token");
     String accessToken = jwtTokenProvider.resolveToken(request);
 
     // 제대로 됐을 때
     if (accessToken != null & jwtTokenProvider.validateTokenExpiration(accessToken)) {
-      log.info("[doFilterInternal] 토큰 유효 검증 성공");
+      log.debug("[doFilterInternal] 토큰 유효 검증 성공");
 
       RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
           .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));

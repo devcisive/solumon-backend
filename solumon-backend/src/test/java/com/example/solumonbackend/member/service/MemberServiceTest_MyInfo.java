@@ -351,8 +351,6 @@ class MemberServiceTest_MyInfo {
     when(tagRepository.findByName("태그1")).thenReturn(Optional.of(fakeTags.get(0)));
     when(tagRepository.findByName("태그2")).thenReturn(Optional.of(fakeTags.get(1)));
     when(memberTagRepository.saveAll(any())).thenReturn(fakeMemberTags);
-    when(memberTagRepository.findAllByMember_MemberId(fakeMember.getMemberId())).thenReturn(
-        fakeMemberTags);
 
     // When
     MemberInterestDto.Response response = memberService.registerInterest(fakeMember, request);
@@ -361,7 +359,6 @@ class MemberServiceTest_MyInfo {
     verify(memberTagRepository, times(1)).deleteAllByMember_MemberId(fakeMember.getMemberId());
     verify(tagRepository, times(2)).findByName(any());
     verify(memberTagRepository, times(1)).saveAll(any());
-    verify(memberTagRepository, times(1)).findAllByMember_MemberId(fakeMember.getMemberId());
 
     assertEquals(fakeMember.getMemberId(), response.getMemberId());
     assertFalse(fakeMember.isFirstLogIn());

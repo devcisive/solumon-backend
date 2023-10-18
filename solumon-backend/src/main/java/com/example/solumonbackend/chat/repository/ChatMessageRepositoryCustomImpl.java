@@ -20,7 +20,8 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
   private final QChatMessage qChatMessage = QChatMessage.chatMessage;
 
   @Override
-  public Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId, Long lastChatMessageId,
+  public Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId,
+      Long lastChatMessageId,
       Pageable pageable) {
 
     // lt: less than
@@ -45,7 +46,6 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
         .limit(pageable.getPageSize() + 1) // 다음에 가져올 데이터의 존재여부를 확인하기 위해 1개 더 가져온다.
         .fetch();
 
-
     // 가져온 데이터의 수가 사이즈보다 크다면 다음에 가져올 데이터가 있다는 뜻
     boolean hasNext = false;
     if (lastChatMessages.size() > pageable.getPageSize()) {
@@ -55,7 +55,6 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
 
     return new SliceImpl<>(lastChatMessages, pageable, hasNext); // 다음 데이터의 존재여부를 같이 넣어서 반환
   }
-
 
 
   // 처음 시작할 땐 마지막으로 노출된 데이터가 없으니 조건없이 내림차순 한 것에서 10개만 가져오기

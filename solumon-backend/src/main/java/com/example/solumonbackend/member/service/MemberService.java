@@ -6,6 +6,7 @@ import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_ME
 import static com.example.solumonbackend.global.exception.ErrorCode.NOT_FOUND_TAG;
 import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED_MEMBER;
 
+import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.exception.TagException;
@@ -125,7 +126,7 @@ public class MemberService {
   @Transactional
   public LogOutDto.Response logOut(Member member, String accessToken) {
     RefreshToken refreshToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
-        .orElseThrow(() -> new MemberException(ACCESS_TOKEN_NOT_FOUND));
+        .orElseThrow(() -> new CustomSecurityException(ACCESS_TOKEN_NOT_FOUND));
 
     // 해당 액서스 토큰과 연결된 리프레시 토큰을 삭제하고 그 자리에 로그아웃 기록
     refreshToken.setRefreshToken("logout");
@@ -204,9 +205,7 @@ public class MemberService {
     memberRepository.save(member);
 
     return WithdrawDto.Response.memberToResponse(member);
-
   }
-
 
   @Transactional
   public MemberInterestDto.Response registerInterest(Member member,

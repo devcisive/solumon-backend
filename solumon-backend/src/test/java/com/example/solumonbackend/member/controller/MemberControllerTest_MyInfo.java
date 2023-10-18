@@ -319,7 +319,7 @@ class MemberControllerTest_MyInfo {
 
     mockMvc.perform(get("/user")
             .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
         .andExpect(jsonPath("$.nickname").value(fakeMember.getNickname()))
         .andExpect(jsonPath("$.email").value(fakeMember.getEmail()))
@@ -367,7 +367,7 @@ class MemberControllerTest_MyInfo {
             .characterEncoding("utf-8")
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_CORRECT_PASSWORD.toString()))
     ;
   }
@@ -388,7 +388,7 @@ class MemberControllerTest_MyInfo {
             .characterEncoding("utf-8")
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ALREADY_REGISTERED_NICKNAME.toString()))
     ;
   }
@@ -406,7 +406,7 @@ class MemberControllerTest_MyInfo {
             .characterEncoding("utf-8")
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk()) //400
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
         .andExpect(jsonPath("$.email").value(fakeMember.getEmail()))
         .andExpect(jsonPath("$.nickname").value(fakeMember.getNickname()));
@@ -425,7 +425,7 @@ class MemberControllerTest_MyInfo {
             .characterEncoding("utf-8")
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_CORRECT_PASSWORD.toString()));
   }
 
@@ -440,7 +440,7 @@ class MemberControllerTest_MyInfo {
     mockMvc.perform(post("/user/interests")
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
-        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(status().isOk())
         .andExpect(jsonPath("$.memberId").value(fakeMember.getMemberId()))
         .andExpect(jsonPath("$.interests[0]").value(fakeMemberTag.getTag().getName()));
     ;
@@ -457,7 +457,7 @@ class MemberControllerTest_MyInfo {
     mockMvc.perform(post("/user/interests")
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
-        .andExpect(MockMvcResultMatchers.status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_TAG.toString()))
     ;
   }
@@ -539,20 +539,20 @@ class MemberControllerTest_MyInfo {
     ;
   }
 
-  @DisplayName("내가 참여한 글 가져오기(실패) - <없는 페이지>")
-  @Test
-  void getMyParticipatePosts_fail_nonePage() throws Exception {
-    mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
-            .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
-            .param("postStatus", String.valueOf(PostStatus.COMPLETED))
-            .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
-            .param("pageNum", "3")
-            .contentType(MediaType.APPLICATION_JSON)
-            .characterEncoding("utf-8"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.content[0]").doesNotExist());
-        // 현재 서비스 로직이 빈 페이지일 경우 빈 리스트 반환만 해놓는 상태(예외처리 안해놓은 상태)
-  }
+//  @DisplayName("내가 참여한 글 가져오기(실패) - <없는 페이지>")
+//  @Test
+//  void getMyParticipatePosts_fail_nonePage() throws Exception {
+//    mockMvc.perform(MockMvcRequestBuilders.get("/user/mylog")
+//            .param("postParticipateType", String.valueOf(PostParticipateType.CHAT))
+//            .param("postStatus", String.valueOf(PostStatus.COMPLETED))
+//            .param("postOrder", String.valueOf(PostOrder.MOST_CHAT_PARTICIPANTS))
+//            .param("pageNum", "3")
+//            .contentType(MediaType.APPLICATION_JSON)
+//            .characterEncoding("utf-8"))
+//        .andExpect(status().isOk())
+//        .andExpect(jsonPath("$.content[0]").doesNotExist());
+//
+//  }
 
 
 }

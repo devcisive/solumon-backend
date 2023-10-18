@@ -27,12 +27,14 @@ public class PostSearchService {
 
   /**
    * 마감 안된 것 제목 및 본문 검색 오타, 비슷한 문자 포함.
-   * @param keyword 검색할 단어
-   * @param pageNum 페이지 번호
+   *
+   * @param keyword   검색할 단어
+   * @param pageNum   페이지 번호
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 진행중인 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> searchOngoingPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchOngoingPostsByContent(String keyword, int pageNum,
+      PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
@@ -54,7 +56,8 @@ public class PostSearchService {
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 마감된 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> searchCompletedPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchCompletedPostsByContent(String keyword, int pageNum,
+      PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
@@ -68,7 +71,8 @@ public class PostSearchService {
         .collect(Collectors.toList());
   }
 
-  public List<PostListDto.Response> searchOngoingPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchOngoingPostsByTag(String keyword, Integer pageNum,
+      PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
@@ -82,7 +86,8 @@ public class PostSearchService {
         .collect(Collectors.toList());
   }
 
-  public List<PostListDto.Response> searchCompletedPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+  public List<PostListDto.Response> searchCompletedPostsByTag(String keyword, Integer pageNum,
+      PostOrder postOrder) {
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))

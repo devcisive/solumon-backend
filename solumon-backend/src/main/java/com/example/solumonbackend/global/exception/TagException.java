@@ -15,6 +15,6 @@ public class TagException extends RuntimeException {
 
   public TagException(ErrorCode errorCode, String tagName) {
     this.errorCode = errorCode;
-    this.errorMessage = tagName + ": "+ errorCode.getDescription();
+    this.errorMessage = tagName + ": " + errorCode.getDescription();
   }
 }

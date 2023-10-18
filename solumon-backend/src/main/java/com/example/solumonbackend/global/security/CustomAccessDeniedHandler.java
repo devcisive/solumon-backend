@@ -1,5 +1,7 @@
 package com.example.solumonbackend.global.security;
 
+import com.example.solumonbackend.global.exception.CustomSecurityException;
+import com.example.solumonbackend.global.exception.ErrorCode;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -16,7 +18,7 @@ public class CustomAccessDeniedHandler implements
   @Override
   public void handle(HttpServletRequest request, HttpServletResponse response,
       AccessDeniedException accessDeniedException) throws IOException, ServletException {
-    log.info("[Access is Denied] 접근 불가");
-    response.sendRedirect("/user/exception");
+    log.error("[Access is Denied] 접근 불가");
+    throw new CustomSecurityException(ErrorCode.INVALID_TOKEN);
   }
 }

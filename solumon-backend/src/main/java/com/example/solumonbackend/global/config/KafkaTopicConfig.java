@@ -17,7 +17,6 @@ public class KafkaTopicConfig {
   private String bootstrapAddress;
 
 
-
   @Bean
   public KafkaAdmin kafkaAdmin() {
     Map<String, Object> configs = new HashMap<>();
@@ -28,7 +27,7 @@ public class KafkaTopicConfig {
 
   // 애플리케이션 로딩 시점에 카프카에 토픽을 등록할 수 있다.
   @Bean
-  public NewTopic ChatTopicBuilder(){
+  public NewTopic ChatTopicBuilder() {
     return TopicBuilder.name("chat").build(); // 파티션 등의 구성은 패스
   }
 

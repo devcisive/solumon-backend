@@ -9,17 +9,20 @@ import lombok.NoArgsConstructor;
 
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class KakaoSignInDto {
+
   @NoArgsConstructor
   @AllArgsConstructor
   @Getter
   @Builder
   public static class Request {
+
     private String kakaoAccessToken;
   }
 
   @Getter
   @Builder
   public static class Response {
+
     private Long memberId;
     private Boolean isFirstLogIn;
     private String accessToken;

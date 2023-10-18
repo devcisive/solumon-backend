@@ -2,6 +2,8 @@ package com.example.solumonbackend.global.exception;
 
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -15,67 +17,81 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MemberException.class)
   @MessageExceptionHandler(MemberException.class)
-  public ErrorResponse handleAccountException(MemberException e) {
+  public ResponseEntity<ErrorResponse> handleAccountException(MemberException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(TagException.class)
-  public ErrorResponse handleTagException(TagException e) {
+  public ResponseEntity<ErrorResponse> handleTagException(TagException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(PostException.class)
-  public ErrorResponse handlePostException(PostException e) {
+  public ResponseEntity<ErrorResponse> handlePostException(PostException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(NotifyException.class)
-  public ErrorResponse handleNotifyException(NotifyException e) {
+  public ResponseEntity<ErrorResponse> handleNotifyException(NotifyException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(CustomSecurityException.class)
-  public ErrorResponse handleAccountException(CustomSecurityException e) {
+  public ResponseEntity<ErrorResponse> handleAccountException(CustomSecurityException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.UNAUTHORIZED);
   }
 
   @ExceptionHandler(SearchException.class)
-  public ErrorResponse handleTagException(SearchException e) {
+  public ResponseEntity<ErrorResponse> handleTagException(SearchException e) {
     log.error("{} is occurred", e.getErrorCode());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(MailException.class)
-  public ErrorResponse handleMailException(MailException e) {
+  public ResponseEntity<ErrorResponse> handleMailException(MailException e) {
     log.error("{} is occurred", e.getMessage());
-    return new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(AmazonS3Exception.class)
-  public ErrorResponse handleAmazonS3Exception(AmazonS3Exception e) {
+  public ResponseEntity<ErrorResponse> handleAmazonS3Exception(AmazonS3Exception e) {
     log.error("{} is occurred", e.getMessage());
-    return new ErrorResponse("Failed", ErrorCode.AmazonS3Exception, e.getMessage());
+    return new ResponseEntity<>(
+        new ErrorResponse("Failed", ErrorCode.AmazonS3Exception, e.getMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(IllegalArgumentException.class)
-  public ErrorResponse handleIllegalArgumentException(IllegalArgumentException e) {
+  public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
     log.error("{} is occurred", e.getMessage());
-    return new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage());
+    return new ResponseEntity<>(
+        new ErrorResponse("Failed", ErrorCode.IllegalArgumentException, e.getMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(NullPointerException.class)
-  public ErrorResponse handleNullPointerException(NullPointerException e) {
+  public ResponseEntity<ErrorResponse> handleNullPointerException(NullPointerException e) {
     log.error("{} is occurred", e.getMessage());
-    return new ErrorResponse("Failed", ErrorCode.NullPointerException, e.getMessage());
+    return new ResponseEntity<>(
+        new ErrorResponse("Failed", ErrorCode.NullPointerException, e.getMessage()),
+        HttpStatus.BAD_REQUEST);
   }
 
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ErrorResponse MethodArgumentNotValidException(MethodArgumentNotValidException e) {
+  public ResponseEntity<ErrorResponse> MethodArgumentNotValidException(
+      MethodArgumentNotValidException e) {
     BindingResult bindingResult = e.getBindingResult();
 
     StringBuilder sb = new StringBuilder();
@@ -83,7 +99,9 @@ public class GlobalExceptionHandler {
       sb.append(fieldError.getDefaultMessage()).append(" ");
     }
     // 테스트를 원할하게 하기 위해 바꾼 코드입니다. 나중에 수정 예정
-    return new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString());
+    return new ResponseEntity<>(
+        new ErrorResponse("Failed", ErrorCode.MethodArgumentNotValidException, sb.toString()),
+        HttpStatus.BAD_REQUEST);
   }
 
 }

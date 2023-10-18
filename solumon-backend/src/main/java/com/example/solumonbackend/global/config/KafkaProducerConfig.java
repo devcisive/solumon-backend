@@ -26,8 +26,10 @@ public class KafkaProducerConfig { // 데이터를 카프카의 토픽에 보내
   public ProducerFactory<String, ChatMessageDto.Response> producerFactory() {
 
     Map<String, Object> producerProps = new HashMap<>();
-    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);  // 부트스트랩이 로컬호스트의 카프카를 바라보도록 함
-    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);    // 키는 메세지를 보내면, 토픽의 파티션이 지정될 때 사용됨
+    // 부트스트랩이 로컬호스트의 카프카를 바라보도록 함
+    producerProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapAddress);
+    // 키는 메세지를 보내면, 토픽의 파티션이 지정될 때 사용됨
+    producerProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     producerProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
 
     return new DefaultKafkaProducerFactory<>(producerProps);

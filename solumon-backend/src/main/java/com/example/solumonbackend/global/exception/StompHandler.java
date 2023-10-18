@@ -47,7 +47,7 @@ public class StompHandler implements ChannelInterceptor {
 
       // 제대로 됐을 때
       if (accessToken != null & jwtTokenProvider.validateTokenExpiration(accessToken)) {
-        log.info("[websocket] 토큰 유효 검증 성공");
+        log.debug("[websocket] 토큰 유효 검증 성공");
 
         RefreshToken byAccessToken = refreshTokenRedisRepository.findByAccessToken(accessToken)
             .orElseThrow(() -> new CustomSecurityException(ErrorCode.NOT_FOUND_TOKEN_SET));

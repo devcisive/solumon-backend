@@ -21,7 +21,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
   @Override
   public void commence(HttpServletRequest request, HttpServletResponse response,
       AuthenticationException authException) throws IOException, ServletException {
-    log.info("[CustomAuthenticationEntryPoint : commence] 인증 실패로 response.sendError 발생.");
+    log.error("[CustomAuthenticationEntryPoint : commence] 인증 실패로 response.sendError 발생.");
 
     response.setStatus(401);
     response.setContentType("application/json");

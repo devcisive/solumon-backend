@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 public class KakaoUserInfoDto {
+
   @JsonProperty("id")
   private Long kakaoId;
   @JsonProperty("kakao_account")
@@ -14,6 +15,7 @@ public class KakaoUserInfoDto {
 
   @Getter
   public static class KakaoAccount {
+
     @JsonProperty("email")
     private String email;
   }

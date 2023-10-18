@@ -128,7 +128,7 @@ class VoteControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
   }
 
@@ -151,7 +151,7 @@ class VoteControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.POST_IS_CLOSED.toString()));
   }
 
@@ -169,7 +169,7 @@ class VoteControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.WRITER_CAN_NOT_VOTE.toString()));
   }
 
@@ -193,7 +193,7 @@ class VoteControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonRequest))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.VOTE_ONLY_ONCE.toString()));
   }
 
@@ -231,7 +231,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(delete("/posts/" + (savePost.getPostId() + 1) + "/vote"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.NOT_FOUND_POST.toString()));
   }
 
@@ -255,7 +255,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(delete("/posts/" + closedPost.getPostId() + "/vote"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.POST_IS_CLOSED.toString()));
   }
 
@@ -268,7 +268,7 @@ class VoteControllerTest {
     //then
     mockMvc.perform(delete("/posts/" + savePost.getPostId() + "/vote"))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.errorCode").value(ErrorCode.ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL.toString()));
   }
 

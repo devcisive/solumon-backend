@@ -5,6 +5,11 @@ import com.example.solumonbackend.global.exception.MailException;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
+import java.security.SecureRandom;
+import java.util.Random;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage.RecipientType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -12,20 +17,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
-import java.security.SecureRandom;
-import java.util.Random;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailAuthService {
-
-  private final JavaMailSender javaMailSender;
-  private final PasswordEncoder passwordEncoder;
-  private final MemberRepository memberRepository;
 
   private static final char[] rndAllCharacters = new char[]{
       //number
@@ -39,6 +34,9 @@ public class EmailAuthService {
       //special symbols
       '@', '$', '!', '%', '?', '&', '#', '^', '+', '='
   };
+  private final JavaMailSender javaMailSender;
+  private final PasswordEncoder passwordEncoder;
+  private final MemberRepository memberRepository;
 
   public String sendSimpleMessage(String email) throws Exception {
     String code = createRandomCode();
@@ -48,7 +46,6 @@ public class EmailAuthService {
     try {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
-      log.error("An error occurred during email sending: {}", e.getMessage(), e);
       throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
 
@@ -111,7 +108,6 @@ public class EmailAuthService {
     try {
       javaMailSender.send(message); // 메일 발송
     } catch (Exception e) {
-      log.error("An error occurred during email sending: {}", e.getMessage(), e);
       throw new MailException(ErrorCode.FAIL_TO_SEND_MAIL);
     }
   }
@@ -128,7 +124,8 @@ public class EmailAuthService {
     return randomPassword.toString();
   }
 
-  private MimeMessage createTempPasswordMessage(String email, String password) throws MessagingException {
+  private MimeMessage createTempPasswordMessage(String email, String password)
+      throws MessagingException {
     MimeMessage message = javaMailSender.createMimeMessage();
 
     message.addRecipients(RecipientType.TO, email);

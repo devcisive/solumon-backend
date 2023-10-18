@@ -68,9 +68,9 @@ public class KakaoService {
     String email = kakaoUserInfoDto.getKakaoAccount().getEmail();
 
     return StartWithKakao.Response.builder()
-            .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
-            .kakaoAccessToken(kakaoAccessToken) // 추출한 카카오 access token
-            .build();
+        .isMember(memberRepository.existsByEmail(email)) // DB에 저장된 회원인지 아닌지 결과값
+        .kakaoAccessToken(kakaoAccessToken) // 추출한 카카오 access token
+        .build();
   }
 
   @Transactional
@@ -130,8 +130,10 @@ public class KakaoService {
         .build();
 
     // 액서스 토큰과 리프레시 토큰 생성
-    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), createTokenDto.getRoles());
-    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), createTokenDto.getRoles());
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(),
+        createTokenDto.getRoles());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(),
+        createTokenDto.getRoles());
 
     // 레디스에 액서스 토큰과 리프레시 토큰 저장
     refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
@@ -165,7 +167,8 @@ public class KakaoService {
         .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED + ";charset=UTF-8")
         .body(requestBody);
 
-    ResponseEntity<KakaoTokenInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoTokenInfoDto.class);
+    ResponseEntity<KakaoTokenInfoDto> responseEntity = restTemplate.exchange(requestEntity,
+        KakaoTokenInfoDto.class);
 
     // 한 번 토큰을 발급받은 코드의 재사용 등이 금지되어 있어서 받아온 값이 null 아닌지 확인
     checkIfKakaoCodeWasValid(responseEntity.getBody());
@@ -176,7 +179,7 @@ public class KakaoService {
 
   // 카카오 관련 오류는 MemberException이 아닌 CustomSecurityException을 던짐
   private void checkIfKakaoCodeWasValid(KakaoTokenInfoDto kakaoTokenInfoDto) {
-    if (kakaoTokenInfoDto ==  null) {
+    if (kakaoTokenInfoDto == null) {
       throw new CustomSecurityException(ErrorCode.INVALID_KAKAO_CODE);
     }
   }
@@ -217,7 +220,8 @@ public class KakaoService {
         .header("Authorization", "Bearer " + accessToken)
         .build();
 
-    ResponseEntity<KakaoUserInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoUserInfoDto.class);
+    ResponseEntity<KakaoUserInfoDto> responseEntity = restTemplate.exchange(requestEntity,
+        KakaoUserInfoDto.class);
 
     checkIfKakaoTokenWasValid(responseEntity.getBody());
 
@@ -238,7 +242,7 @@ public class KakaoService {
 
   private void checkIfNotDuplicatedNickname(String nickname) {
     if (memberRepository.existsByNickname(nickname)) {
-      throw new MemberException(ErrorCode.ALREADY_EXIST_USERNAME);
+      throw new MemberException(ErrorCode.ALREADY_REGISTERED_NICKNAME);
     }
   }
 

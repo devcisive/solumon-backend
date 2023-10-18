@@ -6,5 +6,6 @@ import org.springframework.data.domain.Slice;
 
 public interface ChatMessageRepositoryCustom {
 
-  Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId, Long lastChatMessageId ,Pageable pageable);
+  Slice<ChatMessageDto.Response> getLastChatMessagesScroll(Long postId, Long lastChatMessageId,
+      Pageable pageable);
 }

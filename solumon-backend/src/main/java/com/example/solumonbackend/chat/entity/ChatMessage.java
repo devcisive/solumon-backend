@@ -34,5 +34,4 @@ public class ChatMessage {
   private boolean isSent;
 
 
-
 }

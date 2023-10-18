@@ -28,13 +28,14 @@ import org.springframework.data.domain.Sort.Direction;
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class RecommendBatchConfig {
+
+  private static final int CHUNK_SIZE = 1000;
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final MemberRepository memberRepository;
   private final MemberTagRepository memberTagRepository;
   private final PostTagRepository postTagRepository;
   private final RecommendRepository recommendRepository;
-  private static final int CHUNK_SIZE = 1000;
 
   // job: 배치에서 실행하는 일의 단위, 해당 job은 1시간에 한 번씩 돌릴 예정
   // step: job을 구성하는 1개 이상의 단계들, 여기에서는 chunk-oriented 방식으로 구성함

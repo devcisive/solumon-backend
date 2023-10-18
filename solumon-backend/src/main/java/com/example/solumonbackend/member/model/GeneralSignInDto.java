@@ -2,13 +2,12 @@ package com.example.solumonbackend.member.model;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class GeneralSignInDto {
@@ -30,6 +29,7 @@ public class GeneralSignInDto {
   @Getter
   @Builder
   public static class Response {
+
     private Long memberId;
     private String accessToken;
     private String refreshToken;

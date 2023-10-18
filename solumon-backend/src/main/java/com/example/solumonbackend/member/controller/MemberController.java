@@ -2,39 +2,59 @@ package com.example.solumonbackend.member.controller;
 
 import com.example.solumonbackend.global.mail.EmailAuthResponseDto;
 import com.example.solumonbackend.global.mail.EmailAuthService;
-import com.example.solumonbackend.member.model.*;
+import com.example.solumonbackend.member.model.FindPasswordDto;
+import com.example.solumonbackend.member.model.GeneralSignInDto;
+import com.example.solumonbackend.member.model.GeneralSignUpDto;
+import com.example.solumonbackend.member.model.LogOutDto;
+import com.example.solumonbackend.member.model.MemberDetail;
+import com.example.solumonbackend.member.model.MemberInterestDto;
+import com.example.solumonbackend.member.model.MemberLogDto;
+import com.example.solumonbackend.member.model.MemberUpdateDto;
+import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.WithdrawDto;
 import com.example.solumonbackend.member.service.MemberService;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.model.PageRequestCustom;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/user")
 public class MemberController {
+
   private final MemberService memberService;
   private final EmailAuthService emailAuthService;
 
   @PostMapping("/sign-up/general")
-  public ResponseEntity<GeneralSignUpDto.Response> signUp(@Valid @RequestBody GeneralSignUpDto.Request request) {
+  public ResponseEntity<GeneralSignUpDto.Response> signUp(
+      @Valid @RequestBody GeneralSignUpDto.Request request) {
     log.info("[sign-up/general] 회원가입 진행. userEmail : {} ", request.getEmail());
     return ResponseEntity.ok(memberService.signUp(request));
   }
 
   @GetMapping(value = "/send-email-auth", produces = "application/json")
   @ResponseBody
-  public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email) throws Exception {
+  public ResponseEntity<EmailAuthResponseDto> sendEmailAuth(@RequestParam String email)
+      throws Exception {
     String code = emailAuthService.sendSimpleMessage(email);
     log.debug("[sendEmailAuth] 인증코드 발송완료");
     log.debug("받는 이메일 : {}", email);
@@ -47,18 +67,21 @@ public class MemberController {
   }
 
   @PostMapping("/sign-in/general")
-  public ResponseEntity<GeneralSignInDto.Response> signIn(@Valid @RequestBody GeneralSignInDto.Request request) {
+  public ResponseEntity<GeneralSignInDto.Response> signIn(
+      @Valid @RequestBody GeneralSignInDto.Request request) {
     return ResponseEntity.ok(memberService.signIn(request));
   }
 
   @GetMapping("/log-out")
-  public ResponseEntity<LogOutDto.Response> logOut(@AuthenticationPrincipal MemberDetail memberDetail,
-                                                   @RequestHeader("X-AUTH-TOKEN") String accessToken) {
+  public ResponseEntity<LogOutDto.Response> logOut(
+      @AuthenticationPrincipal MemberDetail memberDetail,
+      @RequestHeader("X-AUTH-TOKEN") String accessToken) {
     return ResponseEntity.ok(memberService.logOut(memberDetail.getMember(), accessToken));
   }
 
   @GetMapping(value = "/find-password")
-  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request) throws Exception {
+  public ResponseEntity<String> findPassword(@RequestBody FindPasswordDto.Request request)
+      throws Exception {
     emailAuthService.sendTempPasswordMessage(request.getEmail());
     log.debug("[sendEmailAuth] 임시 비밀번호 발송완료");
 
@@ -66,7 +89,8 @@ public class MemberController {
   }
 
   @GetMapping
-  public ResponseEntity<MemberLogDto.Info> getMyInfo(@AuthenticationPrincipal MemberDetail memberDetail) {
+  public ResponseEntity<MemberLogDto.Info> getMyInfo(
+      @AuthenticationPrincipal MemberDetail memberDetail) {
 
     return ResponseEntity.ok().body(memberService.getMyInfo(memberDetail.getMember()));
   }

@@ -33,30 +33,27 @@ public class KafkaChatService {
   private final NotifyService notifyService;
 
 
-
   // 특정 토픽에 메세지를 보냄
   public void publishChatMessage(ChatMessageDto.Response chatMessage) {
 
     // ListenableFuture 은 콜백용(비동기식 작동)
-    ListenableFuture<SendResult<String, ChatMessageDto.Response>> sendFuture = kafkaChatMessageTemplate.send(CHAT_TOPIC, chatMessage);
+    ListenableFuture<SendResult<String, ChatMessageDto.Response>> sendFuture = kafkaChatMessageTemplate.send(
+        CHAT_TOPIC, chatMessage);
 
     sendFuture.addCallback(
         success -> {
-      log.debug("[send to ChatTopic Success]  partition: {}, offset: {}",
-          success.getRecordMetadata().offset(), success.getRecordMetadata().partition());
+          log.debug("[send to ChatTopic Success]  partition: {}, offset: {}",
+              success.getRecordMetadata().offset(), success.getRecordMetadata().partition());
 
 
-    }, failure -> {
-        log.error("[send to ChatTopic Fail]  error msg: {}", failure.getMessage());
-        chatMessageRepository.save(ChatMessageDto.Response.failChatMessageToEntity(chatMessage));
-    });
-    
+        }, failure -> {
+          log.error("[send to ChatTopic Fail]  error msg: {}", failure.getMessage());
+          chatMessageRepository.save(ChatMessageDto.Response.failChatMessageToEntity(chatMessage));
+        });
 
-    log.debug(" postId : " + chatMessage.getPostId() + "chatMessage publish by " + chatMessage.getNickname());
+    log.debug(" postId : " + chatMessage.getPostId() + "chatMessage publish by "
+        + chatMessage.getNickname());
   }
-
-
-
 
 
   // 카프카의 특정 토픽에 온 이벤트를 처리
@@ -69,23 +66,23 @@ public class KafkaChatService {
       @Header(KafkaHeaders.RECEIVED_TIMESTAMP) long timeStamp,
       ChatMessageDto.Response chatMessage) {
 
-      log.debug("[Consumer] message: {}, key: {}, partition: {}, offset: {}, timeStamp: {}",
+    log.debug("[Consumer] message: {}, key: {}, partition: {}, offset: {}, timeStamp: {}",
         chatMessage, key, partition, offset, timeStamp);
 
 //    if(true){
 //      throw new RuntimeException("테스트용 예외던지기");
 //    }
 
-      //convertAndSend(): 해당 주소로 받은 메세지를 해당 채팅방의 모든 구독자에게 브로드캐스트 (실시간 서버 -> 클라이언트 전달함으로써 실시간 대화 가능)
-      simpMessagingTemplate.convertAndSend("/sub/chat/" + chatMessage.getPostId(), chatMessage);
+    //convertAndSend(): 해당 주소로 받은 메세지를 해당 채팅방의 모든 구독자에게 브로드캐스트 (실시간 서버 -> 클라이언트 전달함으로써 실시간 대화 가능)
+    simpMessagingTemplate.convertAndSend("/sub/chat/" + chatMessage.getPostId(), chatMessage);
 
+    ack.acknowledge(); // 해당 메세지를 잘 처리했다고 표시 (중복 처리 방지)
+    chatMessageRepository.save(ChatMessageDto.Response.successChatMessageToEntity(chatMessage));
+    log.debug("브로드캐스팅 성공 + db에 저장 성공!");
 
-      ack.acknowledge(); // 해당 메세지를 잘 처리했다고 표시 (중복 처리 방지)
-      chatMessageRepository.save(ChatMessageDto.Response.successChatMessageToEntity(chatMessage));
-      log.debug("브로드캐스팅 성공 + db에 저장 성공!");
-
-      // 알림 보내기
-      notifyService.sendForChat(chatMessage.getMemberId(), chatMessage.getPostId(), NotifyType.ADD_CHAT);
+    // 알림 보내기
+    notifyService.sendForChat(chatMessage.getMemberId(), chatMessage.getPostId(),
+        NotifyType.ADD_CHAT);
   }
 
 

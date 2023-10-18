@@ -26,12 +26,13 @@ import org.springframework.data.domain.Sort.Direction;
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class NotifyBatchConfig {
+
+  private static final int CHUNK_SIZE = 1000;
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final PostRepository postRepository;
   private final EmitterRepository emitterRepository;
   private final NotifyRepository notifyRepository;
-  private static final int CHUNK_SIZE = 1000;
 
   @Bean
   public Job job() {

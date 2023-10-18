@@ -46,7 +46,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     // 클라이언트가 해당 prefix가 붙은 메세지를 보낼 시 Broker로 보내짐
     // 해당 경로로 시작하는 STOMP 메세지의 "destination" 헤더는 @Controller 객체의 @MessageMapping 메서드로 라우팅된다.
 
-
     registry.enableSimpleBroker("/sub");
     // 메세지 구독 요청 prefix
     // 메세지를 받을 때의 경로를 설정

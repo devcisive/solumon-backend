@@ -98,7 +98,6 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname("testUser2")
         .role(MemberRole.GENERAL)
-//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -109,7 +108,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("ALREADY_REGISTERED_EMAIL"));
   }
@@ -129,7 +128,6 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname(request.getNickname())
         .role(MemberRole.GENERAL)
-//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -139,7 +137,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("ALREADY_REGISTERED_NICKNAME"));
   }
@@ -158,7 +156,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"));
     // 메세지가 여러개인 경우 메세지 순서가 바뀌어 실패가 뜰 수도 있어서 메세지 비교 안했습니다.
@@ -179,7 +177,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("닉네임은 특수문자를 제외한 2~10자리여야 합니다. "));
@@ -199,7 +197,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("닉네임은 특수문자를 제외한 2~10자리여야 합니다. "));
@@ -219,7 +217,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("이메일 형식이 올바르지 않습니다. "));
@@ -239,7 +237,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"));
   }
@@ -258,7 +256,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다. "));
@@ -278,7 +276,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다. "));
@@ -298,7 +296,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다. "));
@@ -318,7 +316,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
-        .andExpect(status().isOk())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("MethodArgumentNotValidException"))
         .andExpect(jsonPath("$.errorMessage").value("비밀번호는 8~20자 영문 대소문자, 숫자, 특수문자를 사용해야 합니다. "));
@@ -375,6 +373,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("NOT_FOUND_MEMBER"));
   }
@@ -395,7 +394,6 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode("otherPassword12!@"))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-//        .reportCount(0)
         .isFirstLogIn(true)
         .build());
 
@@ -406,6 +404,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("NOT_CORRECT_PASSWORD"));
   }
@@ -426,7 +425,6 @@ public class MemberControllerTest {
         .password(passwordEncoder.encode(request.getPassword()))
         .nickname("testUser")
         .role(MemberRole.GENERAL)
-//        .reportCount(0)
         .isFirstLogIn(true)
         .unregisteredAt(LocalDateTime.now())
         .build());
@@ -438,6 +436,7 @@ public class MemberControllerTest {
             .contentType(MediaType.APPLICATION_JSON)
             .content(json))
         .andDo(print())
+        .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.status").value("Failed"))
         .andExpect(jsonPath("$.errorCode").value("UNREGISTERED_MEMBER"));
   }

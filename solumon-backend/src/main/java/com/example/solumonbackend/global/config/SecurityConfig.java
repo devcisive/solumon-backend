@@ -28,14 +28,14 @@ public class SecurityConfig {
         httpBasic().disable() // REST API 는 UI를 사용하지 않으므로 기본설정을 비활성화
         .csrf().disable()  // REST API 는 csrf 보안이 필요 없으므로 비활성화
 
-
         .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and() // JWT Token 인증방식으로 세션은 필요 없으므로 비활성화
 
         // 회원가입, 로그인, 비밀번호 찾기는 모두에게 허용
         .authorizeRequests()
-        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/send-email-auth", "/user/sign-in/**",
-            "/user/find-password","/ws-stomp/**","/exception")
+        .antMatchers("/", "/user/start/kakao", "/user/sign-up/**", "/user/send-email-auth",
+            "/user/sign-in/**",
+            "/user/find-password", "/ws-stomp/**", "/exception")
         .permitAll()
 
         .antMatchers().authenticated() // 인증받은 사람이면 모두 가능

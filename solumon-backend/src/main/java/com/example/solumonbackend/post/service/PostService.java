@@ -1,7 +1,6 @@
 package com.example.solumonbackend.post.service;
 
 import com.example.solumonbackend.chat.model.ChatMessageDto;
-import com.example.solumonbackend.chat.repository.ChannelMemberRepository;
 import com.example.solumonbackend.chat.repository.ChatMessageRepository;
 import com.example.solumonbackend.global.elasticsearch.PostSearchService;
 import com.example.solumonbackend.global.exception.ErrorCode;
@@ -40,6 +39,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -60,11 +60,11 @@ public class PostService {
   private final ChoiceRepository choiceRepository;
   private final VoteRepository voteRepository;
   private final PostSearchService postSearchService;
-  private final ChannelMemberRepository channelMemberRepository;
   private final ChatMessageRepository chatMessageRepository;
 
-
   private final String POST_DIR = "post";
+  @Value("${spring.basic-img}")
+  private String basicImgUrl;
 
   @Transactional
   public PostAddDto.Response createPost(Member member, PostAddDto.Request request,
@@ -81,7 +81,7 @@ public class PostService {
     List<Image> saveImages = saveImages(images, post, request.getImages());
 
     postSearchService.save(post, request.getTags()
-        .stream().map(tag -> tag.getTag())
+        .stream().map(TagDto::getTag)
         .collect(Collectors.toList()));
 
     return PostAddDto.Response.postToResponse(post, savePostTags, saveChoices, saveImages);
@@ -89,8 +89,9 @@ public class PostService {
 
   private List<Image> saveImages(List<MultipartFile> images, Post post, List<ImageDto> imageDtoList) {
     // 이미지 파일이 없다면 빈 리스트 리턴(NullPointException 방지 차원)
-    // TODO : 이미지가 없을 때 기본이미지를 대표이미지로 설정
     if (images.isEmpty()) {
+      post.setThumbnailUrl(basicImgUrl);
+      postRepository.save(post);
       return List.of();
     }
 
@@ -125,7 +126,7 @@ public class PostService {
           postRepository.save(post);
         }
 
-      } catch (IOException e) {
+      } catch (Exception e) {
         throw new PostException(ErrorCode.IMAGE_CAN_NOT_SAVE);
       }
     }
@@ -222,7 +223,7 @@ public class PostService {
     postRepository.save(post);
 
     postSearchService.update(post, request.getTags()
-        .stream().map(tag -> tag.getTag())
+        .stream().map(TagDto::getTag)
         .collect(Collectors.toList()));
 
     postTagRepository.deleteAllByPost_PostId(postId);
@@ -240,10 +241,6 @@ public class PostService {
   private List<Image> updateImages(Post post, List<MultipartFile> images,
                                    List<ImageDto> imageDtoList) throws IOException {
     deleteImage(post.getPostId());
-
-    if (images.isEmpty()) {
-      return List.of();
-    }
 
     return saveImages(images, post, imageDtoList);
   }
