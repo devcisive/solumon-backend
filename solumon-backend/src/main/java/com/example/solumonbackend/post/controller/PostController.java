@@ -50,7 +50,6 @@ public class PostController {
                                                               Long lastChatMessageId){ // 처음 가져올때는 null 로 보내야만함
 
     return ResponseEntity.ok(postService.getPostDetail(memberDetail.getMember(), postId, lastChatMessageId));
-
   }
 
   @PutMapping(value = "/{postId}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})

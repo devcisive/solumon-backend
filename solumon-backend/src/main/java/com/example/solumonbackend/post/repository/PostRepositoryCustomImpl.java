@@ -46,9 +46,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
 
 
   @Override
-  public Page<MyParticipatePostDto> getMyParticipatePostPages(Long memberId,
-      PostParticipateType postParticipateType, PostStatus postStatus, PostOrder postOrder,
-      Pageable pageable) {
+  public Page<MyParticipatePostDto> getMyParticipatePostPages(
+      Long memberId, PostParticipateType postParticipateType, PostStatus postStatus,
+      PostOrder postOrder, Pageable pageable) {
 
     QPost qPost = QPost.post;
 
@@ -82,9 +82,10 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         .fetch();
 
     // 조건에 맞는 데이터 총 개수 구하는 count 쿼리 (실행 전의 상태)
-    JPAQuery<Long> totalCount = jpaQueryFactory.select(qPost.count()).from(qPost)
-        .where(stateCondition)
-        .where(participateTypeCondition);
+    JPAQuery<Long> totalCount =
+        jpaQueryFactory.select(qPost.count()).from(qPost)
+            .where(stateCondition)
+            .where(participateTypeCondition);
 
     return PageableExecutionUtils.getPage(resultContents, pageable, totalCount::fetchOne);
      /*
