@@ -68,6 +68,7 @@ class VoteServiceTest {
         .contents("내용")
         .member(postMember)
         .endAt(LocalDateTime.of(2023, 10, 28, 10, 0, 0))
+        .voteCount(4)
         .build();
   }
 
