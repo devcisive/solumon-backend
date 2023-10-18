@@ -88,7 +88,8 @@ public class MemberController {
   ) {
 
     return ResponseEntity.ok()
-        .body(memberService.getMyParticipatePosts(memberDetail.getMember(),
+        .body(memberService.getMyParticipatePosts(
+            memberDetail.getMember(),
             postStatus, postParticipateType, postOrder,
             PageRequestCustom.of(pageNum, postOrder)));
   }

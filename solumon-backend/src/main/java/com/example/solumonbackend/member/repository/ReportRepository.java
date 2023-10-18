@@ -12,8 +12,7 @@ import java.util.Optional;
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
 
-  Optional<Report> findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(Long reportedId,
-      Long reporterId);
+  Optional<Report> findTopByMemberMemberIdAndReporterIdOrderByReportedAtDesc(Long reportedId, Long reporterId);
 
   int countByMember_MemberId(Long memberId);
 

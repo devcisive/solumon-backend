@@ -40,11 +40,9 @@ public class StompExceptionHandler extends StompSubProtocolErrorHandler {
     return MessageBuilder.createMessage(errorPayload, errorHeaderAccessor.getMessageHeaders());
   }
 
-
   private Message<byte[]> handleUnauthorizedException(Throwable ex) {
     return prepareErrorMessage(ex.getMessage());
   }
-
 
   private Message<byte[]> prepareErrorMessage(String errorMessage) {
 
@@ -55,6 +53,5 @@ public class StompExceptionHandler extends StompSubProtocolErrorHandler {
     return MessageBuilder.createMessage(errorMessage.getBytes(StandardCharsets.UTF_8),
         accessor.getMessageHeaders());
   }
-
 
 }

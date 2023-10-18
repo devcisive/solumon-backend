@@ -20,4 +20,5 @@ public class MailException extends RuntimeException {
     this.errorCode = errorCode;
     this.errorMessage = errorCode.getDescription();
   }
+
 }

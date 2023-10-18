@@ -11,5 +11,4 @@ public interface RefreshTokenRedisRepository extends CrudRepository<RefreshToken
 
   Optional<RefreshToken> findByAccessToken(String accessToken);
 
-  void deleteByAccessToken(String accessToken);
 }
