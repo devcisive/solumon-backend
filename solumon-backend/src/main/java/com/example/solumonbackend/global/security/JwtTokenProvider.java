@@ -122,7 +122,7 @@ public class JwtTokenProvider {
     refreshToken.setAccessToken(newAccessToken);
     refreshTokenRedisRepository.save(refreshToken);
 
-    return accessToken;
+    return newAccessToken;
   }
 
 }
