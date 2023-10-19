@@ -31,6 +31,7 @@ public class GeneralSignInDto {
   public static class Response {
 
     private Long memberId;
+    private String nickname;
     private String accessToken;
     private String refreshToken;
     private boolean isFirstLogIn;

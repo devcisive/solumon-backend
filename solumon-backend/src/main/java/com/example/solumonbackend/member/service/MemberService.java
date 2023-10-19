@@ -117,6 +117,7 @@ public class MemberService {
 
     return GeneralSignInDto.Response.builder()
         .memberId(member.getMemberId())
+        .nickname(member.getNickname())
         .accessToken(accessToken)
         .refreshToken(refreshToken)
         .isFirstLogIn(member.isFirstLogIn())
