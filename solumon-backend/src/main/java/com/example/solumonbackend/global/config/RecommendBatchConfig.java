@@ -8,8 +8,6 @@ import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.repository.PostTagRepository;
 import com.example.solumonbackend.post.repository.RecommendRepository;
-import java.util.Collections;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -24,12 +22,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.Sort.Direction;
 
+import java.util.Collections;
+import java.util.List;
+
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
 public class RecommendBatchConfig {
 
   private static final int CHUNK_SIZE = 1000;
+
   private final JobBuilderFactory jobBuilderFactory;
   private final StepBuilderFactory stepBuilderFactory;
   private final MemberRepository memberRepository;
@@ -82,4 +84,5 @@ public class RecommendBatchConfig {
         .repository(recommendRepository)
         .build());
   }
+
 }

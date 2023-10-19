@@ -5,17 +5,18 @@ import com.example.solumonbackend.global.exception.MailException;
 import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
-import java.security.SecureRandom;
-import java.util.Random;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMessage.RecipientType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMessage.RecipientType;
+import java.security.SecureRandom;
+import java.util.Random;
 
 @Slf4j
 @Service
@@ -124,8 +125,7 @@ public class EmailAuthService {
     return randomPassword.toString();
   }
 
-  private MimeMessage createTempPasswordMessage(String email, String password)
-      throws MessagingException {
+  private MimeMessage createTempPasswordMessage(String email, String password) throws MessagingException {
     MimeMessage message = javaMailSender.createMimeMessage();
 
     message.addRecipients(RecipientType.TO, email);

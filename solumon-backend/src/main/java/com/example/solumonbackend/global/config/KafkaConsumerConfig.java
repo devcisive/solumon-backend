@@ -4,8 +4,6 @@ import com.example.solumonbackend.chat.entity.ChatMessage;
 import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.example.solumonbackend.chat.model.ChatMessageDto.Response;
 import com.example.solumonbackend.chat.repository.ChatMessageRepository;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -23,6 +21,9 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 @Slf4j
 @RequiredArgsConstructor
@@ -32,14 +33,14 @@ public class KafkaConsumerConfig {
 
   private final KafkaTemplate<String, Response> kafkaChatMessageTemplate;
   private final ChatMessageRepository chatMessageRepository;
+
   @Value(value = "${spring.kafka.bootstrap-servers}")
   private String bootstrapAddress;
 
   // consumer 설정값
   @Bean
   public DefaultKafkaConsumerFactory<String, ChatMessageDto.Response> consumerFactory() {
-    JsonDeserializer<ChatMessageDto.Response> jsonDeserializer = new JsonDeserializer<>(
-        ChatMessageDto.Response.class);
+    JsonDeserializer<ChatMessageDto.Response> jsonDeserializer = new JsonDeserializer<>(ChatMessageDto.Response.class);
 
     jsonDeserializer.addTrustedPackages("*"); // 패키지 신뢰 오류로 인해 모든 패키지를 신뢰하도록 작성
     jsonDeserializer.setRemoveTypeHeaders(false); // Kafka 메시지를 역직렬화할 때 타입 헤더가 메시지에 유지
@@ -59,15 +60,14 @@ public class KafkaConsumerConfig {
 
     return new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new ErrorHandlingDeserializer<>(jsonDeserializer));
-
-
   }
-
 
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, ChatMessageDto.Response> chatKafkaListenerContainerFactory() {
 
-    ConcurrentKafkaListenerContainerFactory<String, ChatMessageDto.Response> factory = new ConcurrentKafkaListenerContainerFactory<>();
+    ConcurrentKafkaListenerContainerFactory<String, ChatMessageDto.Response> factory
+        = new ConcurrentKafkaListenerContainerFactory<>();
+
     factory.setConsumerFactory(consumerFactory());
 
     factory.setCommonErrorHandler(customErrorHandler());
@@ -78,16 +78,13 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
-
   @Bean
   public DefaultErrorHandler customErrorHandler() {
     DefaultErrorHandler errorHandler = new DefaultErrorHandler((consumerRecord, exception) -> {
       log.error("[메세지 전송 실패] topic = {}, key = {}, value = {}, error message = {}",
-          consumerRecord.topic(), consumerRecord.key(), consumerRecord.value(),
-          exception.getMessage());
+          consumerRecord.topic(), consumerRecord.key(), consumerRecord.value(), exception.getMessage());
 
-      ChatMessage chatMessage
-          = Response.failChatMessageToEntity((ChatMessageDto.Response) consumerRecord.value());
+      ChatMessage chatMessage = Response.failChatMessageToEntity((ChatMessageDto.Response) consumerRecord.value());
       chatMessageRepository.save(chatMessage);
 
     }, new FixedBackOff(2, 3)); // 재시도 간격 2초, 재시도 횟수 3번 (상황에 맞게 변경하면 됨)

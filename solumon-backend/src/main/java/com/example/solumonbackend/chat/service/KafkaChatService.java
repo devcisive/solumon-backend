@@ -37,8 +37,8 @@ public class KafkaChatService {
   public void publishChatMessage(ChatMessageDto.Response chatMessage) {
 
     // ListenableFuture 은 콜백용(비동기식 작동)
-    ListenableFuture<SendResult<String, ChatMessageDto.Response>> sendFuture = kafkaChatMessageTemplate.send(
-        CHAT_TOPIC, chatMessage);
+    ListenableFuture<SendResult<String, ChatMessageDto.Response>> sendFuture
+        = kafkaChatMessageTemplate.send(CHAT_TOPIC, chatMessage);
 
     sendFuture.addCallback(
         success -> {

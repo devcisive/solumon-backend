@@ -6,16 +6,10 @@ import com.example.solumonbackend.global.exception.MemberException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.RefreshToken;
-import com.example.solumonbackend.member.model.CreateTokenDto;
-import com.example.solumonbackend.member.model.KakaoSignInDto;
-import com.example.solumonbackend.member.model.KakaoSignUpDto;
-import com.example.solumonbackend.member.model.KakaoTokenInfoDto;
-import com.example.solumonbackend.member.model.KakaoUserInfoDto;
-import com.example.solumonbackend.member.model.StartWithKakao;
+import com.example.solumonbackend.member.model.*;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.type.MemberRole;
-import java.net.URI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +22,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.net.URI;
 
 @Service
 @RequiredArgsConstructor
@@ -130,10 +126,8 @@ public class KakaoService {
         .build();
 
     // 액서스 토큰과 리프레시 토큰 생성
-    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(),
-        createTokenDto.getRoles());
-    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(),
-        createTokenDto.getRoles());
+    String accessToken = jwtTokenProvider.createAccessToken(member.getEmail(), createTokenDto.getRoles());
+    String refreshToken = jwtTokenProvider.createRefreshToken(member.getEmail(), createTokenDto.getRoles());
 
     // 레디스에 액서스 토큰과 리프레시 토큰 저장
     refreshTokenRedisRepository.save(new RefreshToken(accessToken, refreshToken));
@@ -167,8 +161,7 @@ public class KakaoService {
         .header("Content-Type", MediaType.APPLICATION_FORM_URLENCODED + ";charset=UTF-8")
         .body(requestBody);
 
-    ResponseEntity<KakaoTokenInfoDto> responseEntity = restTemplate.exchange(requestEntity,
-        KakaoTokenInfoDto.class);
+    ResponseEntity<KakaoTokenInfoDto> responseEntity = restTemplate.exchange(requestEntity, KakaoTokenInfoDto.class);
 
     // 한 번 토큰을 발급받은 코드의 재사용 등이 금지되어 있어서 받아온 값이 null 아닌지 확인
     checkIfKakaoCodeWasValid(responseEntity.getBody());

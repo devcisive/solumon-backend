@@ -1,7 +1,5 @@
 package com.example.solumonbackend.notify.service;
 
-import static com.example.solumonbackend.notify.model.NotifyDto.Response.notifyListToResponse;
-
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.NotifyException;
 import com.example.solumonbackend.global.exception.PostException;
@@ -14,13 +12,16 @@ import com.example.solumonbackend.notify.repository.NotifyRepository;
 import com.example.solumonbackend.notify.type.NotifyType;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.repository.PostRepository;
-import java.io.IOException;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.io.IOException;
+import java.util.Map;
+
+import static com.example.solumonbackend.notify.model.NotifyDto.Response.notifyListToResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -90,8 +91,8 @@ public class NotifyService {
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음
-    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
-        receiverEmail);
+    Map<String, SseEmitter> emitters =
+        emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -114,8 +115,8 @@ public class NotifyService {
     String eventId = makeTimeIncludeEmail(receiverEmail);
 
     // MemberId로 emitter를 찾음
-    Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterStartWithByEmail(
-        receiverEmail);
+    Map<String, SseEmitter> emitters
+        = emitterRepository.findAllEmitterStartWithByEmail(receiverEmail);
 
     emitters.forEach(
         (key, emitter) -> {
@@ -185,15 +186,12 @@ public class NotifyService {
     return !lastEventId.isEmpty();
   }
 
-  private void sendLostData(String lastEventId, String userEmail, String emitterId,
-                            SseEmitter emitter) {
-    Map<String, Notify> eventCaches = emitterRepository.findAllEventCacheStartWithByEmail(
-        userEmail);
+  private void sendLostData(String lastEventId, String userEmail, String emitterId, SseEmitter emitter) {
+    Map<String, Notify> eventCaches
+        = emitterRepository.findAllEventCacheStartWithByEmail(userEmail);
 
     eventCaches.entrySet().stream()
         .filter(entry -> lastEventId.compareTo(entry.getKey()) < 0)
         .forEach(entry -> sendNotification(emitter, entry.getKey(), emitterId, entry.getValue()));
   }
-
-
 }

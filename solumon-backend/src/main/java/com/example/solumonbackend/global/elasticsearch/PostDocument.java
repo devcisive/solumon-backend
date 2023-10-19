@@ -1,7 +1,6 @@
 package com.example.solumonbackend.global.elasticsearch;
 
 import com.example.solumonbackend.post.entity.Post;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,6 +9,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Mapping;
 import org.springframework.data.elasticsearch.annotations.Setting;
+
+import java.util.List;
 
 @Getter
 @Builder
