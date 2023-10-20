@@ -16,13 +16,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostListDto {
 
   @Getter
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
     private long postId;
     private String title;

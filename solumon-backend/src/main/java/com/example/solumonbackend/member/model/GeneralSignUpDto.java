@@ -3,14 +3,14 @@ package com.example.solumonbackend.member.model;
 import com.example.solumonbackend.member.entity.Member;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
+
 public class GeneralSignUpDto {
 
   @Getter
@@ -43,6 +43,7 @@ public class GeneralSignUpDto {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;

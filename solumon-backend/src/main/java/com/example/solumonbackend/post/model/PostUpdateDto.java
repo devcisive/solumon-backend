@@ -18,14 +18,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostUpdateDto {
 
   @Getter
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
-  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
     @NotBlank(message = "제목을 입력해주세요")
     private String title;

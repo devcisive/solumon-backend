@@ -7,13 +7,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class KakaoSignInDto {
 
   @NoArgsConstructor
   @AllArgsConstructor
   @Getter
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
 
     private String kakaoAccessToken;
@@ -21,6 +21,7 @@ public class KakaoSignInDto {
 
   @Getter
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;

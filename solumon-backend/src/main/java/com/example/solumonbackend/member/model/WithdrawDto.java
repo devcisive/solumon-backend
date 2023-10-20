@@ -3,14 +3,10 @@ package com.example.solumonbackend.member.model;
 import com.example.solumonbackend.member.entity.Member;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import javax.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+import javax.validation.constraints.NotBlank;
+
 public class WithdrawDto {
 
   @Getter
@@ -27,6 +23,7 @@ public class WithdrawDto {
 
   @Builder
   @Getter
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;

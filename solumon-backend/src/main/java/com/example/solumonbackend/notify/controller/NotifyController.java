@@ -3,17 +3,10 @@ package com.example.solumonbackend.notify.controller;
 import com.example.solumonbackend.member.model.MemberDetail;
 import com.example.solumonbackend.notify.model.NotifyDto;
 import com.example.solumonbackend.notify.service.NotifyService;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @RestController
@@ -42,7 +35,7 @@ public class NotifyController {
   }
 
   @GetMapping("/{notiId}")
-  public ResponseEntity<Long> changeToRead(@PathVariable @JsonProperty("noti_id") long notiId) {
+  public ResponseEntity<Long> changeToRead(@PathVariable long notiId) {
     notifyService.changeToRead(notiId);
     return ResponseEntity.ok(notiId);
   }

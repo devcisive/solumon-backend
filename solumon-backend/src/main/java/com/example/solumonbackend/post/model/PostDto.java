@@ -14,7 +14,6 @@ import javax.validation.constraints.NotBlank;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostDto {
 
   @Getter

@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.Getter;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class StartWithKakao {
 
   @Getter
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private String kakaoAccessToken;

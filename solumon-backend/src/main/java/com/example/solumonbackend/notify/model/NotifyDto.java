@@ -17,13 +17,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class NotifyDto {
 
   @Getter
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;
@@ -43,6 +43,7 @@ public class NotifyDto {
   @NoArgsConstructor
   @AllArgsConstructor
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Notification {
     private Long notiId;
     private Long postId;

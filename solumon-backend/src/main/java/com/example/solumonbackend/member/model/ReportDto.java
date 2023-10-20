@@ -1,11 +1,14 @@
 package com.example.solumonbackend.member.model;
 
 import com.example.solumonbackend.member.type.ReportType;
-import javax.validation.constraints.NotNull;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.validation.constraints.NotNull;
 
 @NoArgsConstructor
 public class ReportDto {
@@ -14,6 +17,7 @@ public class ReportDto {
   @Setter
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
 
     @NotNull

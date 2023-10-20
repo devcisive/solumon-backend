@@ -3,16 +3,12 @@ package com.example.solumonbackend.member.model;
 import com.example.solumonbackend.member.entity.Member;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import java.util.List;
+import lombok.*;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.util.List;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class MemberUpdateDto {
 
   @Builder
@@ -20,6 +16,7 @@ public class MemberUpdateDto {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
 
     @NotBlank(message = "닉네임은 필수 입력 값입니다.")
@@ -37,6 +34,7 @@ public class MemberUpdateDto {
 
   @Builder
   @Getter
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;

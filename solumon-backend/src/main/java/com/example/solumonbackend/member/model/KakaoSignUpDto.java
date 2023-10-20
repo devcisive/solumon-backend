@@ -2,20 +2,21 @@ package com.example.solumonbackend.member.model;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
+
 public class KakaoSignUpDto {
 
   @NoArgsConstructor
   @AllArgsConstructor
   @Getter
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
 
     private String kakaoAccessToken;
@@ -26,6 +27,7 @@ public class KakaoSignUpDto {
 
   @Getter
   @Builder
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private Long memberId;
