@@ -38,7 +38,8 @@ public class PostController {
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<PostAddDto.Response> createPost(@AuthenticationPrincipal MemberDetail memberDetail,
                                                         @RequestPart("request") @Valid PostAddDto.Request request,
-                                                        @RequestPart("images") List<MultipartFile> images) {
+                                                        @RequestPart(value = "images", required = false)
+                                                          List<MultipartFile> images) {
     return ResponseEntity.ok(postService.createPost(memberDetail.getMember(), request, images));
   }
 
@@ -47,7 +48,7 @@ public class PostController {
   public ResponseEntity<PostDetailDto.Response> getPostDetail(@AuthenticationPrincipal MemberDetail memberDetail,
                                                               @PathVariable long postId,
                                                               @RequestHeader(name = "lastChatMessageId", required = false)
-                                                              Long lastChatMessageId){ // 처음 가져올때는 null 로 보내야만함
+                                                              Long lastChatMessageId) { // 처음 가져올때는 null 로 보내야만함
 
     return ResponseEntity.ok(postService.getPostDetail(memberDetail.getMember(), postId, lastChatMessageId));
   }
@@ -56,7 +57,8 @@ public class PostController {
   public ResponseEntity<PostUpdateDto.Response> updatePost(@AuthenticationPrincipal MemberDetail memberDetail,
                                                            @PathVariable long postId,
                                                            @RequestPart("request") @Valid PostUpdateDto.Request request,
-                                                           @RequestPart("images") List<MultipartFile> images) {
+                                                           @RequestPart(value = "images", required = false)
+                                                             List<MultipartFile> images) {
     return ResponseEntity.ok(postService.updatePost(memberDetail.getMember(), postId, request, images));
   }
 

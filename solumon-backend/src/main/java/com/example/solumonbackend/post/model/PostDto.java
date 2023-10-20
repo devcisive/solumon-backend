@@ -39,6 +39,7 @@ public class PostDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class VoteDto {
     private List<ChoiceDto> choices;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
@@ -50,6 +51,7 @@ public class PostDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class VoteResultDto {
     private boolean resultAccessStatus;
     private List<ChoiceResultDto> choices;
@@ -59,6 +61,7 @@ public class PostDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class ChoiceDto {
     @NotBlank(message = "선택지 번호를 입력해주세요")
     private int choiceNum;
@@ -70,6 +73,7 @@ public class PostDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class ChoiceResultDto {
     private Integer choiceNum;
     private String choiceText;

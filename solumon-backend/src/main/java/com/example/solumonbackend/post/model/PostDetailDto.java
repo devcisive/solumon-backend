@@ -12,15 +12,16 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Slice;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class PostDetailDto {
@@ -29,6 +30,7 @@ public class PostDetailDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
 
     private long postId;
@@ -51,7 +53,7 @@ public class PostDetailDto {
 
     public static PostDetailDto.Response postToResponse(Post post, List<PostTag> tags,
                                                         List<Image> images, VoteResultDto voteResultDto,
-                                                         Slice<ChatMessageDto.Response> lastChatMessages) {
+                                                        Slice<ChatMessageDto.Response> lastChatMessages) {
       return Response.builder()
           .postId(post.getPostId())
           .title(post.getTitle())

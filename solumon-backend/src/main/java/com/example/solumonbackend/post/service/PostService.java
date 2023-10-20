@@ -64,7 +64,14 @@ public class PostService {
 
     List<PostTag> savePostTags = savePostTag(request.getTags(), post);
     List<Choice> saveChoices = saveChoices(request.getVote().getChoices(), post);
-    List<Image> saveImages = saveImages(images, post, request.getImages());
+    List<Image> saveImages;
+    if (images != null && images.size() > 0) {
+      saveImages = saveImages(images, post, request.getImages());
+    } else {
+      post.setThumbnailUrl(basicImgUrl);
+      postRepository.save(post);
+      saveImages = List.of();
+    }
 
     postSearchService.save(post, request.getTags()
         .stream().map(TagDto::getTag)
@@ -74,13 +81,6 @@ public class PostService {
   }
 
   private List<Image> saveImages(List<MultipartFile> images, Post post, List<ImageDto> imageDtoList) {
-    // 이미지 파일이 없다면 빈 리스트 리턴(NullPointException 방지 차원)
-    if (images.isEmpty()) {
-      post.setThumbnailUrl(basicImgUrl);
-      postRepository.save(post);
-      return List.of();
-    }
-
     // 순서별 이미지파일명만 가져오기
     List<String> imageNameList = imageDtoList.stream()
         .map(ImageDto::getImage)
@@ -175,7 +175,7 @@ public class PostService {
 
     // 해당 게시글의 쌓인 채팅메세지 내역 가져오기
     Slice<ChatMessageDto.Response> lastChatMessages
-        = chatMessageRepository.getLastChatMessagesScroll(postId,lastChatMessageId ,Pageable.ofSize(10));
+        = chatMessageRepository.getLastChatMessagesScroll(postId, lastChatMessageId, Pageable.ofSize(10));
 
 
     return PostDetailDto.Response.postToResponse(post, tags, images, voteResultDto, lastChatMessages);
@@ -217,7 +217,15 @@ public class PostService {
     List<PostTag> postTagList = savePostTag(request.getTags(), post);
 
     try {
-      List<Image> imageList = updateImages(post, images, request.getImages());
+      List<Image> imageList;
+      if (images != null && !images.isEmpty()) {
+        imageList = updateImages(post, images, request.getImages());
+      } else {
+        post.setThumbnailUrl(basicImgUrl);
+        postRepository.save(post);
+        imageList = List.of();
+      }
+
       return PostUpdateDto.Response.postToResponse(post, postTagList, imageList);
 
     } catch (IOException e) {

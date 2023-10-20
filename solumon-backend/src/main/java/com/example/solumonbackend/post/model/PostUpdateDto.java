@@ -25,6 +25,7 @@ public class PostUpdateDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Request {
     @NotBlank(message = "제목을 입력해주세요")
     private String title;
@@ -38,6 +39,7 @@ public class PostUpdateDto {
   @Builder
   @AllArgsConstructor
   @NoArgsConstructor
+  @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
     private long postId;
     private String title;
