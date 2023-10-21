@@ -55,8 +55,8 @@ public class KafkaConsumerConfig {
     consumerProps.put(ConsumerConfig.GROUP_ID_CONFIG, "chat-group"); // 그룹 아이디는 컨슈머 그룹이라고도 함(다른 컨슈머 그룹에 속한 컨슈머들은 서로 영향 X)
 
 
-    // 이전 메세지를 필요로 하거나 중복 메시지를 감수할 수 있다면 earliest
-    // 현재 이후의 메시지만 필요하다면 latest
+    // 이전 메세지를 필요로 하거나 중복 메시지를 감수할 수 있다면 earliest (전체 데이터)
+    // 현재 이후의 메시지만 필요하다면 latest (최신 데이터만)
     consumerProps.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
     consumerProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false); // 데이터베이스에 메세지를 저장 후 커밋을 하기 위함
 
