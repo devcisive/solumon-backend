@@ -5,6 +5,7 @@ import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.*;
+import com.example.solumonbackend.post.model.VoteAddDto;
 import com.example.solumonbackend.post.repository.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,8 +98,8 @@ class VoteControllerTest {
   @DisplayName("투표하기 성공")
   void createVote_success() throws Exception {
     //given
-    int selectedNum = 1;
-    String jsonRequest = objectMapper.writeValueAsString(selectedNum);
+    VoteAddDto.Request request = new VoteAddDto.Request(1);
+    String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when
     //then
@@ -119,8 +120,8 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 존재하지 않는 게시글")
   void createVote_fail_notFoundPost() throws Exception {
     //given
-    int selectedNum = 1;
-    String jsonRequest = objectMapper.writeValueAsString(selectedNum);
+    VoteAddDto.Request request = new VoteAddDto.Request(1);
+    String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when
     //then
@@ -142,8 +143,8 @@ class VoteControllerTest {
         .endAt(LocalDateTime.now().minusDays(2))
         .build());
 
-    int selectedNum = 1;
-    String jsonRequest = objectMapper.writeValueAsString(selectedNum);
+    VoteAddDto.Request request = new VoteAddDto.Request(1);
+    String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when
     //then
@@ -160,8 +161,8 @@ class VoteControllerTest {
   @DisplayName("투표하기 실패 - 작성자가 투표")
   void createVote_fail_writerCanNotVote() throws Exception {
     //given
-    int selectedNum = 1;
-    String jsonRequest = objectMapper.writeValueAsString(selectedNum);
+    VoteAddDto.Request request = new VoteAddDto.Request(1);
+    String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when
     //then
@@ -184,8 +185,8 @@ class VoteControllerTest {
         .selectedNum(1)
         .build());
 
-    int selectedNum = 1;
-    String jsonRequest = objectMapper.writeValueAsString(selectedNum);
+    VoteAddDto.Request request = new VoteAddDto.Request(1);
+    String jsonRequest = objectMapper.writeValueAsString(request);
 
     //when
     //then
