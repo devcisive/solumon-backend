@@ -98,7 +98,7 @@ public class PostController {
   }
 
   @GetMapping("/search")
-  public ResponseEntity<List<Response>> getPostList(
+  public ResponseEntity<Page<Response>> getPostList(
       @RequestParam String keyWord,
       @RequestParam PostStatus postStatus, //진행, 마감
       @RequestParam PostOrder postOrder, // 최신순, 투표 참여 인원순, 채팅 참여 인원순, 마감임박순

@@ -24,7 +24,7 @@ public class VoteController {
 
   @DeleteMapping
   public ResponseEntity<Void> deleteVote(@AuthenticationPrincipal MemberDetail memberDetail,
-                                           @PathVariable long postId) {
+                                         @PathVariable long postId) {
     voteService.deleteVote(memberDetail.getMember(), postId);
     return ResponseEntity.ok().build();
   }
