@@ -9,7 +9,11 @@ import com.example.solumonbackend.post.type.PostOrder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
@@ -34,17 +38,16 @@ public class PostSearchService {
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 진행중인 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> searchOngoingPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public Page<PostListDto.Response> searchOngoingPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+    PageRequest pageable = PageRequestCustom.of(pageNum, postOrder);
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.of(pageNum, postOrder))
+        .withPageable(pageable)
         .build();
 
-    return elasticsearchRestTemplate.search(query, PostDocument.class)
-        .stream().map(document -> PostListDto.Response.postDocumentToPostListResponse(document.getContent()))
-        .collect(Collectors.toList());
+    return getSearchPage(pageable, query);
   }
 
   /**
@@ -55,47 +58,65 @@ public class PostSearchService {
    * @param postOrder 정렬 기준 : 마감O, 마감X
    * @return 마감된 항목들 중에서 검색한 단어가 제목 및 본문에 포함되는 리스트
    */
-  public List<PostListDto.Response> searchCompletedPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+  public Page<PostListDto.Response> searchCompletedPostsByContent(String keyword, int pageNum, PostOrder postOrder) {
+    PageRequest pageable = PageRequestCustom.of(pageNum, postOrder);
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.multiMatchQuery(keyword, "title", "content")))
-        .withPageable(PageRequestCustom.of(pageNum, postOrder))
+        .withPageable(pageable)
         .build();
 
-    return elasticsearchRestTemplate.search(query, PostDocument.class)
-        .stream().map(document -> PostListDto.Response
-            .postDocumentToPostListResponse(document.getContent()))
-        .collect(Collectors.toList());
+    return getSearchPage(pageable, query);
   }
 
-  public List<PostListDto.Response> searchOngoingPostsByTag(String keyword, Integer pageNum,
-                                                            PostOrder postOrder) {
+  /**
+   * 마감 안된 것 태그 검색 오타, 비슷한 문자 포함.
+   *
+   * @param keyword   검색할 단어
+   * @param pageNum   페이지 번호
+   * @param postOrder 정렬 기준 : 마감O, 마감X
+   * @return 진행중인 항목들 중에서 검색한 단어가 태그에 포함되는 리스트
+   */
+  public Page<PostListDto.Response> searchOngoingPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+    PageRequest pageable = PageRequestCustom.of(pageNum, postOrder);
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").gt(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.of(pageNum, postOrder))
+        .withPageable(pageable)
         .build();
 
-    return elasticsearchRestTemplate.search(query, PostDocument.class)
-        .stream().map(document -> PostListDto.Response
-            .postDocumentToPostListResponse(document.getContent()))
-        .collect(Collectors.toList());
+    return getSearchPage(pageable, query);
   }
 
-  public List<PostListDto.Response> searchCompletedPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+  /**
+   * 마감 된 것 태그 검색 오타, 비슷한 문자 포함.
+   *
+   * @param keyword   검색할 단어
+   * @param pageNum   페이지 번호
+   * @param postOrder 정렬 기준 : 마감O, 마감X
+   * @return 마감된 항목들 중에서 검색한 단어가 태그에 포함되는 리스트
+   */
+  public Page<PostListDto.Response> searchCompletedPostsByTag(String keyword, Integer pageNum, PostOrder postOrder) {
+    PageRequest pageable = PageRequestCustom.of(pageNum, postOrder);
     NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withQuery(QueryBuilders.boolQuery()
             .must(QueryBuilders.rangeQuery("endAt").lte(LocalDateTime.now()))
             .must(QueryBuilders.matchQuery("tags", keyword)))
-        .withPageable(PageRequestCustom.of(pageNum, postOrder))
+        .withPageable(pageable)
         .build();
 
-    return elasticsearchRestTemplate.search(query, PostDocument.class)
-        .stream().map(document -> PostListDto.Response
-            .postDocumentToPostListResponse(document.getContent()))
+    return getSearchPage(pageable, query);
+  }
+
+  private Page<PostListDto.Response> getSearchPage(PageRequest pageable, NativeSearchQuery query) {
+    SearchHits<PostDocument> searchHits = elasticsearchRestTemplate.search(query, PostDocument.class);
+    List<PostListDto.Response> list = searchHits.stream()
+        .map(hit -> PostListDto.Response.postDocumentToPostListResponse(hit.getContent()))
         .collect(Collectors.toList());
+
+    return new PageImpl<>(list, pageable, searchHits.getTotalHits());
   }
 
   public void save(Post post, List<String> tags) {
