@@ -40,6 +40,7 @@ public class PostUpdateDto {
   @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
     private long postId;
+    private long memberId;
     private String title;
     private String nickname;
     private String contents;
@@ -52,6 +53,7 @@ public class PostUpdateDto {
     public static Response postToResponse(Post post, List<PostTag> tags, List<Image> images) {
       return Response.builder()
           .postId(post.getPostId())
+          .memberId(post.getMember().getMemberId())
           .title(post.getTitle())
           .nickname(post.getMember().getNickname())
           .contents(post.getContents())

@@ -33,6 +33,7 @@ public class PostDetailDto {
   public static class Response {
 
     private long postId;
+    private long memberId;
     private String title;
     private String nickname;
     private String contents;
@@ -55,6 +56,7 @@ public class PostDetailDto {
                                                         Slice<ChatMessageDto.Response> lastChatMessages) {
       return Response.builder()
           .postId(post.getPostId())
+          .memberId(post.getMember().getMemberId())
           .title(post.getTitle())
           .nickname(post.getMember().getNickname())
           .contents(post.getContents())
