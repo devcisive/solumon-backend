@@ -50,6 +50,7 @@ public class PostAddDto {
   @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class Response {
     private long postId;
+    private long writerMemberId;
     private String title;
     private String nickname;
     private String contents;
@@ -64,6 +65,7 @@ public class PostAddDto {
                                           List<Choice> choices, List<Image> images) {
       return Response.builder()
           .postId(post.getPostId())
+          .writerMemberId(post.getMember().getMemberId())
           .title(post.getTitle())
           .nickname(post.getMember().getNickname())
           .contents(post.getContents())
