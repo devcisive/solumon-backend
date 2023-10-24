@@ -45,6 +45,7 @@ public class PostDetailDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss", timezone = "Asia/Seoul")
     @JsonSerialize(using = LocalDateTimeSerializer.class)
     private LocalDateTime endAt;
+    private boolean ongoing;
     private VoteResultDto vote;
     private int voteCount;
     private int chatCount;
@@ -62,6 +63,7 @@ public class PostDetailDto {
           .contents(post.getContents())
           .createdAt(post.getCreatedAt())
           .endAt(post.getEndAt())
+          .ongoing(post.getEndAt().isAfter(LocalDateTime.now()))
 
           .tags(tags.stream()
               .filter(Objects::nonNull)
