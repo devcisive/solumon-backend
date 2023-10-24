@@ -4,6 +4,8 @@ import com.example.solumonbackend.chat.model.ChatMemberInfo;
 import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.example.solumonbackend.chat.service.ChatService;
 import com.example.solumonbackend.chat.service.RedisChatService;
+import com.example.solumonbackend.global.exception.ChatException;
+import com.example.solumonbackend.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +36,10 @@ public class ChatController {
     //처음 커넥했을 당시에 세션아이디를 키로 저장했던 유저 정보를 가져옴
     ChatMemberInfo chatMemberInfo
         = redisChatService.getChatMemberInfo(StompHeaderAccessor.wrap(message).getSessionId());
+
+    if(chatMemberInfo.isBanChatting()){
+      throw new ChatException(ErrorCode.BAN_MEMBER_FAIL_TO_SEND_MAIL);
+    }
 
     chatService.sendChatMessage(postId, request, chatMemberInfo);
     return ResponseEntity.ok().build();

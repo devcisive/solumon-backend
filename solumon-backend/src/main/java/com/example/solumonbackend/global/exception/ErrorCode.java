@@ -53,7 +53,11 @@ public enum ErrorCode {
   FAIL_SEND_NOTIFY("알림 전송에 실패하였습니다."),
 
   // MailException
-  FAIL_TO_SEND_MAIL("이메일 전송을 실패했습니다. 다시 시도해주세요.");
+  FAIL_TO_SEND_MAIL("이메일 전송을 실패했습니다. 다시 시도해주세요."),
+
+  // ChatException
+  BAN_MEMBER_FAIL_TO_SEND_MAIL("정지상태인 사용자는 채팅메세지를 보낼 수 없습니다."),
+  CHAT_MEMBER_INFO_RETRIEVAL_ERROR("사용자의 정보를 가져오는 과정에 문제가 발생했습니다.");
 
   private final String description;
 
