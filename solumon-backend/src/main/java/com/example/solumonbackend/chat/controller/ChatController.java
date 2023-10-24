@@ -38,7 +38,7 @@ public class ChatController {
         = redisChatService.getChatMemberInfo(StompHeaderAccessor.wrap(message).getSessionId());
 
     if(chatMemberInfo.isBanChatting()){
-      throw new ChatException(ErrorCode.BAN_MEMBER_FAIL_TO_SEND_MAIL);
+      throw new ChatException(ErrorCode.BAN_MEMBER_FAIL_TO_SEND_CHAT_MESSAGE);
     }
 
     chatService.sendChatMessage(postId, request, chatMemberInfo);
