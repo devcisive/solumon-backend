@@ -52,7 +52,7 @@ public class PostDto {
   @NoArgsConstructor
   @JsonNaming(value = PropertyNamingStrategies.SnakeCaseStrategy.class)
   public static class VoteResultDto {
-    private boolean resultAccessStatus;
+    private boolean join;
     private List<ChoiceResultDto> choices;
   }
 
