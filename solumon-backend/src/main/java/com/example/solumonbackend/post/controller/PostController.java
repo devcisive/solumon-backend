@@ -35,14 +35,13 @@ public class PostController {
   private final PostSearchService postSearchService;
   private final RecommendationService recommendationService;
 
-  @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<PostAddDto.Response> createPost(@AuthenticationPrincipal MemberDetail memberDetail,
                                                         @RequestPart("request") @Valid PostAddDto.Request request,
                                                         @RequestPart(value = "images", required = false)
                                                           List<MultipartFile> images) {
     return ResponseEntity.ok(postService.createPost(memberDetail.getMember(), request, images));
   }
-
 
   @GetMapping("/{postId}")
   public ResponseEntity<PostDetailDto.Response> getPostDetail(@AuthenticationPrincipal MemberDetail memberDetail,
@@ -53,7 +52,7 @@ public class PostController {
     return ResponseEntity.ok(postService.getPostDetail(memberDetail.getMember(), postId, lastChatMessageId));
   }
 
-  @PutMapping(value = "/{postId}", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
+  @PutMapping(value = "/{postId}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public ResponseEntity<PostUpdateDto.Response> updatePost(@AuthenticationPrincipal MemberDetail memberDetail,
                                                            @PathVariable long postId,
                                                            @RequestPart("request") @Valid PostUpdateDto.Request request,

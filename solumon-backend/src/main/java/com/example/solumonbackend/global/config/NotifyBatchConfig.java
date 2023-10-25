@@ -6,6 +6,7 @@ import com.example.solumonbackend.notify.service.NotifyService;
 import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -26,6 +27,7 @@ import java.util.List;
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
+@Slf4j
 public class NotifyBatchConfig {
 
   private static final int CHUNK_SIZE = 1000;
@@ -38,6 +40,7 @@ public class NotifyBatchConfig {
 
   @Bean
   public Job job() {
+    log.info("voteCloseNotifyJob 실행");
     return jobBuilderFactory.get("voteCloseNotifyJob")
         .start(step())
         .build();

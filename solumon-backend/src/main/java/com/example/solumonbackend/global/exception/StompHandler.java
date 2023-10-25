@@ -74,8 +74,13 @@ public class StompHandler implements ChannelInterceptor {
       // 토큰 유효성 검사를 통과하면 그 안에서 유저 정보를 뽑아오고 저장한다.(연결을 끊기전까지 사용)
       Member member = ((MemberDetail) jwtTokenProvider.getAuthentication(accessToken).getPrincipal()).getMember();
 
+      boolean banChatting = false;
+      if(member.getBannedAt() != null){
+        banChatting = true;
+      }
+
       redisChatService.saveChatMemberInfo(accessor.getSessionId(),
-          new ChatMemberInfo(member.getMemberId(), member.getNickname()));
+          new ChatMemberInfo(member.getMemberId(), member.getNickname(), banChatting));
     }
 
     // 웹소켓 연결 끊을 때 레디스에 저장해뒀던 유저정보 삭제

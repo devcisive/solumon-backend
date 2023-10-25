@@ -25,6 +25,7 @@ public class KakaoSignInDto {
   public static class Response {
 
     private Long memberId;
+    private String nickname;
     private Boolean isFirstLogIn;
     private String accessToken;
     private String refreshToken;

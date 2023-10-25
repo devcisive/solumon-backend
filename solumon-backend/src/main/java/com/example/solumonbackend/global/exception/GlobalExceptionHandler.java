@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler(PostException.class)
+  @MessageExceptionHandler(PostException.class)
   public ResponseEntity<ErrorResponse> handlePostException(PostException e) {
     log.error("{} is occurred", e.getErrorCode());
     return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
@@ -70,6 +71,14 @@ public class GlobalExceptionHandler {
     log.error("{} is occurred", e.getMessage());
     return new ResponseEntity<>(
         new ErrorResponse("Failed", ErrorCode.AmazonS3Exception, e.getMessage()),
+        HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(ChatException.class)
+  @MessageExceptionHandler(ChatException.class)
+  public ResponseEntity<ErrorResponse> handleChatException(ChatException e) {
+    log.error("{} is occurred", e.getMessage());
+    return new ResponseEntity<>(new ErrorResponse("Failed", e.getErrorCode(), e.getErrorMessage()),
         HttpStatus.BAD_REQUEST);
   }
 

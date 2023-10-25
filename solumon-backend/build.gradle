@@ -31,6 +31,7 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'mysql:mysql-connector-java:8.0.33'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.hibernate:hibernate-core'
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
@@ -92,10 +93,6 @@ sourceSets {
 
 tasks.named('test') {
 	useJUnitPlatform()
-}
-
-tasks.withType(Test) {
-	enabled = false
 }
 
 jar {

@@ -134,6 +134,7 @@ public class KakaoService {
 
     return KakaoSignInDto.Response.builder()
         .memberId(member.getMemberId())
+        .nickname(member.getNickname())
         .isFirstLogIn(member.isFirstLogIn())
         .accessToken(accessToken)
         .refreshToken(refreshToken)
