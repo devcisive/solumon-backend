@@ -9,6 +9,7 @@ import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.repository.PostTagRepository;
 import com.example.solumonbackend.post.repository.RecommendRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -28,6 +29,7 @@ import java.util.List;
 @Configuration
 @EnableBatchProcessing
 @RequiredArgsConstructor
+@Slf4j
 public class RecommendBatchConfig {
 
   private static final int CHUNK_SIZE = 1000;
@@ -44,6 +46,7 @@ public class RecommendBatchConfig {
   // chunk-oriented: 데이터를 한 번에 하나씩 읽어들이는 것이 아니라 chunk size만큼 한꺼번에 읽어들인 후 처리하는 것
   @Bean
   public Job job() {
+    log.info("updateRecommendJob 실행");
     return jobBuilderFactory.get("updateRecommendJob")
         .start(step())
         .build();
