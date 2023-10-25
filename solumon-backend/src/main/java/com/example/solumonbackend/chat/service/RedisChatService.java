@@ -1,6 +1,8 @@
 package com.example.solumonbackend.chat.service;
 
 import com.example.solumonbackend.chat.model.ChatMemberInfo;
+import com.example.solumonbackend.global.exception.ChatException;
+import com.example.solumonbackend.global.exception.ErrorCode;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class RedisChatService {
     Map<String, Object> chatMemberInfo = new HashMap<>();
     chatMemberInfo.put("memberId", memberInfo.getMemberId());
     chatMemberInfo.put("nickname", memberInfo.getNickname());
+    chatMemberInfo.put("banChatting",memberInfo.isBanChatting());
     hashOperations.putAll(sessionId, chatMemberInfo); // 세션아이디 : 멤버정보 형태로 저장
   }
 
@@ -38,15 +41,18 @@ public class RedisChatService {
 
     Long memberId = null;
     String nickname = null;
+    Boolean banChatting = null;
+
     try {
       memberId = Long.valueOf(chatMemberInfoMap.get("memberId").toString());
-      nickname = chatMemberInfoMap.get("nickname").toString();
+      nickname = String.valueOf(chatMemberInfoMap.get("nickname"));
+      banChatting = Boolean.parseBoolean(chatMemberInfoMap.get("banChatting").toString());
 
-    } catch (NullPointerException e) {
-      log.error("ChatMemberInfo is null" + e.getMessage());
+    } catch (RuntimeException e) {
+      throw new ChatException(ErrorCode.CHAT_MEMBER_INFO_RETRIEVAL_ERROR);
     }
 
-    return new ChatMemberInfo(memberId, nickname);
+    return new ChatMemberInfo(memberId, nickname, banChatting);
   }
 
 

@@ -11,5 +11,6 @@ public class ChatMemberInfo {
 
   private Long memberId;
   private String nickname;
+  private boolean banChatting;
 
 }
