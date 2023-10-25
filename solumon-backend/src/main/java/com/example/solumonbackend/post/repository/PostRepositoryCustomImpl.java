@@ -210,6 +210,9 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
     // 조건1 (상태)
     BooleanExpression stateCondition = createStateCondition(postStatus, qPost);
 
+    // 정렬기준
+    OrderSpecifier<?> orderSpecifier = createOrderSpecifier(postOrder, qPost);
+
     // 가져올 데이터
     List<PostListDto.Response> resultContents
         = jpaQueryFactory.select(Projections.constructor(PostListDto.Response.class,
@@ -224,6 +227,7 @@ public class PostRepositoryCustomImpl implements PostRepositoryCustom {
         ))
         .from(qPost)
         .where(stateCondition)
+        .orderBy(orderSpecifier)
         .offset(pageable.getOffset())
         .limit(pageable.getPageSize())
         .fetch();
