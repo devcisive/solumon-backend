@@ -105,7 +105,7 @@ public class MemberController {
   @DeleteMapping("/withdraw")
   public ResponseEntity<WithdrawDto.Response> withdrawMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
-      @RequestBody WithdrawDto.Request request) {
+      @RequestBody @Valid WithdrawDto.Request request) {
     return ResponseEntity.ok()
         .body(memberService.withdrawMember(memberDetail.getMember(), request));
   }
@@ -113,10 +113,9 @@ public class MemberController {
   @PostMapping("/report")
   public ResponseEntity<Void> reportMember(
       @AuthenticationPrincipal MemberDetail memberDetail,
-      @RequestBody ReportDto.Request reportRequest,
-      @RequestParam(name = "nickname") String nickname) {
+      @RequestBody @Valid ReportDto.Request reportRequest) {
 
-    memberService.reportMember(memberDetail.getMember(), nickname, reportRequest);
+    memberService.reportMember(memberDetail.getMember(),reportRequest);
     return ResponseEntity.ok().build();
 
   }
@@ -124,7 +123,7 @@ public class MemberController {
   @PostMapping("/interests")
   public ResponseEntity<MemberInterestDto.Response> registerInterest(
       @AuthenticationPrincipal MemberDetail memberDetail,
-      @RequestBody MemberInterestDto.Request request) {
+      @RequestBody @Valid MemberInterestDto.Request request) {
     return ResponseEntity.ok()
         .body(memberService.registerInterest(memberDetail.getMember(), request));
   }

@@ -239,10 +239,10 @@ public class MemberService {
   }
 
   @Transactional
-  public void reportMember(Member member, String reportedNickname, ReportDto.Request request) {
+  public void reportMember(Member member, ReportDto.Request request) {
 
     // 피신고자가 존재하는 유저인지 확인
-    Member reportedMember = memberRepository.findByNickname(reportedNickname)
+    Member reportedMember = memberRepository.findById(request.getReportedMemberId())
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
     if (reportedMember.getUnregisteredAt() != null) {
