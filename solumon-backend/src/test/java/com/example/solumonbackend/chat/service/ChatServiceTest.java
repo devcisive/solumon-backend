@@ -68,7 +68,7 @@ class ChatServiceTest {
         .nickname("닉네임")
         .build();
 
-    chatMemberInfo = new ChatMemberInfo(member.getMemberId(), member.getNickname());
+    chatMemberInfo = new ChatMemberInfo(member.getMemberId(), member.getNickname(), false);
     request = new Request("메세지 보냅니다.");
 
   }

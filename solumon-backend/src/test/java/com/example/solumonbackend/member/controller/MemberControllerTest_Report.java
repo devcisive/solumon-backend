@@ -9,6 +9,7 @@ import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.entity.Report;
 import com.example.solumonbackend.member.model.ReportDto;
+import com.example.solumonbackend.member.model.ReportDto.Request;
 import com.example.solumonbackend.member.repository.MemberRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
@@ -47,9 +48,6 @@ class MemberControllerTest_Report {
   private ReportRepository reportRepository;
 
 
-
-
-  private ReportDto.Request request;
 
 
   private Member reporterMember ;
@@ -131,8 +129,6 @@ class MemberControllerTest_Report {
     reportRepository.saveAll(reports);
 
 
-    request = new ReportDto.Request(ReportType.OTHER,"신고합니다");
-
 
   }
 
@@ -143,10 +139,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_success_firstReport() throws Exception {
 
+    ReportDto.Request request = new Request(nonReportingMember.getMemberId(), ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname", nonReportingMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -160,10 +156,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_success_reportablePeriod() throws Exception {
 
+    ReportDto.Request request = new Request(reportedPossibleDaysMember.getMemberId(), ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname", reportedPossibleDaysMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -177,10 +173,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_fail_NOT_FOUND_MEMBER() throws Exception {
 
+    ReportDto.Request request = new Request(-1L, ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname","없는 멤버")
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -195,10 +191,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_fail_unregisteredMember() throws Exception {
 
+    ReportDto.Request request = new Request(withdrawnMember.getMemberId(), ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname",withdrawnMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -214,10 +210,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_fail_ALREADY_BANNED_MEMBER() throws Exception {
 
+    ReportDto.Request request = new Request(bannedMember .getMemberId(), ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname",bannedMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
@@ -232,10 +228,10 @@ class MemberControllerTest_Report {
   @WithUserDetails(value = "reporter@gmail.com", setupBefore = TestExecutionEvent.TEST_EXECUTION)
   void reportMember_fail_COOL_TIME_REPORT_MEMBER() throws Exception {
 
+    ReportDto.Request request = new Request(reportedCoolTimeMember.getMemberId(), ReportType.OTHER,"자꾸 분란을 조장해요");
     String jsonRequest = objectMapper.writeValueAsString(request);
 
     mockMvc.perform(post("/user/report")
-            .param("nickname",reportedCoolTimeMember.getNickname())
             .contentType(MediaType.APPLICATION_JSON)
             .characterEncoding("utf-8")
             .content(jsonRequest))
