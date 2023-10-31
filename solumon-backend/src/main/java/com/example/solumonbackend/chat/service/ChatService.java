@@ -53,7 +53,7 @@ public class ChatService {
           .member(member)
           .build());
 
-      post.setChatCount(post.getChatCount() + 1); // 이 부분도 동시성문제?
+      post.setChatCount(channelMemberRepository.countByPost_PostId(postId));
       postRepository.save(post);
     }
 
