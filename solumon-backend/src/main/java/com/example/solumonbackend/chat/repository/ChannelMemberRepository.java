@@ -10,4 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface ChannelMemberRepository extends JpaRepository<ChannelMember, Long> {
 
   boolean existsByPostPostIdAndMemberMemberId(Long postId, Long memberId);
+
+  int countByPost_PostId(Long postId);
 }
