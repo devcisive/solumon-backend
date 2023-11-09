@@ -5,13 +5,13 @@ import com.example.solumonbackend.chat.model.ChatMessageDto;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import java.util.Comparator;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Repository
@@ -52,6 +52,7 @@ public class ChatMessageRepositoryCustomImpl implements ChatMessageRepositoryCus
       lastChatMessages.remove(pageable.getPageSize()); // 다음 데이터 존재여부 확인용으로 가져온 데이터는 제외해준다.
       hasNext = true;
     }
+    lastChatMessages.sort(Comparator.comparing(ChatMessageDto.Response::getMessageId));
 
     return new SliceImpl<>(lastChatMessages, pageable, hasNext); // 다음 데이터의 존재여부를 같이 넣어서 반환
   }
