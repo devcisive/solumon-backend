@@ -1,7 +1,6 @@
 package com.example.solumonbackend.post.service;
 
 import com.example.solumonbackend.global.exception.ErrorCode;
-import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.model.PostListDto;
@@ -72,13 +71,15 @@ public class RecommendationService {
     // '진행 중' 탭일 경우 투표 마감 시간이 현재 이후인 글들만 뽑아옴
     if (PostStatus.ONGOING.equals(postStatus)) {
       return recommendList.stream().filter(
-          r -> r.getPost().getEndAt().isAfter(LocalDateTime.now())).distinct().collect(Collectors.toList());
+          r -> r.getPost().getEndAt().isAfter(LocalDateTime.now()) && r.getPost().getPostStatus() != PostStatus.DELETED)
+          .distinct().collect(Collectors.toList());
     }
 
     // '마감' 탭일 경우 투표 마감 시간이 현재 이전인 글들만 뽑아옴
     if (PostStatus.COMPLETED.equals(postStatus)) {
       return recommendList.stream().filter(
-          r -> r.getPost().getEndAt().isBefore(LocalDateTime.now())).distinct().collect(Collectors.toList());
+          r -> r.getPost().getEndAt().isBefore(LocalDateTime.now()) && r.getPost().getPostStatus() != PostStatus.DELETED)
+          .distinct().collect(Collectors.toList());
     }
 
     throw new IllegalArgumentException("Invalid PostStatus");

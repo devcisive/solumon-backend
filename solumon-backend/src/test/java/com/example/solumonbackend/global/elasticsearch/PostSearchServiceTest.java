@@ -1,10 +1,24 @@
 package com.example.solumonbackend.global.elasticsearch;
 
+import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.SearchException;
 import com.example.solumonbackend.member.entity.Member;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.type.PostStatus;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,17 +29,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static junit.framework.TestCase.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PostSearchServiceTest {
@@ -196,6 +199,7 @@ class PostSearchServiceTest {
         .title("제목200")
         .contents("내용200")
         .endAt(LocalDateTime.parse("2023-10-10T17:41:22", DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+        .postStatus(PostStatus.DELETED)
         .build();
 
     doReturn(Optional.of(savedPostDocument)).when(postSearchRepository).findById(mockPost.getPostId());
@@ -218,6 +222,7 @@ class PostSearchServiceTest {
         .title("제목200")
         .contents("내용200")
         .endAt(LocalDateTime.parse("2023-10-10T17:41:22", DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+        .postStatus(PostStatus.DELETED)
         .build();
 
     when(postSearchRepository.findById(130L)).thenReturn(Optional.empty());

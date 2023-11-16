@@ -1,6 +1,7 @@
 package com.example.solumonbackend.post.entity;
 
 import com.example.solumonbackend.member.entity.Member;
+import com.example.solumonbackend.post.type.PostStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,6 +46,8 @@ public class Post {
 
   private int chatCount;
 
+  private PostStatus postStatus;
+
   public void setTitle(String title) {
     this.title = title;
   }
@@ -65,4 +68,7 @@ public class Post {
     this.chatCount = chatCount;
   }
 
+  public void deletePost(){
+    this.postStatus = PostStatus.DELETED;
+  }
 }
