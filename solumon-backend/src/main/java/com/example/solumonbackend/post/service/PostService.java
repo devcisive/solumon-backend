@@ -243,13 +243,16 @@ public class PostService {
     Post post = getPost(postId);
     validatePostWriter(member, post);
 
-    deleteImage(postId);
-    postTagRepository.deleteAllByPost_PostId(postId);
-    voteRepository.deleteAllByPost_PostId(postId);
-    choiceRepository.deleteAllByPost_PostId(postId);
-    postRepository.deleteById(postId);
+    post.deletePost();
+    Post deletedPost = postRepository.save(post);
 
-    postSearchService.delete(post);
+//    deleteImage(postId);
+//    postTagRepository.deleteAllByPost_PostId(postId);
+//    voteRepository.deleteAllByPost_PostId(postId);
+//    choiceRepository.deleteAllByPost_PostId(postId);
+//    postRepository.deleteById(postId);
+
+    postSearchService.delete(deletedPost);
   }
 
   private void deleteImage(long postId) {
