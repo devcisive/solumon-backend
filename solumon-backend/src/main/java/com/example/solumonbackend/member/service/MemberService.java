@@ -9,6 +9,7 @@ import static com.example.solumonbackend.global.exception.ErrorCode.UNREGISTERED
 import com.example.solumonbackend.global.exception.CustomSecurityException;
 import com.example.solumonbackend.global.exception.ErrorCode;
 import com.example.solumonbackend.global.exception.MemberException;
+import com.example.solumonbackend.global.exception.PostException;
 import com.example.solumonbackend.global.exception.TagException;
 import com.example.solumonbackend.global.security.JwtTokenProvider;
 import com.example.solumonbackend.member.entity.Member;
@@ -29,7 +30,9 @@ import com.example.solumonbackend.member.repository.MemberTagRepository;
 import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
+import com.example.solumonbackend.member.type.ReportSubject;
 import com.example.solumonbackend.member.type.ReportType;
+import com.example.solumonbackend.post.entity.Post;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
@@ -241,16 +244,26 @@ public class MemberService {
   @Transactional
   public void reportMember(Member member, ReportDto.Request request) {
 
+    Post reportedPost = postRepository.findById(request.getPostId())
+        .orElseThrow(() -> new PostException(ErrorCode.NOT_FOUND_POST));
+
     // 피신고자가 존재하는 유저인지 확인
     Member reportedMember = memberRepository.findById(request.getReportedMemberId())
         .orElseThrow(() -> new MemberException(NOT_FOUND_MEMBER));
 
+    // 탈퇴한 멤버는 신고불가
     if (reportedMember.getUnregisteredAt() != null) {
       throw new MemberException(UNREGISTERED_MEMBER);
     }
 
+    // 자기자신은 신고불가
+    if(reportedMember.getMemberId().equals(member.getMemberId())){
+      throw new MemberException(ErrorCode.UNABLE_VOLUNTARY_REPORT);
+    }
+
+
     // 신고유형이 OTHER인 경우 신고내용을 적어야함
-    if(request.getReportType() == ReportType.OTHER && request.getReportContent() == null){
+    if(request.getReportType() == ReportType.OTHER && request.getReportExplanation() == null){
       throw new NullPointerException("신고 상세사유를 입력해주세요.");
     }
 
@@ -269,38 +282,47 @@ public class MemberService {
       throw new MemberException(ErrorCode.COOL_TIME_REPORT_MEMBER);
     }
 
+
+    // 신고주제가 게시글인 경우 해당게시글을 신고상태로 처리
+    if(request.getReportSubject() == ReportSubject.POST){
+      reportedPost.reportPost();
+      postRepository.save(reportedPost);
+    }
+
+
     // 신고가 가능한 상태라면 신고
     reportRepository.save(
         Report.builder()
             .member(reportedMember)
+            .postId(reportedPost.getPostId())
             .reporterId(member.getMemberId())
+            .reportSubject(request.getReportSubject())
+            .reportTargetMessage(request.getReportTargetMessage())
             .reportType(request.getReportType())
-            .content(request.getReportContent())
+            .reportExplanation(request.getReportExplanation())
             .reportedAt(LocalDateTime.now())
             .build()
     );
 
-    // 정지조건 충족 시 정지상태로 변환
-    banMember(reportedMember);
   }
 
 
-  @Transactional
-  public void banMember(Member member) {
-
-    int reportedCount = reportRepository.countByMember_MemberId(member.getMemberId());
-
-    if (reportedCount >= 15) {      // 영구정지(ROLE_PERMANENT_BAN)
-      member.setRole(MemberRole.PERMANENT_BAN);
-      member.setBannedAt(LocalDateTime.now());
-
-    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
-      member.setRole(MemberRole.BANNED);
-      member.setBannedAt(LocalDateTime.now());
-    }
-
-    memberRepository.save(member);
-  }
+//  @Transactional
+//  public void banMember(Member member) {
+//
+//    int reportedCount = reportRepository.countByMember_MemberId(member.getMemberId());
+//
+//    if (reportedCount >= 15) {      // 영구정지(ROLE_PERMANENT_BAN)
+//      member.setRole(MemberRole.PERMANENT_BAN);
+//      member.setBannedAt(LocalDateTime.now());
+//
+//    } else if (reportedCount % 5 == 0) {     // 정지(BANNED)
+//      member.setRole(MemberRole.BANNED);
+//      member.setBannedAt(LocalDateTime.now());
+//    }
+//
+//    memberRepository.save(member);
+//  }
 
   // TODO : 젠킨스 적용
   @Transactional

@@ -203,6 +203,10 @@ public class PostService {
     Post post = getPost(postId);
     validatePostWriter(member, post);
 
+    if(post.getPostStatus() == PostStatus.REPORTED){
+      throw new PostException(ErrorCode.UNABLE_UPDATE_REPORTED_POST);
+    }
+
     post.setTitle(request.getTitle());
     post.setContents(request.getContents());
     postRepository.save(post);
@@ -242,6 +246,10 @@ public class PostService {
   public void deletePost(Member member, long postId) {
     Post post = getPost(postId);
     validatePostWriter(member, post);
+
+    if(post.getPostStatus() == PostStatus.REPORTED){
+      throw new PostException(ErrorCode.UNABLE_DELETE_REPORTED_POST);
+    }
 
     deleteImage(postId);
     postTagRepository.deleteAllByPost_PostId(postId);

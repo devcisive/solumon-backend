@@ -21,6 +21,8 @@ public enum ErrorCode {
   EMAIL_IS_REQUIRED("이메일 제공 항목에 동의해야 서비스를 이용할 수 있습니다."),
   UNREGISTERED_MEMBER("탈퇴한 회원입니다."),
   COOL_TIME_REPORT_MEMBER("해당 유저를 다시 신고할 수 있는 기간이 지나지 않았습니다."),
+  UNABLE_VOLUNTARY_REPORT("자기자신을 신고할 수는 없습니다."),
+
 
   // CustomSecurityException
   INVALID_REFRESH_TOKEN("refresh token이 유효하지 않습니다."),
@@ -39,6 +41,8 @@ public enum ErrorCode {
   ONLY_THE_PERSON_WHO_VOTED_CAN_CANCEL("투표를 한 사람만 취소 가능합니다."),
   WRITER_CAN_NOT_VOTE("작성자는 투표를 할 수 없습니다."),
   IMAGE_CAN_NOT_SAVE("이미지를 저장하는 중 오류가 발생했습니다."),
+  UNABLE_DELETE_REPORTED_POST("신고상태인 게시글은 삭제할 수 없습니다."),
+  UNABLE_UPDATE_REPORTED_POST("신고상태인 게시글은 수정할 수 없습니다."),
 
   // TagException
   NOT_FOUND_TAG("해당 태그를 찾을 수 없습니다."),
