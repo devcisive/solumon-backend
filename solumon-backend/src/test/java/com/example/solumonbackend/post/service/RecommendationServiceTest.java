@@ -117,6 +117,8 @@ class RecommendationServiceTest {
         .chatCount(0)
         .build();
 
+
+
     double[] targetVector = new double[] {1, 1, 1};
 
     score1 = calculateCosineSimilarity(targetVector, new double[] {1, 1, 0});
@@ -156,6 +158,7 @@ class RecommendationServiceTest {
         .post(post7)
         .score(score7)
         .build();
+
   }
 
   @Test

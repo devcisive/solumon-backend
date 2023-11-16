@@ -58,6 +58,10 @@ class PostControllerTest_Recommend {
   double score1, score2, score3, score5, score6, score7;
   Recommend r1, r2, r3, r5, r6, r7;
 
+  Post deletedPost;
+  Recommend rd;
+
+
 /*
  testMember의 관심 태그: 태그1, 태그2, 태그3
  유사도: post1 = post2 -> post3 && post5 = post6 -> post7
@@ -195,6 +199,24 @@ class PostControllerTest_Recommend {
         .build();
 
     recommendRepository.saveAll(List.of(r1, r2, r3, r5, r6, r7));
+
+
+    deletedPost = Post.builder()
+        .title("deletedPost")
+        .member(testMember)
+        .createdAt(LocalDateTime.now().minusDays(2))
+        .endAt(LocalDateTime.now().plusDays(1))
+        .voteCount(10)
+        .chatCount(5)
+        .postStatus(PostStatus.DELETED)
+        .build();
+
+    rd = Recommend.builder()
+        .memberId(testMember.getMemberId())
+        .post(deletedPost)
+        .score(score1)
+        .build();
+
   }
 
   @Test
