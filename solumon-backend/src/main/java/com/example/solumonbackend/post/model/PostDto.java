@@ -30,6 +30,7 @@ public class PostDto {
   @NoArgsConstructor
   public static class ImageDto {
     private String image;
+    private String name;
     private int index;
     private boolean representative;
   }
