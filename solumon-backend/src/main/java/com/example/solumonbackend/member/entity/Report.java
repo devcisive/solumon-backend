@@ -1,5 +1,6 @@
 package com.example.solumonbackend.member.entity;
 
+import com.example.solumonbackend.member.type.ReportSubject;
 import com.example.solumonbackend.member.type.ReportType;
 import java.time.LocalDateTime;
 import javax.persistence.Entity;
@@ -34,11 +35,18 @@ public class Report {
 
   private Long reporterId;
 
+  private Long postId;
+
+  private ReportSubject reportSubject;
+
+  private String reportTargetMessage;
+
   @Enumerated(value = EnumType.STRING)
   private ReportType reportType;
 
-  private String content;
+  private String reportExplanation;
 
   private LocalDateTime reportedAt;
 
 }
+
