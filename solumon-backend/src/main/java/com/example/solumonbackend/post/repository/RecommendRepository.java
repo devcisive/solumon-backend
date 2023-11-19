@@ -10,4 +10,5 @@ public interface RecommendRepository extends JpaRepository<Recommend, Long> {
 
   List<Recommend> findAllByMemberIdAndPostModifiedAtIsAfter(Long memberId, LocalDateTime localDateTime);
   boolean existsByMemberId(Long memberId);
+  void deleteAllByMemberId(Long memberId);
 }

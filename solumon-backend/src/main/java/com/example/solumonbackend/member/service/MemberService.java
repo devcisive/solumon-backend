@@ -30,14 +30,21 @@ import com.example.solumonbackend.member.repository.RefreshTokenRedisRepository;
 import com.example.solumonbackend.member.repository.ReportRepository;
 import com.example.solumonbackend.member.type.MemberRole;
 import com.example.solumonbackend.member.type.ReportType;
+import com.example.solumonbackend.post.entity.Post;
+import com.example.solumonbackend.post.entity.PostTag;
+import com.example.solumonbackend.post.entity.Recommend;
 import com.example.solumonbackend.post.entity.Tag;
 import com.example.solumonbackend.post.model.MyParticipatePostDto;
 import com.example.solumonbackend.post.repository.PostRepository;
+import com.example.solumonbackend.post.repository.PostTagRepository;
+import com.example.solumonbackend.post.repository.RecommendRepository;
 import com.example.solumonbackend.post.repository.TagRepository;
 import com.example.solumonbackend.post.type.PostOrder;
 import com.example.solumonbackend.post.type.PostParticipateType;
 import com.example.solumonbackend.post.type.PostStatus;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -62,6 +69,8 @@ public class MemberService {
   private final TagRepository tagRepository;
   private final MemberTagRepository memberTagRepository;
   private final ReportRepository reportRepository;
+  private final RecommendRepository recommendRepository;
+  private final PostTagRepository postTagRepository;
 
   @Transactional
   public GeneralSignUpDto.Response signUp(GeneralSignUpDto.Request request) {
@@ -229,6 +238,15 @@ public class MemberService {
         .stream().map(memberTag -> memberTag.getTag().getName())
         .collect(Collectors.toList());
 
+    // 설정되었거나 바뀐 관심 주제에 따라 추천 항목 교체
+    recommendRepository.deleteAllByMemberId(member.getMemberId());
+
+    List<Post> possiblePosts = postTagRepository.findDistinctByTagIn(tags)
+        .stream().map(PostTag::getPost).distinct().collect(Collectors.toList());
+
+    recommendRepository.saveAll(getCosineSimilarityOfPosts(possiblePosts, member.getMemberId(), tags, tags.size()));
+
+
     // 후에 로그인할 때 관심태그 창을 자동으로 띄우지 않게 하기 위함
     if (member.isFirstLogIn()) {
       member.setFirstLogIn(false);
@@ -237,6 +255,51 @@ public class MemberService {
 
     return MemberInterestDto.Response.memberToResponse(member, memberTags);
   }
+
+  private List<Recommend> getCosineSimilarityOfPosts(List<Post> possiblePosts, Long memberId,
+      List<Tag> interestTags, int interestTagsSize) {
+    // 모든 관심 주제 태그를 가지고 있는 가상의 게시글의 벡터
+    double[] targetVector = new double[interestTagsSize];
+    Arrays.fill(targetVector, 1);
+    // 게시글의 벡터 -> 똑같은 배열 계속 사용하려고 밖으로 뺌
+    double[] tagVector = new double[interestTagsSize];
+
+    List<Recommend> result = new ArrayList<>();
+
+    // 게시글 목록의 각 게시글에 대하여
+    for (Post post : possiblePosts) {
+      // 해당 게시글의 태그 목록을 가져옴
+      List<Tag> postTags = postTagRepository.findAllByPost_PostId(post.getPostId()).stream().map(PostTag::getTag)
+          .collect(Collectors.toList());
+      for (int i = 0; i < interestTagsSize; i++) {
+        // 각 관심 주제에 대해 해당 게시글의 태그 목록에 그 관심 주제가 포함되어 있으면 1, 없으면 0
+        Tag interestTag = interestTags.get(i);
+        tagVector[i] = postTags.contains(interestTag) ? 1 : 0;
+      }
+
+      // 벡터 값 산출이 끝나면 모든 관심 주제 태그를 달고 있는 글과의 코사인 유사도를 계산하여 저장함
+      result.add(Recommend.builder()
+          .memberId(memberId)
+          .post(post)
+          .score(calculateCosineSimilarity(targetVector, tagVector))
+          .build());
+    }
+    return result;
+  }
+
+  // 코사인 유사도 구하는 공식
+  private double calculateCosineSimilarity(double[] targetVector, double[] tagVector) {
+    double dotProduct = 0.0;
+    double normA = 0.0;
+    double normB = 0.0;
+    for (int i = 0; i < tagVector.length; i++) {
+      dotProduct += targetVector[i] * tagVector[i];
+      normA += Math.pow(targetVector[i], 2);
+      normB += Math.pow(tagVector[i], 2);
+    }
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
 
   @Transactional
   public void reportMember(Member member, ReportDto.Request request) {

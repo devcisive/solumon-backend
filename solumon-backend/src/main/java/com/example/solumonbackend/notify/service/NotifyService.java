@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -132,6 +133,7 @@ public class NotifyService {
     return notifyListToResponse(member.getMemberId(), allNotifyList);
   }
 
+  @Transactional
   public void deleteAllNotify(Member member) {
     notifyRepository.deleteAllByMember_MemberId(member.getMemberId());
   }
