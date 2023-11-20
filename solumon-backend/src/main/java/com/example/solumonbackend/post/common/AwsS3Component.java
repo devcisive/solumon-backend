@@ -30,10 +30,10 @@ public class AwsS3Component {
   private String bucket;
 
   public AwsS3 upload(MultipartFile multipartFile, String dirName) throws IOException {
-    // MultipartFile -> File 객체로 변환
     if (multipartFile.isEmpty()) {
       return null;
     }
+    // MultipartFile -> File 객체로 변환
     File file = convertMultipartFileToFile(multipartFile)
         .orElseThrow(() -> new IllegalArgumentException(ErrorCode.IMAGE_CAN_NOT_SAVE.getDescription()
             + " : MultipartFile -> File convert fail"));
@@ -54,7 +54,7 @@ public class AwsS3Component {
   }
 
   private String randomFileName(File file, String dirName) {
-    return dirName + "/" + UUID.randomUUID() + file.getName();
+    return dirName + "/" + UUID.randomUUID() + "+" + file.getName();
   }
 
   private String putS3(File uploadFile, String fileName) {
@@ -75,7 +75,7 @@ public class AwsS3Component {
     file.delete();
   }
 
-  public Optional<File> convertMultipartFileToFile(MultipartFile multipartFile) throws IOException {
+  private Optional<File> convertMultipartFileToFile(MultipartFile multipartFile) throws IOException {
     // 현재 작업 디렉토리와 원래 파일 이름을 결합해 새로운 file 객체 생성
     File file = new File(System.getProperty("user.dir") + "/" + multipartFile.getOriginalFilename());
     log.debug("file 객체 생성");
